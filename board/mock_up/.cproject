@@ -54,7 +54,9 @@
 							<builder buildPath="${workspace_loc:/Unica_2018_STM32F405}/Debug" id="ilg.gnuarmeclipse.managedbuild.cross.builder.1662794035" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="ilg.gnuarmeclipse.managedbuild.cross.builder"/>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.15590866" name="Cross ARM GNU Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.325649236" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" value="true" valueType="boolean"/>
-								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.64823080" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true"/>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.64823080" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
+									<listOptionValue builtIn="false" value="/usr/include/newlib"/>
+								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.726797778" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG"/>
 									<listOptionValue builtIn="false" value="USE_FULL_ASSERT"/>
@@ -80,8 +82,8 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mock_up/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mock_up/src/drivers}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mock_up/src/library}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mock_up/mavlink-messages}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mock_up/src/modules}&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/include/newlib"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.855824507" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG"/>
@@ -109,7 +111,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mock_up/src/drivers}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mock_up/src/library}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mock_up/src/modules}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mock_up/mavlink-messages}&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/include/newlib"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.686799775" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti.1704381575" name="Do not use RTTI (-fno-rtti)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti" useByScannerDiscovery="true" value="true" valueType="boolean"/>
@@ -293,7 +295,9 @@
 							<builder buildPath="${workspace_loc:/Unica_2018_STM32F405}/Release" id="ilg.gnuarmeclipse.managedbuild.cross.builder.560392166" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="ilg.gnuarmeclipse.managedbuild.cross.builder"/>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.1437437717" name="Cross ARM GNU Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.2094566210" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" useByScannerDiscovery="false" value="true" valueType="boolean"/>
-								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.1995557444" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true"/>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.1995557444" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
+									<listOptionValue builtIn="false" value="/usr/include/newlib"/>
+								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.737417184" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG"/>
 									<listOptionValue builtIn="false" value="STM32F405xx"/>
@@ -318,6 +322,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Unica_2018_STM32F405/src/library}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Unica_2018_STM32F405/src/modules}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Unica_2018_STM32F405/mavlink-messages}&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/include/newlib"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.39386583" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG"/>
@@ -343,6 +348,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Unica_2018_STM32F405/src/library}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Unica_2018_STM32F405/src/modules}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Unica_2018_STM32F405/mavlink-messages}&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/include/newlib"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.637249994" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti.891136603" name="Do not use RTTI (-fno-rtti)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti" useByScannerDiscovery="true" value="true" valueType="boolean"/>

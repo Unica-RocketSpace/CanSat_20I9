@@ -58,38 +58,38 @@ endif
 
 # Add inputs and outputs from these tool invocations to the build variables 
 SECONDARY_FLASH += \
-Unica_20I9_STM32F405.hex \
+mock_up.hex \
 
 SECONDARY_SIZE += \
-Unica_20I9_STM32F405.siz \
+mock_up.siz \
 
 
 # All Target
-all: Unica_20I9_STM32F405.elf secondary-outputs
+all: mock_up.elf secondary-outputs
 
 # Tool invocations
-Unica_20I9_STM32F405.elf: $(OBJS) $(USER_OBJS)
+mock_up.elf: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: Cross ARM GNU C++ Linker'
-	arm-none-eabi-g++ -mcpu=cortex-m4 -march=armv7e-m -mthumb -mlittle-endian -mfloat-abi=hard -mfpu=fpv4-sp-d16 -Og -fmessage-length=0 -fsigned-char -ffunction-sections -fdata-sections -fno-move-loop-invariants -Wall -Wextra  -g3 -T mem.ld -T libs.ld -T sections.ld -nostartfiles -Xlinker --gc-sections -L"../ldscripts" -Wl,-Map,"Unica_20I9_STM32F405.map" --specs=nano.specs -u _printf_float -o "Unica_20I9_STM32F405.elf" $(OBJS) $(USER_OBJS) $(LIBS)
+	arm-none-eabi-g++ -mcpu=cortex-m4 -march=armv7e-m -mthumb -mlittle-endian -mfloat-abi=hard -mfpu=fpv4-sp-d16 -Og -fmessage-length=0 -fsigned-char -ffunction-sections -fdata-sections -fno-move-loop-invariants -Wall -Wextra  -g3 -T mem.ld -T libs.ld -T sections.ld -nostartfiles -Xlinker --gc-sections -L"../ldscripts" -Wl,-Map,"mock_up.map" --specs=nano.specs -u _printf_float -o "mock_up.elf" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
-Unica_20I9_STM32F405.hex: Unica_20I9_STM32F405.elf
+mock_up.hex: mock_up.elf
 	@echo 'Invoking: Cross ARM GNU Create Flash Image'
-	arm-none-eabi-objcopy -O ihex "Unica_20I9_STM32F405.elf"  "Unica_20I9_STM32F405.hex"
+	arm-none-eabi-objcopy -O ihex "mock_up.elf"  "mock_up.hex"
 	@echo 'Finished building: $@'
 	@echo ' '
 
-Unica_20I9_STM32F405.siz: Unica_20I9_STM32F405.elf
+mock_up.siz: mock_up.elf
 	@echo 'Invoking: Cross ARM GNU Print Size'
-	arm-none-eabi-size --format=berkeley "Unica_20I9_STM32F405.elf"
+	arm-none-eabi-size --format=berkeley "mock_up.elf"
 	@echo 'Finished building: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) $(CC_DEPS)$(C++_DEPS)$(OBJS)$(C_UPPER_DEPS)$(CXX_DEPS)$(SECONDARY_FLASH)$(SECONDARY_SIZE)$(ASM_DEPS)$(S_UPPER_DEPS)$(C_DEPS)$(CPP_DEPS) Unica_20I9_STM32F405.elf
+	-$(RM) $(CC_DEPS)$(C++_DEPS)$(OBJS)$(C_UPPER_DEPS)$(CXX_DEPS)$(SECONDARY_FLASH)$(SECONDARY_SIZE)$(ASM_DEPS)$(S_UPPER_DEPS)$(C_DEPS)$(CPP_DEPS) mock_up.elf
 	-@echo ' '
 
 secondary-outputs: $(SECONDARY_FLASH) $(SECONDARY_SIZE)

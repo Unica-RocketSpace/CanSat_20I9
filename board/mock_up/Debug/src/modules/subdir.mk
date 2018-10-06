@@ -4,17 +4,14 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../src/modules/dynamic_unit.c \
 ../src/modules/kinematic_unit.c \
 ../src/modules/telemetry.c 
 
 OBJS += \
-./src/modules/dynamic_unit.o \
 ./src/modules/kinematic_unit.o \
 ./src/modules/telemetry.o 
 
 C_DEPS += \
-./src/modules/dynamic_unit.d \
 ./src/modules/kinematic_unit.d \
 ./src/modules/telemetry.d 
 

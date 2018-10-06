@@ -13,16 +13,11 @@
 #include "diag/Trace.h"
 #include <FreeRTOS.h>
 #include "task.h"
-#include "mavlink/UNISAT/mavlink.h"
-
 
 #include "state.h"
 #include "kinematic_unit.h"
-#include "dynamic_unit.h"
-#include "gps_nmea.h"
 #include "MPU9255.h"
 #include "UNICS_bmp280.h"
-#include "nRF24L01.h"
 #include "telemetry.h"
 
 // ----- Timing definitions -------------------------------------------------
@@ -57,31 +52,11 @@ state_system_t		state_system_prev;
 stateCamera_orient_t stateCamera_orient_prev;
 
 
-//	параметры IO_RF_task
-#define IO_RF_TASK_STACK_SIZE (50*configMINIMAL_STACK_SIZE)
-static StackType_t	_iorfTaskStack[IO_RF_TASK_STACK_SIZE];
-static StaticTask_t	_iorfTaskObj;
-
-
-//	параметры GPS_task
-#define GPS_TASK_STACK_SIZE (80*configMINIMAL_STACK_SIZE)
-static StackType_t _gpsTaskStack[GPS_TASK_STACK_SIZE];
-static StaticTask_t _gpsTaskObj;
 
 //	параметры IMU_task
 #define IMU_TASK_STACK_SIZE (60*configMINIMAL_STACK_SIZE)
 static StackType_t	_IMUTaskStack[IMU_TASK_STACK_SIZE];
 static StaticTask_t	_IMUTaskObj;
-
-//	параметры MOTORS_task
-#define MOTORS_TASK_STACK_SIZE (40*configMINIMAL_STACK_SIZE)
-static StackType_t	_MOTORSTaskStack[MOTORS_TASK_STACK_SIZE];
-static StaticTask_t	_MOTORSTaskObj;
-
-
-#define CALIBRATION_TASK_STACK_SIZE (20*configMINIMAL_STACK_SIZE)
-static StackType_t	_CALIBRATIONTaskStack[MOTORS_TASK_STACK_SIZE];
-static StaticTask_t	_CALIBRATIONTaskObj;
 
 
 void CALIBRATION_task() {
@@ -111,7 +86,7 @@ void CALIBRATION_task() {
 		mpu9255_recalcGyro(gyroData, gyro);
 		mpu9255_recalcCompass(compassData, compass);
 
-
+/*
 		//	transmitting raw values
 		mavlink_imu_rsc_t msg_imu_rsc;
 		msg_imu_rsc.time = (float)HAL_GetTick() / 1000;
@@ -127,15 +102,15 @@ void CALIBRATION_task() {
 		uint8_t buffer[100];
 		len = mavlink_msg_to_send_buffer(buffer, &msg);
 		nRF24L01_send(&spi_nRF24L01, buffer, len, 1);
-
+*/
 
 		//	flashing the led
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
 
 		//	rotating the motor
 //		float tickstart = HAL_GetTick();
-		float STEP_DEGREES = M_PI / 2;
-		rotate_step_engine_by_angles(&STEP_DEGREES);
+		//float STEP_DEGREES = M_PI / 2;
+		//rotate_step_engine_by_angles(&STEP_DEGREES);
 
 		vTaskDelay(2000);
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
@@ -176,19 +151,13 @@ int main(int argc, char* argv[])
 
 	xTaskCreateStatic(IMU_task, 	"IMU", 		IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack, 	&_IMUTaskObj);
 
-	xTaskCreateStatic(IO_RF_task, 	"IO_RF", 	IO_RF_TASK_STACK_SIZE,	NULL, 1, _iorfTaskStack, 	&_iorfTaskObj);
-
-	xTaskCreateStatic(MOTORS_task,	"MOTORS", 	MOTORS_TASK_STACK_SIZE, NULL, 1, _MOTORSTaskStack, 	&_MOTORSTaskObj);
-
-	xTaskCreateStatic(GPS_task, 	"GPS", 		GPS_TASK_STACK_SIZE, 	NULL, 1, _gpsTaskStack, 	&_gpsTaskObj);
+	//xTaskCreateStatic(IO_RF_task, 	"IO_RF", 	IO_RF_TASK_STACK_SIZE,	NULL, 1, _iorfTaskStack, 	&_iorfTaskObj);
 
 
 //	xTaskCreateStatic(CALIBRATION_task, "CALIBRATION", CALIBRATION_TASK_STACK_SIZE, NULL, 1, _CALIBRATIONTaskStack, &_CALIBRATIONTaskObj);
 
-	IO_RF_Init();
+	//IO_RF_Init();
 	IMU_Init();
-	MOTORS_Init();
-	GPS_Init();
 	HAL_Delay(300);
 
 //	HAL_InitTick(15);

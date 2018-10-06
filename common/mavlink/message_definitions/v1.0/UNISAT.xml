@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+<mavlink>
+        <include>common.xml</include>
+        <!-- NOTE: If the included file already contains a version tag, remove the version tag here, else uncomment to enable. -->
+        <!--<version>3</version>-->
+    <enums>
+    </enums>
+
+    <messages>
+
+        <message id="150" name="STATE">
+            <description>State of all UNISAT's devices</description>
+            <field type="float" name="time">current time</field>
+            <field type="uint8_t" name="MPU_state">state of MPU9255</field>
+            <field type="uint8_t" name="BMP_state">state of barometer</field>
+            <field type="uint8_t" name="SD_state">state of SD</field>
+            <field type="uint8_t" name="NRF_state">state of NRF24L01</field>
+            <field type="uint8_t" name="MOTOR_state">state of motor</field>
+            <field type="uint8_t" name="GPS_state">state of GPS-module</field>
+            <field type="uint8_t" name="globalStage">current global stage number</field>
+        </message>
+
+
+        <message id="151" name="IMU_rsc">
+            <description>IMU data in RSC</description>
+            <field type="float[3]" name="accel">accelerations</field>
+            <field type="float[3]" name="gyro">angle velocities</field>
+            <field type="float[3]" name="compass">compass (magnetometer) vector</field>
+            <field type="float" name="time">current time</field>
+        </message>
+
+
+        <message id="152" name="IMU_isc">
+            <description>IMU data in ISC</description>
+            <field type="float[3]" name="accel">accelerations</field>
+            <field type="float[3]" name="compass">compass (magnetometer) vector</field>
+            <field type="float[3]" name="velocities">velocities</field>
+            <field type="float[3]" name="coordinates">coordinates from IMU</field>
+            <field type="float[4]" name="quaternion">quaternion for translating RSC into ISC</field>
+            <field type="float" name="time">current time</field>
+        </message>
+
+
+        <message id="153" name="Sensors">
+            <description>Baro data and temp</description>
+            <field type="float" name="temp">temperature</field>
+            <field type="float" name="pressure">pressure</field>
+            <field type="float" name="height">height</field>
+            <field type="float" name="time">current time</field>
+        </message>
+
+
+        <message id="154" name="GPS">
+            <description>GPS data</description>
+            <field type="float[3]" name="coordinates">coordinates from GPS</field>
+            <field type="float" name="time">current time</field>
+        </message>
+
+
+        <message id="155" name="Camera_Orientation">
+            <description>Orientation of camera unit</description>
+            <field type="float" name="servo_pos">position of servo motor</field>
+            <field type="float" name="step_engine_pos">position of step angine</field>
+            <field type="float" name="time">current time</field>
+        </message>
+
+
+        <message id="156" name="STATE_ZERO">
+            <description>Zero parameters of UNISAT</description>
+            <field type="float" name="zero_pressure">pressure at zero level (on the earth)</field>
+            <field type="float[4]" name="zero_quaternion">quaternion at zero level (on the earth)</field>
+            <field type="float[3]" name="zero_GPS">GPS coordinates at zero level (on the earth)</field>
+            <field type="float[3]" name="gyro_staticShift">Static shift of gyro</field>
+            <field type="float[3]" name="accel_staticShift">Static shift of accel</field>
+            <field type="float" name="time">current time</field>
+        </message>
+
+
+        <message id="157" name="ATMEGA">
+            <description>ATMega data</description>
+            <field type="float" name="time">current time</field>
+            <field type="float" name="pressure">pressure</field>
+            <field type="float" name="height">height</field>
+            <field type="float" name="temp">temp</field>
+            <field type="uint8_t" name="baro_state">state of baro</field>
+            <field type="uint8_t" name="motor_state">state of motor</field>
+            <field type="uint8_t" name="para_state">state of parashute</field>
+            <field type="uint8_t" name="globalStage">stage</field>
+        </message>
+
+        <message id="158" name="CMD">
+            <description>Msg to send commands from GSC to UNISAT</description>
+            <field type="uint8_t" name="cmd"> </field>
+        </message>
+    </messages>
+</mavlink>

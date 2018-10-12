@@ -17,7 +17,6 @@
 #include "task.h"
 
 #include "kinematic_unit.h"
-#include "dynamic_unit.h"
 #include "MadgwickAHRS.h"
 #include "MPU9255.h"
 #include "state.h"

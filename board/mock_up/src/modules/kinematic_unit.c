@@ -38,19 +38,6 @@ rscs_bmp280_descriptor_t * bmp280;
 const rscs_bmp280_calibration_values_t * bmp280_calibration_values;
 
 
-//void apply_KalmanFilter(float * sensor_data, const float * sensor_data_prev, float Kalman_gain, int data_array_size) {
-//	for (int i = 0; i < data_array_size; i++)
-//		sensor_data[i] = Kalman_gain * sensor_data[i] + (1 - Kalman_gain) * sensor_data_prev[i];
-//}
-//
-//void apply_NoiseFilter(float * sensor_data, float noise, int data_array_size) {
-//	for (int i = 0; i < data_array_size; i++)
-//	{
-//		if (fabsf(sensor_data[i]) < noise)
-//				sensor_data[i] = 0;
-//	}
-//}
-
 uint8_t get_gyro_staticShift(float* gyro_staticShift) {
 	uint8_t error = 0;
 	uint16_t zero_orientCnt = 200;
@@ -76,6 +63,7 @@ uint8_t get_gyro_staticShift(float* gyro_staticShift) {
 end:
 	return error;
 }
+
 
 uint8_t get_accel_staticShift(float* gyro_staticShift, float* accel_staticShift) {
 	uint8_t error = 0;
@@ -192,37 +180,6 @@ taskENTER_CRITICAL();
 taskEXIT_CRITICAL();
 ////////////////////////////////////////////////////
 
-
-///////  ОБНОВЛЯЕМ КООРДИНАТЫ И СКОРОСТИ  //////////
-	if (state_system.globalStage >= 2) {
-
-		float delta_velo[3] = {0, 0, 0};
-		float delta_coord[3] = {0, 0, 0};
-		float accel_ISC_prev[3] = {0, 0, 0};
-		float velo[3] = {0, 0, 0};
-		float velo_prev[3] = {0, 0, 0};
-	taskENTER_CRITICAL();
-		for (int i = 0; i < 3; i++) {
-			accel_ISC_prev[i] = stateIMU_isc_prev.accel[i];
-			velo[i] = stateIMU_isc.velocities[i];
-			velo_prev[i] = stateIMU_isc_prev.velocities[i];
-		}
-	taskEXIT_CRITICAL();
-
-		for (int i = 0; i < 3; i++) {
-			delta_velo[i] = (accel_ISC[i] + accel_ISC_prev[i]) * dt / 2;
-			delta_coord[i] = (velo[i] + velo_prev[i]) * dt / 2;
-		}
-
-	taskENTER_CRITICAL();
-		for (int i = 0; i < 3; i++) {
-			stateIMU_isc.velocities[i] += delta_velo[i];
-			stateIMU_isc.coordinates[i] += delta_coord[i];
-		}
-	taskEXIT_CRITICAL();
-}
-////////////////////////////////////////////////////
-
 end:
 	return error;
 }
@@ -271,7 +228,7 @@ taskENTER_CRITICAL();
 	memcpy(&stateIMU_isc_prev, 			&stateIMU_isc,			sizeof(stateIMU_isc));
 	memcpy(&stateSensors_prev,			&stateSensors, 			sizeof(stateSensors));
 	memcpy(&state_system_prev, 			&state_system,		 	sizeof(state_system));
-	memcpy(&stateCamera_orient_prev, 	&stateCamera_orient, 	sizeof(stateCamera_orient));
+	//	memcpy(&stateCamera_orient_prev, 	&stateCamera_orient, 	sizeof(stateCamera_orient));
 taskEXIT_CRITICAL();
 }
 
@@ -299,16 +256,16 @@ void IMU_Init() {
 
 
 void IMU_task() {
+	static uint8_t counter = 0;
 
 	for (;;) {
 //		vTaskDelay(10/portTICK_RATE_MS);
 		// Этап 0. Подтверждение инициализации отправкой пакета состояния и ожидание ответа от НС
-		if (state_system.globalStage == 0) {
-		}
+//		if (state_system.globalStage == 0) {
+//		}
 
 		// Этап 1. Определение начального состояния
-		if (state_system.globalStage == 1) {
-			static uint8_t counter = 0;
+//		if (state_system.globalStage == 1) {
 
 			if (counter == 0) {
 				vTaskDelay(10000);
@@ -318,8 +275,6 @@ void IMU_task() {
 				_IMUtask_updateData();
 			taskENTER_CRITICAL();
 				state_zero.zero_pressure = stateSensors.pressure;
-				for (int i = 0; i < 3; i++)
-					state_zero.zero_GPS[i] = stateGPS.coordinates[i];
 				for (int i = 0; i < 4; i++)
 					state_zero.zero_quaternion[i] = stateIMU_isc.quaternion[i];
 			taskEXIT_CRITICAL();
@@ -329,55 +284,6 @@ void IMU_task() {
 			bmp280_update();
 			IMU_updateDataAll();
 			_IMUtask_updateData();
-
-		}
-		// Этап 2. Полет в ракете
-		if (state_system.globalStage == 2) {
-			bmp280_update();
-			IMU_updateDataAll();
-			_IMUtask_updateData();
-
-			// ОПРЕДЕЛЯЕМ НАЧАЛО ПАДЕНИЯ
-			static int exit_cnt = 0;
-			taskENTER_CRITICAL();
-			exit_cnt = (stateSensors.pressure > stateSensors_prev.pressure) ? (exit_cnt+1) : 0;
-			if (exit_cnt == 5)
-				state_system.globalStage = 3;
-			taskEXIT_CRITICAL();
-		}
-		// Этап 3. Свободное падение
-		if (state_system.globalStage == 3) {
-			bmp280_update();
-			IMU_updateDataAll();
-			_IMUtask_updateData();
-
-//			// ОПРЕДЕЛЯЕМ НАЧАЛО СПУСКА
-//			taskENTER_CRITICAL();
-//			if (stateSensors.height <= 270)
-//				state_system.globalStage = 4;
-//			taskEXIT_CRITICAL();
-		}
-		// Этап 4. Спуск
-		if (state_system.globalStage == 4) {
-			bmp280_update();
-			IMU_updateDataAll();
-			_IMUtask_updateData();
-
-			//	FIXME: RETURN
-//			// ОПРЕДЕЛЯЕМ НАЧАЛО СПУСКА
-//			static int exit_cnt = 0;
-//			taskENTER_CRITICAL();
-//			exit_cnt = (fabs(stateSensors_prev.height - stateSensors.height) < 0.005) ? (exit_cnt+1) : 0;
-//			if (exit_cnt == 5)
-//				state_system.globalStage = 5;
-//			taskEXIT_CRITICAL();
-		}
-		// Этап 5. Окончание полета
-		if (state_system.globalStage == 5) {
-			bmp280_update();
-			IMU_updateDataAll();
-			_IMUtask_updateData();
-		}
 	}
 
 /*

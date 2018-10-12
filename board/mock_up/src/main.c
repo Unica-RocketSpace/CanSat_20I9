@@ -38,20 +38,24 @@
 
 // глобальные структуры
 stateSensors_raw_t 	stateSensors_raw;
-stateGPS_t 			stateGPS;
 stateIMU_rsc_t 		stateIMU_rsc;
 stateIMU_isc_t 		stateIMU_isc;
 stateSensors_t 		stateSensors;
-stateCamera_orient_t stateCamera_orient;
 state_system_t 		state_system;
 state_zero_t		state_zero;
 
 stateIMU_isc_t		stateIMU_isc_prev;
 stateSensors_t		stateSensors_prev;
 state_system_t		state_system_prev;
-stateCamera_orient_t stateCamera_orient_prev;
+	//stateGPS_t 			stateGPS;
+	//stateCamera_orient_t stateCamera_orient;
+	//stateCamera_orient_t stateCamera_orient_prev;
 
 
+//	параметры IO_RF_task
+#define IO_RF_TASK_STACK_SIZE (50*configMINIMAL_STACK_SIZE)
+static StackType_t	_iorfTaskStack[IO_RF_TASK_STACK_SIZE];
+static StaticTask_t	_iorfTaskObj;
 
 //	параметры IMU_task
 #define IMU_TASK_STACK_SIZE (60*configMINIMAL_STACK_SIZE)
@@ -86,31 +90,9 @@ void CALIBRATION_task() {
 		mpu9255_recalcGyro(gyroData, gyro);
 		mpu9255_recalcCompass(compassData, compass);
 
-/*
-		//	transmitting raw values
-		mavlink_imu_rsc_t msg_imu_rsc;
-		msg_imu_rsc.time = (float)HAL_GetTick() / 1000;
-	taskENTER_CRITICAL();
-		for (int i = 0; i < 3; i++) {
-			msg_imu_rsc.accel[i] = accel[i];
-			msg_imu_rsc.gyro[i] = gyro[i];
-			msg_imu_rsc.compass[i] = compass[i];
-		}
-	taskEXIT_CRITICAL();
-		mavlink_message_t msg;
-		uint16_t len = mavlink_msg_imu_rsc_encode(0, 0, &msg, &msg_imu_rsc);
-		uint8_t buffer[100];
-		len = mavlink_msg_to_send_buffer(buffer, &msg);
-		nRF24L01_send(&spi_nRF24L01, buffer, len, 1);
-*/
 
 		//	flashing the led
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
-
-		//	rotating the motor
-//		float tickstart = HAL_GetTick();
-		//float STEP_DEGREES = M_PI / 2;
-		//rotate_step_engine_by_angles(&STEP_DEGREES);
 
 		vTaskDelay(2000);
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
@@ -121,7 +103,6 @@ void CALIBRATION_task() {
 		error = 0;
 		continue;
 	}
-
 }
 
 
@@ -129,34 +110,29 @@ int main(int argc, char* argv[])
 {
 	// Инициализация структур глобального состояния (в нашем случае просто заполняем их нулями)
 	memset(&stateSensors_raw, 	0x00, sizeof(stateSensors_raw));
-	memset(&stateGPS, 			0x00, sizeof(stateGPS));
 	memset(&stateIMU_rsc, 		0x00, sizeof(stateIMU_rsc));
 	memset(&stateIMU_isc, 		0x00, sizeof(stateIMU_isc));
 	memset(&stateSensors, 		0x00, sizeof(stateSensors));
-	memset(&stateCamera_orient, 0x00, sizeof(stateCamera_orient));
 	memset(&state_system, 		0x00, sizeof(state_system));
 	memset(&state_zero, 		0x00, sizeof(state_zero));
 
 	memset(&stateIMU_isc_prev, 			0x00, sizeof(stateIMU_isc_prev));
 	memset(&stateSensors_prev,			0x00, sizeof(stateSensors_prev));
 	memset(&state_system_prev, 			0x00, sizeof(state_system_prev));
-	memset(&stateCamera_orient_prev, 	0x00, sizeof(stateCamera_orient_prev));
+
 
 	state_system.BMP_state = 255;
-	state_system.GPS_state = 255;
-	state_system.MOTOR_state = 255;
 	state_system.MPU_state = 255;
-	state_system.NRF_state = 255;
 	state_system.SD_state = 255;
 
 	xTaskCreateStatic(IMU_task, 	"IMU", 		IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack, 	&_IMUTaskObj);
 
-	//xTaskCreateStatic(IO_RF_task, 	"IO_RF", 	IO_RF_TASK_STACK_SIZE,	NULL, 1, _iorfTaskStack, 	&_iorfTaskObj);
+	xTaskCreateStatic(IO_RF_task, 	"IO_RF", 	IO_RF_TASK_STACK_SIZE,	NULL, 1, _iorfTaskStack, 	&_iorfTaskObj);
 
 
 //	xTaskCreateStatic(CALIBRATION_task, "CALIBRATION", CALIBRATION_TASK_STACK_SIZE, NULL, 1, _CALIBRATIONTaskStack, &_CALIBRATIONTaskObj);
 
-	//IO_RF_Init();
+	IO_RF_Init();
 	IMU_Init();
 	HAL_Delay(300);
 

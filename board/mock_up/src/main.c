@@ -20,6 +20,7 @@
 #include "UNICS_bmp280.h"
 #include "telemetry.h"
 
+
 // ----- Timing definitions -------------------------------------------------
 
 // Keep the LED on for 2/3 of a second.
@@ -64,13 +65,13 @@ static StaticTask_t	_IMUTaskObj;
 
 
 void CALIBRATION_task() {
-	GPIO_InitTypeDef gpioc;
-	gpioc.Mode = GPIO_MODE_OUTPUT_PP;
-	gpioc.Pin = GPIO_PIN_12;
-	gpioc.Pull = GPIO_NOPULL;
-	gpioc.Speed = GPIO_SPEED_FREQ_HIGH;
-	HAL_GPIO_Init(GPIOC, &gpioc);
-	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
+//	GPIO_InitTypeDef gpioc;
+//	gpioc.Mode = GPIO_MODE_OUTPUT_PP;
+//	gpioc.Pin = GPIO_PIN_12;
+//	gpioc.Pull = GPIO_NOPULL;
+//	gpioc.Speed = GPIO_SPEED_FREQ_HIGH;
+//	HAL_GPIO_Init(GPIOC, &gpioc);
+//	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
 
 	uint8_t error = 0;
 
@@ -90,12 +91,11 @@ void CALIBRATION_task() {
 		mpu9255_recalcGyro(gyroData, gyro);
 		mpu9255_recalcCompass(compassData, compass);
 
-
 		//	flashing the led
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
+//		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
 
 		vTaskDelay(2000);
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
+//		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
 //		float tickend = HAL_GetTick();
 //		trace_printf("start: %f\nend %f\n", tickstart, tickend);
 

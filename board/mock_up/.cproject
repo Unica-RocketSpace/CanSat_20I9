@@ -56,7 +56,6 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.325649236" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.64823080" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
 									<listOptionValue builtIn="false" value="/usr/include/newlib"/>
-									<listOptionValue builtIn="false" value="/home/developer/CanSat_20I9/board/mock_up/mavlink-messages"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.726797778" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG"/>
@@ -71,9 +70,10 @@
 							</tool>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.1191920062" name="Cross ARM GNU C Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths.1369793890" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths" useByScannerDiscovery="true" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mock_up/system/include/stm32f4-hal}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mock_up/system/include/cmsis}&quot;"/>
+									<listOptionValue builtIn="false" value="/usr/include/newlib"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mock_up/system/include}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mock_up/system/include/cmsis}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mock_up/system/include/stm32f4-hal}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mock_up/system-usr}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mock_up/FreeRTOS/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mock_up/FreeRTOS/portable}&quot;"/>
@@ -84,8 +84,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mock_up/src/drivers}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mock_up/src/library}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mock_up/src/modules}&quot;"/>
-									<listOptionValue builtIn="false" value="/usr/include/newlib"/>
-									<listOptionValue builtIn="false" value="/home/developer/CanSat_20I9/board/mock_up/mavlink-messages"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mock_up/mavlink-messages}&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.855824507" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="DEBUG"/>
@@ -100,6 +99,7 @@
 							</tool>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.438477569" name="Cross ARM GNU C++ Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.include.paths.905680663" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.include.paths" useByScannerDiscovery="true" valueType="includePath">
+									<listOptionValue builtIn="false" value="/usr/include/newlib"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mock_up/system/include}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mock_up/system/include/stm32f4-hal}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mock_up/system/include/cmsis}&quot;"/>
@@ -113,8 +113,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mock_up/src/drivers}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mock_up/src/library}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mock_up/src/modules}&quot;"/>
-									<listOptionValue builtIn="false" value="/usr/include/newlib"/>
-									<listOptionValue builtIn="false" value="/home/developer/CanSat_20I9/board/mock_up/mavlink-messages"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/mock_up/mavlink-messages}&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.686799775" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti.1704381575" name="Do not use RTTI (-fno-rtti)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti" useByScannerDiscovery="true" value="true" valueType="boolean"/>
@@ -300,7 +299,6 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.2094566210" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.1995557444" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
 									<listOptionValue builtIn="false" value="/usr/include/newlib"/>
-									<listOptionValue builtIn="false" value="/home/developer/CanSat_20I9/board/mock_up/mavlink-messages"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.737417184" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG"/>
@@ -327,7 +325,6 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Unica_2018_STM32F405/src/modules}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Unica_2018_STM32F405/mavlink-messages}&quot;"/>
 									<listOptionValue builtIn="false" value="/usr/include/newlib"/>
-									<listOptionValue builtIn="false" value="/home/developer/CanSat_20I9/board/mock_up/mavlink-messages"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.39386583" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="true" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="NDEBUG"/>
@@ -354,7 +351,6 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Unica_2018_STM32F405/src/modules}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/Unica_2018_STM32F405/mavlink-messages}&quot;"/>
 									<listOptionValue builtIn="false" value="/usr/include/newlib"/>
-									<listOptionValue builtIn="false" value="/home/developer/CanSat_20I9/board/mock_up/mavlink-messages"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions.637249994" name="Do not use exceptions (-fno-exceptions)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.noexceptions" useByScannerDiscovery="true" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti.891136603" name="Do not use RTTI (-fno-rtti)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.cpp.compiler.nortti" useByScannerDiscovery="true" value="true" valueType="boolean"/>
@@ -489,7 +485,7 @@
 	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
 	<storageModule moduleId="refreshScope" versionNumber="2">
 		<configuration configurationName="Debug">
-			<resource resourceType="PROJECT" workspacePath="/mock_up"/>
+			<resource resourceType="PROJECT" workspacePath="/Unica_20I9_STM32F405"/>
 		</configuration>
 		<configuration configurationName="Release">
 			<resource resourceType="PROJECT" workspacePath="/Unica_2018_STM32F405"/>

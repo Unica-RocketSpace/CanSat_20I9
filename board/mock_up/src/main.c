@@ -3,11 +3,11 @@
 #include <string.h>
 
 #include <stm32f4xx_hal.h>
+#include <stm32f4xx_hal_gpio.h>
 #include <stm32f4xx_hal_cortex.h>
 #include <stm32f4xx_hal_i2c.h>
 #include <stm32f4xx_hal_usart.h>
 #include <stm32f4xx_hal_dma.h>
-#include <stm32f4xx_hal_gpio.h>
 
 
 #include "diag/Trace.h"
@@ -21,11 +21,6 @@
 #include "telemetry.h"
 
 
-// ----- Timing definitions -------------------------------------------------
-
-// Keep the LED on for 2/3 of a second.
-#define BLINK_ON_TICKS  (TIMER_FREQUENCY_HZ * 3 / 4)
-#define BLINK_OFF_TICKS (TIMER_FREQUENCY_HZ - BLINK_ON_TICKS)
 
 // ----- main() ---------------------------------------------------------------
 
@@ -48,9 +43,9 @@ state_zero_t		state_zero;
 stateIMU_isc_t		stateIMU_isc_prev;
 stateSensors_t		stateSensors_prev;
 state_system_t		state_system_prev;
-	//stateGPS_t 			stateGPS;
-	//stateCamera_orient_t stateCamera_orient;
-	//stateCamera_orient_t stateCamera_orient_prev;
+//stateGPS_t 			stateGPS;
+//stateCamera_orient_t stateCamera_orient;
+//stateCamera_orient_t stateCamera_orient_prev;
 
 
 //	параметры IO_RF_task
@@ -65,13 +60,6 @@ static StaticTask_t	_IMUTaskObj;
 
 
 void CALIBRATION_task() {
-//	GPIO_InitTypeDef gpioc;
-//	gpioc.Mode = GPIO_MODE_OUTPUT_PP;
-//	gpioc.Pin = GPIO_PIN_12;
-//	gpioc.Pull = GPIO_NOPULL;
-//	gpioc.Speed = GPIO_SPEED_FREQ_HIGH;
-//	HAL_GPIO_Init(GPIOC, &gpioc);
-//	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
 
 	uint8_t error = 0;
 
@@ -91,13 +79,7 @@ void CALIBRATION_task() {
 		mpu9255_recalcGyro(gyroData, gyro);
 		mpu9255_recalcCompass(compassData, compass);
 
-		//	flashing the led
-//		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
-
 		vTaskDelay(2000);
-//		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
-//		float tickend = HAL_GetTick();
-//		trace_printf("start: %f\nend %f\n", tickstart, tickend);
 
 	end:
 		error = 0;

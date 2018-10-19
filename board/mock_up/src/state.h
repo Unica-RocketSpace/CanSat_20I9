@@ -21,13 +21,26 @@
 #include "stm32f4xx_hal_gpio.h"
 #include "stm32f4xx_hal_dma.h"
 
+#include "diag/Trace.h"
+
 
 #include "drivers/UNICS_bmp280.h"
 
 
+/*#################################################*/
+/*################## MACROS #######################*/
+/*#################################################*/
+
 // if error set value and go to end
 #define PROCESS_ERROR(x) if (0 != (error = (x))) { goto end; }
 
+// Prints the name of the param x and it's value
+#define $( x ) trace_printf("%s = %d\n", #x, x);
+
+
+#define USE_SD	0;
+#define USE_RF	1;
+#define USE_MPU	1;
 
 /*#################################################*/
 /*################## СТРУКТУРЫ ###################*/
@@ -130,6 +143,26 @@ extern state_zero_t			state_zero;
 extern stateIMU_isc_t		stateIMU_isc_prev;
 extern stateSensors_t		stateSensors_prev;
 extern state_system_t		state_system_prev;
+
+
+/*##################################################*/
+/*#################### ФУНКЦИИ #####################*/
+/*##################################################*/
+
+void LedInit();
+
+
+//!---------------------------------
+//! @fn LedSetMode(int mode);
+//! Sets the led on/off
+//!
+//!	@param mode  Argument means SET/RESET
+//!---------------------------------
+void LedSetMode(int mode);
+
+
+
+
 
 
 #endif /* STATE_H_ */

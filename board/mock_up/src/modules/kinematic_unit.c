@@ -72,10 +72,10 @@ uint8_t get_accel_staticShift(float* gyro_staticShift, float* accel_staticShift)
 
 	for (int i = 0; i < zero_orientCnt; i++) {
 		int16_t accelData[3] = {0, 0, 0};
-		int16_t gyroData[3] = {0, 0, 0};
-		float accel[3] = {0, 0, 0};
-		float accel_ISC[3] = {0, 0, 0};
-		float gyro[3] = {0, 0, 0};
+		int16_t gyroData[3]  = {0, 0, 0};
+		float accel[3]       = {0, 0, 0};
+		float accel_ISC[3]   = {0, 0, 0};
+		float gyro[3]        = {0, 0, 0};
 
 		//	собираем данные
 		PROCESS_ERROR(mpu9255_readIMU(accelData, gyroData));
@@ -83,6 +83,7 @@ uint8_t get_accel_staticShift(float* gyro_staticShift, float* accel_staticShift)
 		mpu9255_recalcAccel(accelData, accel);
 
 		time = (float)HAL_GetTick() / 1000;
+
 		for (int k = 0; k < 3; k++) {
 			gyro[k] -= gyro_staticShift[k];
 		}

@@ -6,18 +6,21 @@
 C_SRCS += \
 ../src/_initialize_hardware.c \
 ../src/_write.c \
+../src/blinkled.c \
 ../src/main.c \
 ../src/stm32f4xx_hal_msp.c 
 
 OBJS += \
 ./src/_initialize_hardware.o \
 ./src/_write.o \
+./src/blinkled.o \
 ./src/main.o \
 ./src/stm32f4xx_hal_msp.o 
 
 C_DEPS += \
 ./src/_initialize_hardware.d \
 ./src/_write.d \
+./src/blinkled.d \
 ./src/main.d \
 ./src/stm32f4xx_hal_msp.d 
 

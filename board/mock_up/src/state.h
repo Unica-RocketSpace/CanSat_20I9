@@ -38,9 +38,11 @@
 #define $( x ) trace_printf("%s = %d\n", #x, x);
 
 
-#define USE_SD	0;
-#define USE_RF	1;
-#define USE_MPU	1;
+//Включение/Отключение модулей
+#define USE_SD		1
+#define USE_RF		0
+#define USE_MPU		0
+#define USE_BMP280 	0
 
 /*#################################################*/
 /*################## СТРУКТУРЫ ###################*/

@@ -270,10 +270,14 @@ void IMU_task() {
 
 			if (counter == 0) {
 				vTaskDelay(10000);
-				get_staticShifts();
-				bmp280_update();
-				IMU_updateDataAll();
-				_IMUtask_updateData();
+
+				if(USE_MPU){
+					get_staticShifts();
+					IMU_updateDataAll();
+					_IMUtask_updateData();
+				}
+
+				if(USE_BMP280){ bmp280_update();}
 			taskENTER_CRITICAL();
 				state_zero.zero_pressure = stateSensors.pressure;
 				for (int i = 0; i < 4; i++)
@@ -282,9 +286,12 @@ void IMU_task() {
 				counter = 1;
 			}
 
-			bmp280_update();
+		if(USE_BMP280){ bmp280_update();}
+
+		if(USE_MPU){
 			IMU_updateDataAll();
 			_IMUtask_updateData();
+		}
 	}
 
 /*

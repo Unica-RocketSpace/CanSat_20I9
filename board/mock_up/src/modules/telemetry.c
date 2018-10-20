@@ -53,13 +53,16 @@ taskEXIT_CRITICAL();
 	uint16_t len_state = mavlink_msg_state_encode(UNISAT_ID, UNISAT_NoComp, &msg, &msg_state);
 	uint8_t buffer[100];
 	len_state = mavlink_msg_to_send_buffer(buffer, &msg);
-//	uint8_t error = nRF24L01_send(&spi_nRF24L01, buffer, len, 1);
+	if(USE_RF){
+		uint8_t error = nRF24L01_send(&spi_nRF24L01, buffer, len_state, 1);
+	}
 
 	taskENTER_CRITICAL();
 	state_system.SD_state = stream_file.res;
 	taskEXIT_CRITICAL();
-	dump(&stream_file, buffer, len_state);
-
+	if(USE_SD){
+		dump(&stream_file, buffer, len_state);
+	}
 	return len_state;
 //	return error;
 }
@@ -80,13 +83,16 @@ taskEXIT_CRITICAL();
 	uint16_t len_imu_rsc = mavlink_msg_imu_rsc_encode(UNISAT_GPS, UNISAT_IMU, &msg, &msg_imu_rsc);
 	uint8_t buffer[100];
 	len_imu_rsc = mavlink_msg_to_send_buffer(buffer, &msg);
-//	uint8_t error = nRF24L01_send(&spi_nRF24L01, buffer, len, 1);
+	if(USE_RF){
+		uint8_t error = nRF24L01_send(&spi_nRF24L01, buffer, len_imu_rsc, 1);
+	}
 
 	taskENTER_CRITICAL();
 	state_system.SD_state = stream_file.res;
 	taskEXIT_CRITICAL();
-	dump(&stream_file, buffer, len_imu_rsc);
-
+	if(USE_SD){
+		dump(&stream_file, buffer, len_imu_rsc);
+	}
 	return len_imu_rsc;
 //	return error;
 }
@@ -111,13 +117,17 @@ taskEXIT_CRITICAL();
 	uint16_t len_imu_isc = mavlink_msg_imu_isc_encode(UNISAT_ID, UNISAT_IMU, &msg, &msg_imu_isc);
 	uint8_t buffer[100];
 	len_imu_isc = mavlink_msg_to_send_buffer(buffer, &msg);
-//	uint8_t error = nRF24L01_send(&spi_nRF24L01, buffer, len, 1);
+	if(USE_RF){
+		uint8_t error = nRF24L01_send(&spi_nRF24L01, buffer, len_imu_isc, 1);
+	}
 
 	taskENTER_CRITICAL();
 	state_system.SD_state = stream_file.res;
 	taskEXIT_CRITICAL();
-	dump(&stream_file, buffer, len_imu_isc);
 
+	if(USE_SD){
+		dump(&stream_file, buffer, len_imu_isc);
+	}
 	return len_imu_isc;
 //	return error;
 }
@@ -136,13 +146,16 @@ taskEXIT_CRITICAL();
 	uint16_t len_sensors = mavlink_msg_sensors_encode(UNISAT_ID, UNISAT_SENSORS, &msg, &msg_sensors);
 	uint8_t buffer[100];
 	len_sensors = mavlink_msg_to_send_buffer(buffer, &msg);
-//	uint8_t error = nRF24L01_send(&spi_nRF24L01, buffer, len, 1);
+	if(USE_RF){
+		uint8_t error = nRF24L01_send(&spi_nRF24L01, buffer, len_sensors, 1);
+	}
 
 	taskENTER_CRITICAL();
 	state_system.SD_state = stream_file.res;
 	taskEXIT_CRITICAL();
-	dump(&stream_file, buffer, len_sensors);
-
+	if(USE_SD){
+		dump(&stream_file, buffer, len_sensors);
+	}
 	return len_sensors;
 //	return error;
 }
@@ -201,12 +214,19 @@ void IO_RF_task() {
 
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
 		vTaskDelay(100/portTICK_RATE_MS);
+//
+//			$(mavlink_msg_state_send());
+//			$(mavlink_msg_imu_isc_send());
+//			$(mavlink_msg_imu_rsc_send());
+//			$(mavlink_msg_sensors_send());
+//
+			mavlink_msg_state_send();
+			mavlink_msg_imu_isc_send();
+			mavlink_msg_imu_rsc_send();
+			mavlink_msg_sensors_send();
+		}
 
-		$(mavlink_msg_state_send());
-		$(mavlink_msg_imu_isc_send());
-		$(mavlink_msg_imu_rsc_send());
-		$(mavlink_msg_sensors_send());
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
 	}
-}
+
 

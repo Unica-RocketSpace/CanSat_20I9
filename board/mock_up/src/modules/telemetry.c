@@ -61,6 +61,7 @@ taskEXIT_CRITICAL();
 	state_system.SD_state = stream_file.res;
 	taskEXIT_CRITICAL();
 	if(USE_SD){
+		trace_printf("sd used\n");
 		dump(&stream_file, buffer, len_state);
 	}
 	return len_state;
@@ -91,6 +92,7 @@ taskEXIT_CRITICAL();
 	state_system.SD_state = stream_file.res;
 	taskEXIT_CRITICAL();
 	if(USE_SD){
+		trace_printf("sd used\n");
 		dump(&stream_file, buffer, len_imu_rsc);
 	}
 	return len_imu_rsc;
@@ -126,6 +128,7 @@ taskEXIT_CRITICAL();
 	taskEXIT_CRITICAL();
 
 	if(USE_SD){
+		trace_printf("sd used\n");
 		dump(&stream_file, buffer, len_imu_isc);
 	}
 	return len_imu_isc;
@@ -154,6 +157,7 @@ taskEXIT_CRITICAL();
 	state_system.SD_state = stream_file.res;
 	taskEXIT_CRITICAL();
 	if(USE_SD){
+		trace_printf("sd used\n");
 		dump(&stream_file, buffer, len_sensors);
 	}
 	return len_sensors;
@@ -188,7 +192,6 @@ taskEXIT_CRITICAL();
 //
 ////	return error;
 //}
-
 void IO_RF_Init() {
 
 	stream_file.res = 1;
@@ -213,17 +216,13 @@ void IO_RF_task() {
 	for (;;) {
 
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
-		vTaskDelay(100/portTICK_RATE_MS);
+		vTaskDelay(30/portTICK_RATE_MS);
 //
-//			$(mavlink_msg_state_send());
-//			$(mavlink_msg_imu_isc_send());
-//			$(mavlink_msg_imu_rsc_send());
-//			$(mavlink_msg_sensors_send());
-//
-			mavlink_msg_state_send();
-			mavlink_msg_imu_isc_send();
-			mavlink_msg_imu_rsc_send();
-			mavlink_msg_sensors_send();
+
+			$(mavlink_msg_state_send());
+			$(mavlink_msg_imu_isc_send());
+			$(mavlink_msg_imu_rsc_send());
+			$(mavlink_msg_sensors_send());
 		}
 
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);

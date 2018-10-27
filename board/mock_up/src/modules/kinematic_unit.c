@@ -127,13 +127,19 @@ static int IMU_updateDataAll() {
 taskENTER_CRITICAL();
 	float _time = (float)HAL_GetTick() / 1000;
 	state_system.time = _time;
+
+	if(USE_MPU){
 	//	пересчитываем их и записываем в структуры
-	for (int k = 0; k < 3; k++) {
-		stateIMU_rsc.accel[k] = accel[k];
-		gyro[k] -= state_zero.gyro_staticShift[k];
-		stateIMU_rsc.gyro[k] = gyro[k];
-		stateIMU_rsc.compass[k] = compass[k];
+		for (int k = 0; k < 3; k++) {
+			stateIMU_rsc.accel[k] = accel[k];
+			gyro[k] -= state_zero.gyro_staticShift[k];
+			stateIMU_rsc.gyro[k] = gyro[k];
+			stateIMU_rsc.compass[k] = compass[k];
+		}
 	}
+	trace_printf("gyro  %f %f %f\n", gyro[0], gyro[1], gyro[2]);
+	trace_printf("accel  %f %f %f\n", accel[0], accel[1], accel[2]);
+	trace_printf("compass  %f %f %f \n", compass[0], compass[1], compass[2]);
 taskEXIT_CRITICAL();
 ////////////////////////////////////////////////////
 
@@ -151,10 +157,12 @@ taskEXIT_CRITICAL();
 
 	//	копируем кватернион в глобальную структуру
 taskENTER_CRITICAL();
-	stateIMU_isc.quaternion[0] = quaternion[0];
-	stateIMU_isc.quaternion[1] = quaternion[1];
-	stateIMU_isc.quaternion[2] = quaternion[2];
-	stateIMU_isc.quaternion[3] = quaternion[3];
+	if(USE_MPU){
+		stateIMU_isc.quaternion[0] = quaternion[0];
+		stateIMU_isc.quaternion[1] = quaternion[1];
+		stateIMU_isc.quaternion[2] = quaternion[2];
+		stateIMU_isc.quaternion[3] = quaternion[3];
+	}
 taskEXIT_CRITICAL();
 ////////////////////////////////////////////////////
 
@@ -169,15 +177,17 @@ taskEXIT_CRITICAL();
 
 	//	копируем векторы в глобальную структуру
 taskENTER_CRITICAL();
-	for (int i = 0; i < 3; i++)
-		accel_ISC[i] -= state_zero.accel_staticShift[i];
+	if(USE_MPU){
+		for (int i = 0; i < 3; i++)
+			accel_ISC[i] -= state_zero.accel_staticShift[i];
 
-	stateIMU_isc.accel[0] = accel_ISC[0];
-	stateIMU_isc.accel[1] = accel_ISC[1];
-	stateIMU_isc.accel[2] = accel_ISC[2];
-	stateIMU_isc.compass[0] = compass_ISC[0];
-	stateIMU_isc.compass[1] = compass_ISC[1];
-	stateIMU_isc.compass[2] = compass_ISC[2];
+		stateIMU_isc.accel[0] = accel_ISC[0];
+		stateIMU_isc.accel[1] = accel_ISC[1];
+		stateIMU_isc.accel[2] = accel_ISC[2];
+		stateIMU_isc.compass[0] = compass_ISC[0];
+		stateIMU_isc.compass[1] = compass_ISC[1];
+		stateIMU_isc.compass[2] = compass_ISC[2];
+	}
 taskEXIT_CRITICAL();
 ////////////////////////////////////////////////////
 
@@ -229,7 +239,7 @@ taskENTER_CRITICAL();
 	memcpy(&stateIMU_isc_prev, 			&stateIMU_isc,			sizeof(stateIMU_isc));
 	memcpy(&stateSensors_prev,			&stateSensors, 			sizeof(stateSensors));
 	memcpy(&state_system_prev, 			&state_system,		 	sizeof(state_system));
-	//	memcpy(&stateCamera_orient_prev, 	&stateCamera_orient, 	sizeof(stateCamera_orient));
+
 taskEXIT_CRITICAL();
 }
 
@@ -260,18 +270,13 @@ void IMU_task() {
 	static uint8_t counter = 0;
 
 	for (;;) {
-//		vTaskDelay(10/portTICK_RATE_MS);
-		// Этап 0. Подтверждение инициализации отправкой пакета состояния и ожидание ответа от НС
-//		if (state_system.globalStage == 0) {
-//		}
-
-		// Этап 1. Определение начального состояния
-//		if (state_system.globalStage == 1) {
+		vTaskDelay(10/portTICK_RATE_MS);
 
 			if (counter == 0) {
-				vTaskDelay(10000);
+//				vTaskDelay(10000);
 
 				if(USE_MPU){
+					trace_printf("mpu_start used\n");
 					get_staticShifts();
 					IMU_updateDataAll();
 					_IMUtask_updateData();
@@ -289,6 +294,7 @@ void IMU_task() {
 		if(USE_BMP280){ bmp280_update();}
 
 		if(USE_MPU){
+			trace_printf("mpu used\n");
 			IMU_updateDataAll();
 			_IMUtask_updateData();
 		}

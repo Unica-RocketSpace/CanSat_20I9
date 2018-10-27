@@ -150,6 +150,10 @@ void mpu9255_recalcAccel(const int16_t * raw_accelData, float * accelData)
 	_accelData[1] =   (float)(raw_accelData[2]) * MPU9255_ACCEL_SCALE_FACTOR * 2;//* pow(2, ACCEL_RANGE);
 	_accelData[2] =   (float)(raw_accelData[1]) * MPU9255_ACCEL_SCALE_FACTOR * 2;//* pow(2, ACCEL_RANGE);
 
+//	trace_printf("_accelData[0]  %f \n", _accelData[0]);
+//	trace_printf("_accelData[1]  %f \n", _accelData[1]);
+//	trace_printf("_accelData[2]  %f \n", _accelData[2]);
+
 //	float offset_vector[3] = {X_ACCEL_OFFSET, Y_ACCEL_OFFSET, Z_ACCEL_OFFSET};
 //	float transform_matrix[3][3] =	{{XX_ACCEL_TRANSFORM_MATIX, XY_ACCEL_TRANSFORM_MATIX, XZ_ACCEL_TRANSFORM_MATIX},
 //									 {XY_ACCEL_TRANSFORM_MATIX, YY_ACCEL_TRANSFORM_MATIX, YZ_ACCEL_TRANSFORM_MATIX},

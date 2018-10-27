@@ -95,8 +95,9 @@ typedef struct {
 //	system parameters
 typedef struct {
 	uint8_t MPU_state;		//	state of MPU9255
-	uint8_t BMP_state;		//	state of barometer
+	uint8_t IMU_BMP_state;		//	state of IMU barometer
 	uint8_t SD_state;		//	state of SD
+	uint8_t BMP_state;		//  state of barometer
 //	uint8_t NRF_state;		//	state of NRF24L01
 //	uint8_t MOTOR_state;	//	state of motor with parashute
 //	uint8_t GPS_state;		//	state of GPS-module
@@ -135,14 +136,17 @@ extern SPI_HandleTypeDef	spi_nRF24L01;
 extern I2C_HandleTypeDef 	i2c_mpu9255;
 
 // глобальные структуры
+extern stateSensors_raw_t 	stateIMUSensors_raw;
 extern stateSensors_raw_t 	stateSensors_raw;
 extern stateIMU_rsc_t 		stateIMU_rsc;
 extern stateIMU_isc_t 		stateIMU_isc;
+extern stateSensors_t 		stateIMUSensors;
 extern stateSensors_t 		stateSensors;
 extern state_system_t 		state_system;
 extern state_zero_t			state_zero;
 
 extern stateIMU_isc_t		stateIMU_isc_prev;
+extern stateSensors_t 		stateIMUSensors_prev;
 extern stateSensors_t		stateSensors_prev;
 extern state_system_t		state_system_prev;
 

@@ -33,19 +33,20 @@
 
 
 // глобальные структуры
+stateSensors_raw_t 	stateIMUSensors_raw;
 stateSensors_raw_t 	stateSensors_raw;
 stateIMU_rsc_t 		stateIMU_rsc;
 stateIMU_isc_t 		stateIMU_isc;
+stateSensors_t 		stateIMUSensors;
 stateSensors_t 		stateSensors;
 state_system_t 		state_system;
 state_zero_t		state_zero;
 
 stateIMU_isc_t		stateIMU_isc_prev;
+stateSensors_t		stateIMUSensors_prev;
 stateSensors_t		stateSensors_prev;
 state_system_t		state_system_prev;
-//stateGPS_t 			stateGPS;
-//stateCamera_orient_t stateCamera_orient;
-//stateCamera_orient_t stateCamera_orient_prev;
+
 
 
 //	параметры IO_RF_task
@@ -91,18 +92,21 @@ void CALIBRATION_task() {
 int main(int argc, char* argv[])
 {
 	// Инициализация структур глобального состояния (в нашем случае просто заполняем их нулями)
-	memset(&stateSensors_raw, 	0x00, sizeof(stateSensors_raw));
-	memset(&stateIMU_rsc, 		0x00, sizeof(stateIMU_rsc));
-	memset(&stateIMU_isc, 		0x00, sizeof(stateIMU_isc));
-	memset(&stateSensors, 		0x00, sizeof(stateSensors));
-	memset(&state_system, 		0x00, sizeof(state_system));
-	memset(&state_zero, 		0x00, sizeof(state_zero));
+	memset(&stateSensors_raw, 		0x00, sizeof(stateSensors_raw));
+	memset(&stateIMU_rsc, 			0x00, sizeof(stateIMU_rsc));
+	memset(&stateIMU_isc, 			0x00, sizeof(stateIMU_isc));
+	memset(&stateIMUSensors, 		0x00, sizeof(stateIMUSensors));
+	memset(&stateSensors, 			0x00, sizeof(stateSensors));
+	memset(&state_system, 			0x00, sizeof(state_system));
+	memset(&state_zero, 			0x00, sizeof(state_zero));
 
-	memset(&stateIMU_isc_prev, 			0x00, sizeof(stateIMU_isc_prev));
-	memset(&stateSensors_prev,			0x00, sizeof(stateSensors_prev));
-	memset(&state_system_prev, 			0x00, sizeof(state_system_prev));
+	memset(&stateIMU_isc_prev, 				0x00, sizeof(stateIMU_isc_prev));
+	memset(&stateIMUSensors_prev,			0x00, sizeof(stateIMUSensors_prev));
+	memset(&stateSensors_prev,				0x00, sizeof(stateSensors_prev));
+	memset(&state_system_prev, 				0x00, sizeof(state_system_prev));
 
 
+	state_system.IMU_BMP_state = 255;
 	state_system.BMP_state = 255;
 	state_system.MPU_state = 255;
 	state_system.SD_state = 255;

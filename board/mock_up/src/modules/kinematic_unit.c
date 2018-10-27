@@ -34,7 +34,9 @@
 I2C_HandleTypeDef 	i2c_mpu9255;
 USART_HandleTypeDef usart_dbg;
 
+rscs_bmp280_descriptor_t * IMU_bmp280;
 rscs_bmp280_descriptor_t * bmp280;
+const rscs_bmp280_calibration_values_t * IMU_bmp280_calibration_values;
 const rscs_bmp280_calibration_values_t * bmp280_calibration_values;
 
 
@@ -202,12 +204,27 @@ void bmp280_update() {
 	float pressure_f = 0;
 	float temp_f = 0;
 	float height = 0;
-	rscs_bmp280_read(bmp280, &pressure, &temp);
-	rscs_bmp280_calculate(bmp280_calibration_values, pressure, temp, &pressure_f, &temp_f);
+	rscs_bmp280_read(IMU_bmp280, &pressure, &temp);
+	rscs_bmp280_calculate(IMU_bmp280_calibration_values, pressure, temp, &pressure_f, &temp_f);
 
 taskENTER_CRITICAL();
 	float zero_pressure = state_zero.zero_pressure;
 taskEXIT_CRITICAL();
+	height = 18.4 * log(zero_pressure / pressure_f);
+
+taskENTER_CRITICAL();
+	stateIMUSensors_raw.pressure = pressure;
+	stateIMUSensors_raw.temp = temp;
+	stateIMUSensors.pressure = pressure_f;
+	stateIMUSensors.temp = temp_f;
+	stateIMUSensors.height = height;
+taskEXIT_CRITICAL();
+
+
+
+	rscs_bmp280_read(bmp280, &pressure, &temp);
+	rscs_bmp280_calculate(bmp280_calibration_values, pressure, temp, &pressure_f, &temp_f);
+
 	height = 18.4 * log(zero_pressure / pressure_f);
 
 taskENTER_CRITICAL();
@@ -237,6 +254,7 @@ taskEXIT_CRITICAL();
 void _IMUtask_updateData() {
 taskENTER_CRITICAL();
 	memcpy(&stateIMU_isc_prev, 			&stateIMU_isc,			sizeof(stateIMU_isc));
+	memcpy(&stateIMUSensors_prev,		&stateIMUSensors, 		sizeof(stateIMUSensors));
 	memcpy(&stateSensors_prev,			&stateSensors, 			sizeof(stateSensors));
 	memcpy(&state_system_prev, 			&state_system,		 	sizeof(state_system));
 
@@ -249,8 +267,22 @@ void IMU_Init() {
 	uint8_t mpu9255_initError = mpu9255_init(&i2c_mpu9255);
 	trace_printf("mpu: %d\n", mpu9255_initError);
 
+	//---ИНИЦИАЛИЗАЦИЯ IMU_BMP280---//
+	IMU_bmp280 = rscs_bmp280_initi2c(&i2c_mpu9255, RSCS_BMP280_I2C_ADDR_HIGH);					//создание дескриптора
+	rscs_bmp280_parameters_t IMU_bmp280_parameters;
+	IMU_bmp280_parameters.pressure_oversampling = RSCS_BMP280_OVERSAMPLING_X4;		//4		16		измерения на один результат
+	IMU_bmp280_parameters.temperature_oversampling = RSCS_BMP280_OVERSAMPLING_X2;	//1		2		измерение на один результат
+	IMU_bmp280_parameters.standbytyme = RSCS_BMP280_STANDBYTIME_500US;				//0.5ms	62.5ms	время между 2 измерениями
+	IMU_bmp280_parameters.filter = RSCS_BMP280_FILTER_X16;							//x16	x16		фильтр
+
+	int8_t IMU_bmp280_initError = (IMU_bmp280, &IMU_bmp280_parameters);								//запись параметров
+	rscs_bmp280_changemode(IMU_bmp280, RSCS_BMP280_MODE_NORMAL);					//установка режима NORMAL, постоянные измерения
+	IMU_bmp280_calibration_values = rscs_bmp280_get_calibration_values(IMU_bmp280);
+
+
+
 	//---ИНИЦИАЛИЗАЦИЯ BMP280---//
-	bmp280 = rscs_bmp280_initi2c(&i2c_mpu9255, RSCS_BMP280_I2C_ADDR_HIGH);					//создание дескриптора
+	bmp280 = rscs_bmp280_initi2c(&i2c_mpu9255, RSCS_BMP280_I2C_ADDR_LOW);					//создание дескриптора
 	rscs_bmp280_parameters_t bmp280_parameters;
 	bmp280_parameters.pressure_oversampling = RSCS_BMP280_OVERSAMPLING_X4;		//4		16		измерения на один результат
 	bmp280_parameters.temperature_oversampling = RSCS_BMP280_OVERSAMPLING_X2;	//1		2		измерение на один результат
@@ -262,6 +294,7 @@ void IMU_Init() {
 	bmp280_calibration_values = rscs_bmp280_get_calibration_values(bmp280);
 
 	state_system.MPU_state = mpu9255_initError;
+	state_system.IMU_BMP_state = IMU_bmp280_initError;
 	state_system.BMP_state = bmp280_initError;
 }
 
@@ -291,7 +324,9 @@ void IMU_task() {
 				counter = 1;
 			}
 
-		if(USE_BMP280){ bmp280_update();}
+		if(USE_BMP280){
+			printf("bmp used\n");
+			bmp280_update();}
 
 		if(USE_MPU){
 			trace_printf("mpu used\n");

@@ -20,7 +20,7 @@
 #include "MadgwickAHRS.h"
 #include "MPU9255.h"
 #include "state.h"
-#include "UNICS_bmp280.h"
+//#include "UNICS_bmp280.h"
 
 
 int mpu9255_readRegister(mpu9255_address_t address, uint8_t reg_address, uint8_t* dataRead, uint8_t count)

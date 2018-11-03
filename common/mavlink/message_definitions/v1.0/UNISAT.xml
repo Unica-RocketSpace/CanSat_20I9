@@ -55,12 +55,13 @@
         </message>
 
 
-        <message id="155" name="BMP280">
-            <description>BMP280 data</description>
-            <field type="float" name="time">current time</field>
+         <message id="155" name="BMP280">
+            <description>Baro data and temp</description>
+            <field type="float" name="temp">temperature</field>
             <field type="float" name="pressure">pressure</field>
-            <field type="float" name="temp">temp</field>
+            <field type="float" name="time">current time</field>
         </message>
+
 
     </messages>
 </mavlink>

@@ -218,9 +218,13 @@ taskENTER_CRITICAL();
 	stateIMUSensors.pressure = pressure_f;
 	stateIMUSensors.temp = temp_f;
 	stateIMUSensors.height = height;
+
+	trace_printf("pressure_mpu %f\n", pressure_f);
+	trace_printf("temp_mpu %f\n", temp_f);
+
 taskEXIT_CRITICAL();
 
-
+	pressure = 0; temp = 0; pressure_f = 0; temp_f = 0; height = 0;
 
 	rscs_bmp280_read(bmp280, &pressure, &temp);
 	rscs_bmp280_calculate(bmp280_calibration_values, pressure, temp, &pressure_f, &temp_f);
@@ -232,7 +236,10 @@ taskENTER_CRITICAL();
 	stateSensors_raw.temp = temp;
 	stateSensors.pressure = pressure_f;
 	stateSensors.temp = temp_f;
-	stateSensors.height = height;
+
+	trace_printf("pressure %f\n", pressure_f);
+	trace_printf("temp %f\n", temp_f);
+
 taskEXIT_CRITICAL();
 }
 
@@ -275,7 +282,8 @@ void IMU_Init() {
 	IMU_bmp280_parameters.standbytyme = RSCS_BMP280_STANDBYTIME_500US;				//0.5ms	62.5ms	время между 2 измерениями
 	IMU_bmp280_parameters.filter = RSCS_BMP280_FILTER_X16;							//x16	x16		фильтр
 
-	int8_t IMU_bmp280_initError = (IMU_bmp280, &IMU_bmp280_parameters);								//запись параметров
+	int8_t IMU_bmp280_initError = rscs_bmp280_setup(IMU_bmp280, &IMU_bmp280_parameters);								//запись параметров
+	trace_printf("IMU_bmp %d\n", IMU_bmp280_initError);
 	rscs_bmp280_changemode(IMU_bmp280, RSCS_BMP280_MODE_NORMAL);					//установка режима NORMAL, постоянные измерения
 	IMU_bmp280_calibration_values = rscs_bmp280_get_calibration_values(IMU_bmp280);
 
@@ -290,6 +298,7 @@ void IMU_Init() {
 	bmp280_parameters.filter = RSCS_BMP280_FILTER_X16;							//x16	x16		фильтр
 
 	int8_t bmp280_initError = rscs_bmp280_setup(bmp280, &bmp280_parameters);								//запись параметров
+	trace_printf("bmp: %d\n", bmp280_initError);
 	rscs_bmp280_changemode(bmp280, RSCS_BMP280_MODE_NORMAL);					//установка режима NORMAL, постоянные измерения
 	bmp280_calibration_values = rscs_bmp280_get_calibration_values(bmp280);
 
@@ -325,7 +334,7 @@ void IMU_task() {
 			}
 
 		if(USE_BMP280){
-			printf("bmp used\n");
+			trace_printf("bmp used\n");
 			bmp280_update();}
 
 		if(USE_MPU){

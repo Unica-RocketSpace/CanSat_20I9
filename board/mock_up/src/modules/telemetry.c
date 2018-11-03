@@ -40,9 +40,9 @@ static uint16_t mavlink_msg_state_send() {
 	msg_state.time = (float)HAL_GetTick() / 1000;
 taskENTER_CRITICAL();
 	msg_state.MPU_state		= state_system.MPU_state;
-	msg_state.BMP_state 	= state_system.BMP_state;
+	msg_state.IMU_BMP_state = state_system.IMU_BMP_state;
 	msg_state.SD_state 		= state_system.SD_state;
-//	msg_state.NRF_state		= state_system.NRF_state;
+	msg_state.BMP_state		= state_system.BMP_state;
 //	msg_state.MOTOR_state	= state_system.MOTOR_state;
 //	msg_state.GPS_state		= state_system.GPS_state;
 
@@ -107,8 +107,6 @@ taskENTER_CRITICAL();
 	for (int i = 0; i < 3; i++) {
 		msg_imu_isc.accel[i] = stateIMU_isc.accel[i];
 		msg_imu_isc.compass[i] = stateIMU_isc.compass[i];
-		msg_imu_isc.velocities[i] = stateIMU_isc.velocities[i];
-		msg_imu_isc.coordinates[i] = stateIMU_isc.coordinates[i];
 	}
 	for (int j = 0; j < 4; j++) {
 		msg_imu_isc.quaternion[j] = stateIMU_isc.quaternion[j];
@@ -140,9 +138,9 @@ static uint16_t mavlink_msg_sensors_send() {
 	mavlink_sensors_t msg_sensors;
 	msg_sensors.time = (float)HAL_GetTick() / 1000;
 taskENTER_CRITICAL();
-	msg_sensors.temp = stateSensors.temp;
-	msg_sensors.pressure = stateSensors.pressure;
-	msg_sensors.height = stateSensors.height;
+	msg_sensors.temp = stateIMUSensors.temp;
+	msg_sensors.pressure = stateIMUSensors.pressure;
+	msg_sensors.height = stateIMUSensors.height;
 taskEXIT_CRITICAL();
 
 	mavlink_message_t msg;
@@ -163,6 +161,35 @@ taskEXIT_CRITICAL();
 	return len_sensors;
 //	return error;
 }
+
+static uint16_t mavlink_msg_BMP_send() {
+
+	mavlink_bmp280_t msg_BMP;
+		msg_BMP.time = (float)HAL_GetTick() / 1000;
+	taskENTER_CRITICAL();
+		msg_BMP.temp = stateSensors.temp;
+		msg_BMP.pressure = stateSensors.pressure;
+
+	taskEXIT_CRITICAL();
+
+		mavlink_message_t msg;
+		uint16_t len_sensors = mavlink_msg_sensors_encode(UNISAT_ID, UNISAT_SENSORS, &msg, &msg_BMP);
+		uint8_t buffer[100];
+		len_sensors = mavlink_msg_to_send_buffer(buffer, &msg);
+		if(USE_RF){
+			uint8_t error = nRF24L01_send(&spi_nRF24L01, buffer, len_sensors, 1);
+		}
+
+		taskENTER_CRITICAL();
+		state_system.SD_state = stream_file.res;
+		taskEXIT_CRITICAL();
+		if(USE_SD){
+			trace_printf("sd used\n");
+			dump(&stream_file, buffer, len_sensors);
+		}
+		return len_sensors;
+	//	return error;
+	}
 //
 //static void mavlink_msg_state_zero_send() {
 //
@@ -223,6 +250,7 @@ void IO_RF_task() {
 			$(mavlink_msg_imu_isc_send());
 			$(mavlink_msg_imu_rsc_send());
 			$(mavlink_msg_sensors_send());
+			$(mavlink_msg_BMP_send())
 		}
 
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);

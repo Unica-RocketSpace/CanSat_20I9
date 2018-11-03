@@ -73,11 +73,6 @@ typedef struct {
 	//	IMU data
 	float accel[3];
 	float compass[3];
-
-	//	position
-	float velocities[3];
-	float coordinates[3];
-
 	//	orientation
 	float quaternion[4];
 
@@ -90,6 +85,12 @@ typedef struct {
 	float pressure;
 	float height;
 } stateSensors_t;
+
+
+typedef struct {
+	float temp;
+	float pressure;
+} stateBMPSensors_t;
 
 
 //	system parameters
@@ -141,13 +142,13 @@ extern stateSensors_raw_t 	stateSensors_raw;
 extern stateIMU_rsc_t 		stateIMU_rsc;
 extern stateIMU_isc_t 		stateIMU_isc;
 extern stateSensors_t 		stateIMUSensors;
-extern stateSensors_t 		stateSensors;
+extern stateBMPSensors_t 	stateSensors;
 extern state_system_t 		state_system;
 extern state_zero_t			state_zero;
 
 extern stateIMU_isc_t		stateIMU_isc_prev;
 extern stateSensors_t 		stateIMUSensors_prev;
-extern stateSensors_t		stateSensors_prev;
+extern stateBMPSensors_t		stateSensors_prev;
 extern state_system_t		state_system_prev;
 
 

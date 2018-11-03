@@ -38,13 +38,13 @@ stateSensors_raw_t 	stateSensors_raw;
 stateIMU_rsc_t 		stateIMU_rsc;
 stateIMU_isc_t 		stateIMU_isc;
 stateSensors_t 		stateIMUSensors;
-stateSensors_t 		stateSensors;
+stateBMPSensors_t 	stateSensors;
 state_system_t 		state_system;
 state_zero_t		state_zero;
 
 stateIMU_isc_t		stateIMU_isc_prev;
 stateSensors_t		stateIMUSensors_prev;
-stateSensors_t		stateSensors_prev;
+stateBMPSensors_t		stateSensors_prev;
 state_system_t		state_system_prev;
 
 

@@ -82,15 +82,15 @@ class MyWin(QtWidgets.QMainWindow):
         self.a_ISC_y = []
         self.a_ISC_z = []
 
-        self.v_x = []
+        # self.v_x = []
+        #
+        # self.v_y = []
+        # self.v_z = []
 
-        self.v_y = []
-        self.v_z = []
-
-        self.mov_x = []
-        self.mov_y = []
-        self.mov_z = []
-
+        # self.mov_x = []
+        # self.mov_y = []
+        # self.mov_z = []
+        #
         self.vmf_x = []
         self.vmf_y = []
         self.vmf_z = []
@@ -603,13 +603,11 @@ class MyWin(QtWidgets.QMainWindow):
             self.time_atm.append(msgs[i].time)
             self.pressure_atmega.append(msgs[i].pressure)
             self.temp_atmega.append(msgs[i].temp)
-            self.state_atm_motor = msgs[i].motor_state
-            self.state_amt_para = msgs[i].para_state
 
             self.ui.textBrowser_2.append(
-                "ATmega {n: %ld, time : %0.3f, pressure : %0.3f, temp : %0.1f, baro: %ld, stage: %ld}"
+                "ATmega {n: %ld, time : %0.3f, pressure : %0.3f, temp : %0.1f}"
                 %
-                (msgs[i].get_header().seq, msgs[i].time, msgs[i].pressure, msgs[i].temp, msgs[i].baro_state, msgs[i].globalStage)
+                (msgs[i].get_header().seq, msgs[i].time, msgs[i].pressure, msgs[i].temp)
             )
 
         if len(self.time_atm) > self.lenght:
@@ -619,12 +617,12 @@ class MyWin(QtWidgets.QMainWindow):
 
         self.pl_graf_down1_x.setData(x=self.time_atm, y=self.temp_atmega, pen=('r'))
         self.pl_graf_down2_x.setData(x=self.time_atm, y=self.pressure_atmega, pen=('r'))
-
-        self.ui.state_atm_motor.clear()
-        self.ui.state_atm_motor.setText(str(self.state_atm_motor))
-
-        self.ui.state_para.clear()
-        self.ui.state_para.setText(str(self.state_amt_para))
+        #
+        # self.ui.state_atm_motor.clear()
+        # self.ui.state_atm_motor.setText(str(self.state_atm_motor))
+        #
+        # self.ui.state_para.clear()
+        # self.ui.state_para.setText(str(self.state_amt_para))
 
 
     @QtCore.pyqtSlot(list)
@@ -688,15 +686,15 @@ class MyWin(QtWidgets.QMainWindow):
             self.vmf_x.append(msgs[i].compass[0])
             self.vmf_y.append(msgs[i].compass[1])
             self.vmf_z.append(msgs[i].compass[2])
-
-            self.v_x.append(msgs[i].velocities[0])
-            self.v_y.append(msgs[i].velocities[1])
-            self.v_z.append(msgs[i].velocities[2])
-
-            self.mov_x.append(msgs[i].coordinates[0])
-            self.mov_y.append(msgs[i].coordinates[1])
-            self.mov_z.append(msgs[i].coordinates[2])
-
+            #
+            # self.v_x.append(msgs[i].velocities[0])
+            # self.v_y.append(msgs[i].velocities[1])
+            # self.v_z.append(msgs[i].velocities[2])
+            #
+            # self.mov_x.append(msgs[i].coordinates[0])
+            # self.mov_y.append(msgs[i].coordinates[1])
+            # self.mov_z.append(msgs[i].coordinates[2])
+            #
 
             q_0 = msgs[i].quaternion[0]
             teta = 2 * acos(q_0)
@@ -713,11 +711,11 @@ class MyWin(QtWidgets.QMainWindow):
                 %
                 (msgs[i].get_header().seq, msgs[i].time, *msgs[i].quaternion)
             )
-            self.ui.textBrowser_2.append(
-                "POS\t {n: %ld, time: %0.3f, velo: [%0.3f, %0.3f, %0.3f], pos: [%0.3f, %0.3f, %0.3f]}"
-                %
-                (msgs[i].get_header().seq, msgs[i].time, *msgs[i].velocities, *msgs[i].coordinates)
-            )
+            # self.ui.textBrowser_2.append(
+            #     "POS\t {n: %ld, time: %0.3f, velo: [%0.3f, %0.3f, %0.3f], pos: [%0.3f, %0.3f, %0.3f]}"
+            #     %
+            #     (msgs[i].get_header().seq, msgs[i].time, *msgs[i].velocities, *msgs[i].coordinates)
+            # )
 
         if len(self.time_ISC) > self.lenght:
             self.a_ISC_x = self.a_ISC_x[self.cut:(self.lenght - 1)]
@@ -753,13 +751,13 @@ class MyWin(QtWidgets.QMainWindow):
         self.pl_graf_middle3_y.setData(x=self.time_ISC, y=self.vmf_y, pen=('g'))
         self.pl_graf_middle3_z.setData(x=self.time_ISC, y=self.vmf_z, pen=('b'))
 
-        self.pl_graf_top3_x.setData(x=self.time_ISC, y=self.v_x, pen=('r'))
-        self.pl_graf_top3_y.setData(x=self.time_ISC, y=self.v_y, pen=('g'))
-        self.pl_graf_top3_z.setData(x=self.time_ISC, y=self.v_z, pen=('b'))
+        # self.pl_graf_top3_x.setData(x=self.time_ISC, y=self.v_x, pen=('r'))
+        # self.pl_graf_top3_y.setData(x=self.time_ISC, y=self.v_y, pen=('g'))
+        # self.pl_graf_top3_z.setData(x=self.time_ISC, y=self.v_z, pen=('b'))
 
-        self.pl_graf_middle2_x.setData(x=self.time_ISC, y=self.mov_x, pen=('r'))
-        self.pl_graf_middle2_y.setData(x=self.time_ISC, y=self.mov_y, pen=('g'))
-        self.pl_graf_middle2_z.setData(x=self.time_ISC, y=self.mov_z, pen=('b'))
+        # self.pl_graf_middle2_x.setData(x=self.time_ISC, y=self.mov_x, pen=('r'))
+        # self.pl_graf_middle2_y.setData(x=self.time_ISC, y=self.mov_y, pen=('g'))
+        # self.pl_graf_middle2_z.setData(x=self.time_ISC, y=self.mov_z, pen=('b'))
 
 
     @QtCore.pyqtSlot(list)
@@ -788,33 +786,33 @@ class MyWin(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(list)
     def gps_msg(self, msgs):
-        i = 0
-        for i in range(len(msgs)):
-            self.x.append(msgs[i].coordinates[0])
-            self.y.append(msgs[i].coordinates[1])
-            self.z.append(msgs[i].coordinates[2])
-
-            self.ui.textBrowser_2.append(
-                "GPS\t {n: %ld, time: %0.3f, coordinates: [%0.5f, %0.5f, %0.5f]}"
-                %
-                (msgs[i].get_header().seq, msgs[i].time, msgs[i].coordinates[1], msgs[i].coordinates[0], msgs[i].coordinates[2])
-            )
-
-            y0 = []
-            x0 = []
-            x0.append(self.x[0])
-            y0.append(self.y[0])
-
-        self.pl_graf_down3_y.setData(x=x0, y=y0, pen=('b'), width=10)
-
-        # if len(self.x) > self.lenght:
-        #     self.x = self.x[self.cut:(self.lenght - 1)]
-        #     self.y = self.y[self.cut:(self.lenght - 1)]
-        #     self.z = self.z[self.cut:(self.lenght - 1)]
+        # i = 0
+        # for i in range(len(msgs)):
+        #     self.x.append(msgs[i].coordinates[0])
+        #     self.y.append(msgs[i].coordinates[1])
+        #     self.z.append(msgs[i].coordinates[2])
         #
+        #     self.ui.textBrowser_2.append(
+        #         "GPS\t {n: %ld, time: %0.3f, coordinates: [%0.5f, %0.5f, %0.5f]}"
+        #         %
+        #         (msgs[i].get_header().seq, msgs[i].time, msgs[i].coordinates[1], msgs[i].coordinates[0], msgs[i].coordinates[2])
+        #     )
+        #
+        #     y0 = []
+        #     x0 = []
+        #     x0.append(self.x[0])
+        #     y0.append(self.y[0])
+        #
+        # self.pl_graf_down3_y.setData(x=x0, y=y0, pen=('b'), width=10)
+        #
+        # # if len(self.x) > self.lenght:
+        # #     self.x = self.x[self.cut:(self.lenght - 1)]
+        # #     self.y = self.y[self.cut:(self.lenght - 1)]
+        # #     self.z = self.z[self.cut:(self.lenght - 1)]
+        # #
 
-        self.pl_graf_down3_x.setData(x=self.x, y=self.y, pen=('r'))
-
+        # self.pl_graf_down3_x.setData(x=self.x, y=self.y, pen=('r'))
+        pass
 
     @QtCore.pyqtSlot(list)
     def state_msg(self, msgs):

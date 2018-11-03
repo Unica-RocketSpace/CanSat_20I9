@@ -50,31 +50,23 @@ class MavlinkThread(QThread):
     def process_message(self, msg):
         # _log.debug(msg)
         # _log.info(msg)
-
-        if isinstance(msg, MAVLink_atmega_message):
+        if isinstance(msg, MAVLink_bmp280_message):
             self.atmega_accum.push_message(msg)
-
-        elif isinstance(msg, MAVLink_state_message):
-            self.state_accum.push_message(msg)
-            print('sensors msg')
+            print('bmp msg')
+            # pass
 
         elif isinstance(msg, MAVLink_imu_rsc_message):
             self.imu_rsc_accum.push_message(msg)
-            print('rsc msg')
+            # print('rsc msg')
 
         elif isinstance(msg, MAVLink_imu_isc_message):
             self.imu_isc_accum.push_message(msg)
-            print('isc msg')
+            # print('isc msg')
 
         elif isinstance(msg, MAVLink_sensors_message):
             self.sensors_accum.push_message(msg)
-            print('sensors msg')
+            # print('sensors msg')
 
-        elif isinstance(msg, MAVLink_gps_message):
-            self.gps_accum.push_message(msg)
-
-        elif isinstance(msg, MAVLink_camera_orientation_message):
-            pass
         else:
             # _log.warning("неизвестный тип сообщения! %s", msg.data())
             pass
@@ -85,7 +77,7 @@ class MavlinkThread(QThread):
         _log.info("Запускаюсь. Использую url:")
         # mav1 = mavutil.mavlink_connection("udpin:0.0.0.0:22466")
         mav2 = mavutil.mavlink_connection("udpin:0.0.0.0:22467")
-        mav_read_file = mavutil.mavlogfile('test.mavlog', robust_parsing= False, notimestamps= True)
+        mav_read_file = mavutil.mavlogfile("U2.bin", robust_parsing= False, notimestamps= True)
 
         while True:
         # msg1 = mav1.recv_match(blocking=False)

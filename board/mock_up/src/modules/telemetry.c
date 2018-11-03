@@ -173,7 +173,7 @@ static uint16_t mavlink_msg_BMP_send() {
 	taskEXIT_CRITICAL();
 
 		mavlink_message_t msg;
-		uint16_t len_sensors = mavlink_msg_sensors_encode(UNISAT_ID, UNISAT_SENSORS, &msg, &msg_BMP);
+		uint16_t len_sensors = mavlink_msg_bmp280_encode(UNISAT_ID, UNISAT_SENSORS, &msg, &msg_BMP);
 		uint8_t buffer[100];
 		len_sensors = mavlink_msg_to_send_buffer(buffer, &msg);
 		if(USE_RF){

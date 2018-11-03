@@ -11,7 +11,6 @@
 #include <stdint.h>
 #include "state.h"
 
-
 void IO_RF_Init();
 void IO_RF_task();
 

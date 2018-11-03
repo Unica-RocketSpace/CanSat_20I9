@@ -16,6 +16,9 @@
 #include "drivers/sd/dump.h"
 #include "state.h"
 
+
+const char* file_extension = "bin";
+
 //static FATFS fs;
 //static bool fs_mounted = false;
 //
@@ -117,9 +120,9 @@ static void _reset(dump_channel_state_t* state)
 }
 
 
-static void _generate_fname(char * target, size_t number)
+static void _generate_fname(char * target, size_t number, const char* extension)
 {
-	sprintf(target, "0:/U%u.txt", number);
+	sprintf(target, "0:/U%u.%s", number, extension);
 }
 
 
@@ -162,7 +165,7 @@ bool dump_init(dump_channel_state_t* state)
 	for (i = 0; i < SIZE_MAX; i++)
 	{
 		fname[0] ='\0';
-		_generate_fname(fname, i);
+		_generate_fname(fname, i, file_extension);
 		FIL fp;
 		res = f_open(&fp, fname, FA_OPEN_EXISTING);
 		if (res == FR_NO_FILE)
@@ -198,7 +201,7 @@ bool dump_init(dump_channel_state_t* state)
 
 
 	// предполагается что с именем файла мы всетаки определились раз мы тут
-	_generate_fname(fname, i);
+	_generate_fname(fname, i, file_extension);
 	if (FR_OK != (res = f_open(&state->file, fname, FA_WRITE | FA_OPEN_ALWAYS | FA_OPEN_APPEND)))
 	{
 		trace_printf("open error = %d\n", res);

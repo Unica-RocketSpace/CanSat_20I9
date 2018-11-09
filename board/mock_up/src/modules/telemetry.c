@@ -243,7 +243,7 @@ void IO_RF_task() {
 	for (;;) {
 
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
-		vTaskDelay(30/portTICK_RATE_MS);
+		vTaskDelay(20/portTICK_RATE_MS);
 //
 
 			$(mavlink_msg_state_send());

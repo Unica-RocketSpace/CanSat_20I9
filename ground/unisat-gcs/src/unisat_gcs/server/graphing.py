@@ -10,6 +10,7 @@ from .gcs_ui import *
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import *
 
+from .mavlink import read_file
 
 import pyqtgraph.opengl as gl
 
@@ -26,12 +27,40 @@ _log = _root_log.getChild("main")
 # print(way)
 
 
+point = "."
+i = read_file.index(point)
+file_name = read_file[0:i]
+
+expansion = ".txt"
+
+
+file_bmp = file_name + "_bmp" + expansion
+file_imu_isc = file_name + "_imu_isc" + expansion
+file_imu_rsc = file_name + "_imu_rsc" + expansion
+file_sensors = file_name + "_sensors" + expansion
+
+
+f = open(file_bmp, 'w')
+f.write("Time" + '\t' + "Pressure" + '\t' + "Temp" + '\n')
+f.close()
+
+f = open(file_sensors, 'w')
+f.write("Time" + '\t' + "pressure" + '\t' + "Temp" + '\t' + "Height" + '\n')
+f.close()
+
+f = open(file_imu_isc, 'w')
+f.write("Time" + '\t' + "Accel" + '\t' + '\t' + '\t' + "Compass" + '\t' + '\t' + '\t' + "Quaternion" + '\n')
+f.close()
+
+f = open(file_imu_rsc, 'w')
+f.write("Time" + '\t' + "Accel" + '\t' + '\t' + '\t' + "Compass" + '\t' + '\t' + '\t' + "Gyro" + '\n')
+f.close()
+
+
 log_text = ''
 global_vars={'x': 0, 'y': 0}
 now_graf = None
 str_now_graf = None
-
-
 
 # Главный класс
 class MyWin(QtWidgets.QMainWindow):
@@ -108,6 +137,11 @@ class MyWin(QtWidgets.QMainWindow):
         self.z = []
 
         self.GPS = []
+
+        self.buffer_bmp_msg = []
+        self.buffer_imu_isc_msg = []
+        self.buffer_imu_rsc_msg = []
+        self.buffer_sensors_msg = []
 
         self.ui.glv_top = pg.GraphicsLayoutWidget(self.ui.centralwidget)
         self.ui.top.addWidget(self.ui.glv_top)
@@ -599,16 +633,32 @@ class MyWin(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot(list)
     def atm_msg(self, msgs):
         i = 0
+
+
         for i in range(len(msgs)):
             self.time_atm.append(msgs[i].time)
             self.pressure_atmega.append(msgs[i].pressure)
             self.temp_atmega.append(msgs[i].temp)
+
+            self.buffer_bmp_msg.append(  str(msgs[i].time) +'\t' + '\t' +
+                                    str(msgs[i].pressure) + '\t' + '\t' +
+                                    str(msgs[i].temp) + '\n')
+
 
             self.ui.textBrowser_2.append(
                 "ATmega {n: %ld, time : %0.3f, pressure : %0.3f, temp : %0.1f}"
                 %
                 (msgs[i].get_header().seq, msgs[i].time, msgs[i].pressure, msgs[i].temp)
             )
+
+
+        if len(self.buffer_bmp_msg) >= 9:
+            f = open(file_bmp, 'a')
+            for foo in range(len(self.buffer_bmp_msg)):
+                f.write(self.buffer_bmp_msg[foo])
+            self.buffer_bmp_msg = []
+            f.close()
+
 
         if len(self.time_atm) > self.lenght:
             self.time_atm = self.time_atm[self.cut:(self.lenght-1)]
@@ -642,11 +692,25 @@ class MyWin(QtWidgets.QMainWindow):
             self.av_y.append(msgs[i].gyro[1])
             self.av_z.append(msgs[i].gyro[2])
 
+            self.buffer_imu_rsc_msg.append(  str(msgs[i].time) + '\t' + '\t' +
+                                        str(msgs[i].accel[0]) + ' ' + str(msgs[i].accel[1]) + str(msgs[i].accel[2]) + '\t' + '\t' +
+                                        str(msgs[i].compass[0]) + ' ' + str(msgs[i].compass[1]) + ' ' + str(msgs[i].compass[2]) + '\t' + '\t' +
+                                        str(msgs[i].gyro[0]) + ' ' + str(msgs[i].gyro[1]) + ' ' + str(msgs[i].gyro[2]) + '\n')
+
+
             self.ui.textBrowser_2.append(
                 "IMU_RSC\t {n: %ld, time: %0.3f, A: [%0.4f, %0.4f, %0.4f] G: [%0.4f, %0.4f, %0.4f] M: [%0.3f, %0.3f, %0.3f]}"
                     %
                     (msgs[i].get_header().seq, msgs[i].time, *msgs[i].accel, *msgs[i].gyro, *msgs[i].compass)
                 )
+
+        if len(self.buffer_imu_rsc_msg) >= 9:
+            f = open(file_imu_rsc, 'a')
+            for foo in range(len(self.buffer_imu_rsc_msg)):
+                f.write(self.buffer_imu_rsc_msg[foo])
+            self.buffer_imu_rsc_msg = []
+            f.close()
+
 
         if len(self.time_RSC) > self.lenght:
             self.a_RSC_x = self.a_RSC_x[self.cut:(self.lenght - 1)]
@@ -686,15 +750,11 @@ class MyWin(QtWidgets.QMainWindow):
             self.vmf_x.append(msgs[i].compass[0])
             self.vmf_y.append(msgs[i].compass[1])
             self.vmf_z.append(msgs[i].compass[2])
-            #
-            # self.v_x.append(msgs[i].velocities[0])
-            # self.v_y.append(msgs[i].velocities[1])
-            # self.v_z.append(msgs[i].velocities[2])
-            #
-            # self.mov_x.append(msgs[i].coordinates[0])
-            # self.mov_y.append(msgs[i].coordinates[1])
-            # self.mov_z.append(msgs[i].coordinates[2])
-            #
+
+            self.buffer_imu_isc_msg.append(  str(msgs[i].time) + '\t' + '\t' +
+                                        str(msgs[i].accel[0]) + ' ' + str(msgs[i].accel[1]) + str(msgs[i].accel[2]) + '\t' + '\t' +
+                                        str(msgs[i].compass[0]) + ' ' + str(msgs[i].compass[1]) + ' ' + str(msgs[i].compass[2]) + '\t' + '\t' +
+                                        str(msgs[i].quaternion[0]) + ' ' + str(msgs[i].quaternion[1]) + ' ' + str(msgs[i].quaternion[2]) + '\n')
 
             q_0 = msgs[i].quaternion[0]
             teta = 2 * acos(q_0)
@@ -716,6 +776,14 @@ class MyWin(QtWidgets.QMainWindow):
             #     %
             #     (msgs[i].get_header().seq, msgs[i].time, *msgs[i].velocities, *msgs[i].coordinates)
             # )
+
+        if len(self.buffer_imu_isc_msg) >= 9:
+            f = open(file_imu_isc, 'a')
+            for foo in range(len(self.buffer_imu_isc_msg)):
+                f.write(self.buffer_imu_isc_msg[foo])
+            self.buffer_imu_isc_msg = []
+            f.close()
+
 
         if len(self.time_ISC) > self.lenght:
             self.a_ISC_x = self.a_ISC_x[self.cut:(self.lenght - 1)]
@@ -768,11 +836,27 @@ class MyWin(QtWidgets.QMainWindow):
             self.pressure_sensors.append(msgs[i].pressure)
             self.temp_sensors.append(msgs[i].temp)
 
+            time = msgs[i].time
+
+            self.buffer_sensors_msg.append( str(time) + '\t' + '\t' +
+                                            str(msgs[i].pressure) + '\t' + '\t' +
+                                            str(msgs[i].temp) + '\t' + '\t' +
+                                            str(msgs[i].height) + '\n')
+
+
             self.ui.textBrowser_2.append(
                 "SENSORS  {n: %ld, time: %0.3f, temp: %0.3f, pressure: %0.3f}"
                 %
                 (msgs[i].get_header().seq, msgs[i].time, msgs[i].temp, msgs[i].pressure)
             )
+
+        if len(self.buffer_sensors_msg) >= 10:
+            f = open(file_sensors, 'a')
+            for foo in range(len(self.buffer_sensors_msg)):
+                f.write(self.buffer_sensors_msg[foo])
+            self.buffer_sensors_msg = []
+            f.close()
+
 
         if len(self.time_sens) > self.lenght:
             self.time_sens = self.time_sens[self.cut:(self.lenght - 1)]

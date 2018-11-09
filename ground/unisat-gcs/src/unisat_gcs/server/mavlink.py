@@ -7,6 +7,12 @@ from . import _log as _root_log
 _log = _root_log.getChild("main")
 
 
+# Файл, из которого мы читаем данные
+read_file = "U2.bin"
+
+
+
+
 class MsgAccumulator:
 
     def __init__(self, batch_size, signal):
@@ -19,7 +25,7 @@ class MsgAccumulator:
         if len(self.accumulator) >= self.batch_size:
             self.signal.emit(self.accumulator)
             self.accumulator = []
-            print('PUSH COMPLETED')
+            # print('PUSH COMPLETED')
 
 
 class MavlinkThread(QThread):
@@ -43,7 +49,6 @@ class MavlinkThread(QThread):
 
     @pyqtSlot(int)
     def post_msg(self, msg):
-        # msg = bytes(msg)
         self.uplink_msgs.append(msg)
         self.uplink_msgs = bytes(self.uplink_msgs)
 
@@ -52,8 +57,7 @@ class MavlinkThread(QThread):
         # _log.info(msg)
         if isinstance(msg, MAVLink_bmp280_message):
             self.atmega_accum.push_message(msg)
-            print('bmp msg')
-            # pass
+            # print('bmp msg')
 
         elif isinstance(msg, MAVLink_imu_rsc_message):
             self.imu_rsc_accum.push_message(msg)
@@ -77,7 +81,7 @@ class MavlinkThread(QThread):
         _log.info("Запускаюсь. Использую url:")
         # mav1 = mavutil.mavlink_connection("udpin:0.0.0.0:22466")
         mav2 = mavutil.mavlink_connection("udpin:0.0.0.0:22467")
-        mav_read_file = mavutil.mavlogfile("U2.bin", robust_parsing= False, notimestamps= True)
+        mav_read_file = mavutil.mavlogfile(read_file, robust_parsing= False, notimestamps= True)
 
         while True:
         # msg1 = mav1.recv_match(blocking=False)

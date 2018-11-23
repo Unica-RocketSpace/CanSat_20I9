@@ -51,16 +51,19 @@
 
 
 // глобальные структуры
-stateSensors_raw_t 	stateSensors_raw;
+stateSensors_raw_t 	stateIMUSensors_raw;
+stateSensors_raw_t	stateSensors_raw;
 stateGPS_t 			stateGPS;
 stateIMU_rsc_t 		stateIMU_rsc;
 stateIMU_isc_t 		stateIMU_isc;
-stateSensors_t 		stateSensors;
+stateSensors_t 		stateIMUSensors;
+stateSensors_t		stateSensors;
 stateCamera_orient_t stateCamera_orient;
 state_system_t 		state_system;
 state_zero_t		state_zero;
 
 stateIMU_isc_t		stateIMU_isc_prev;
+stateSensors_t		stateIMUSensors_prev;
 stateSensors_t		stateSensors_prev;
 state_system_t		state_system_prev;
 stateCamera_orient_t stateCamera_orient_prev;
@@ -162,16 +165,19 @@ void CALIBRATION_task() {
 int main(int argc, char* argv[])
 {
 	// Инициализация структур глобального состояния (в нашем случае просто заполняем их нулями)
-	memset(&stateSensors_raw, 	0x00, sizeof(stateSensors_raw));
-	memset(&stateGPS, 			0x00, sizeof(stateGPS));
-	memset(&stateIMU_rsc, 		0x00, sizeof(stateIMU_rsc));
-	memset(&stateIMU_isc, 		0x00, sizeof(stateIMU_isc));
-	memset(&stateSensors, 		0x00, sizeof(stateSensors));
-	memset(&stateCamera_orient, 0x00, sizeof(stateCamera_orient));
-	memset(&state_system, 		0x00, sizeof(state_system));
-	memset(&state_zero, 		0x00, sizeof(state_zero));
+	memset(&stateIMUSensors_raw, 	0x00, sizeof(stateIMUSensors_raw));
+	memset(&stateSensors_raw,		0x00, sizeof(stateSensors_raw));
+	memset(&stateGPS, 				0x00, sizeof(stateGPS));
+	memset(&stateIMU_rsc, 			0x00, sizeof(stateIMU_rsc));
+	memset(&stateIMU_isc, 			0x00, sizeof(stateIMU_isc));
+	memset(&stateIMUSensors, 		0x00, sizeof(stateIMUSensors));
+	memset(&stateSensors,			0x00, sizeof(stateSensors));
+	memset(&stateCamera_orient, 	0x00, sizeof(stateCamera_orient));
+	memset(&state_system, 			0x00, sizeof(state_system));
+	memset(&state_zero, 			0x00, sizeof(state_zero));
 
 	memset(&stateIMU_isc_prev, 			0x00, sizeof(stateIMU_isc_prev));
+	memset(&stateIMUSensors_prev,		0x00, sizeof(stateIMUSensors_prev));
 	memset(&stateSensors_prev,			0x00, sizeof(stateSensors_prev));
 	memset(&state_system_prev, 			0x00, sizeof(state_system_prev));
 	memset(&stateCamera_orient_prev, 	0x00, sizeof(stateCamera_orient_prev));
@@ -202,19 +208,19 @@ int main(int argc, char* argv[])
 	vTaskStartScheduler();
 
 
-
-	switch (state_system.globalStage){
-		case STAGE_PRELAUNCH_CHECK:
-			IO_RF_Init();
-			IMU_Init();
-			MOTORS_Init();
-			GPS_Init();
-			HAL_Delay(300);
-
-	}
-
-
-
+//
+//	switch (state_system.globalStage){
+//		case STAGE_PRELAUNCH_CHECK:
+//			IO_RF_Init();
+//			IMU_Init();
+//			MOTORS_Init();
+//			GPS_Init();
+//			HAL_Delay(300);
+//
+//	}
+//
+//
+//
 
 
 	return 0;

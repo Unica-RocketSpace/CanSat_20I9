@@ -95,8 +95,10 @@ typedef struct {
 	uint8_t BMP_state;		//	state of barometer
 	uint8_t SD_state;		//	state of SD
 	uint8_t NRF_state;		//	state of NRF24L01
-	uint8_t MOTOR_state;	//	state of motor with parashute
 	uint8_t GPS_state;		//	state of GPS-module
+	uint8_t master_state;	//  state of master
+
+	uint8_t buttons;		//  state of all buttons
 
 	uint8_t globalStage;	//	number of current global stage
 	uint8_t globalCommand;

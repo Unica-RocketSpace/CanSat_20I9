@@ -31,6 +31,15 @@
 #define BLINK_ON_TICKS  (TIMER_FREQUENCY_HZ * 3 / 4)
 #define BLINK_OFF_TICKS (TIMER_FREQUENCY_HZ - BLINK_ON_TICKS)
 
+
+#define STAGE_PRELAUNCH_CHECK	0	//  Предстартовая провкерка
+#define STAGE_INSTALLATION		1	//  Установка в ракету
+#define STAGE_LAUNCH_ROCKET		2	//  Полет в ракете
+#define STAGE_FALLING			3	//  Падение
+#define STAGE_DESCENT			4	//  Спуск
+#define STAGE_FLIGHT			5	//  Управляемый полет
+#define STAGE_SLEEP				6	//  Режим ожидания
+
 // ----- main() ---------------------------------------------------------------
 
 // Sample pragmas to cope with warnings. Please note the related line at
@@ -169,7 +178,7 @@ int main(int argc, char* argv[])
 
 	state_system.BMP_state = 255;
 	state_system.GPS_state = 255;
-	state_system.MOTOR_state = 255;
+	state_system.buttons = 255;
 	state_system.MPU_state = 255;
 	state_system.NRF_state = 255;
 	state_system.SD_state = 255;
@@ -185,16 +194,28 @@ int main(int argc, char* argv[])
 
 //	xTaskCreateStatic(CALIBRATION_task, "CALIBRATION", CALIBRATION_TASK_STACK_SIZE, NULL, 1, _CALIBRATIONTaskStack, &_CALIBRATIONTaskObj);
 
-	IO_RF_Init();
-	IMU_Init();
-	MOTORS_Init();
-	GPS_Init();
-	HAL_Delay(300);
+
 
 //	HAL_InitTick(15);
 
 
 	vTaskStartScheduler();
+
+
+
+	switch (state_system.globalStage){
+		case STAGE_PRELAUNCH_CHECK:
+			IO_RF_Init();
+			IMU_Init();
+			MOTORS_Init();
+			GPS_Init();
+			HAL_Delay(300);
+
+	}
+
+
+
+
 
 	return 0;
 }

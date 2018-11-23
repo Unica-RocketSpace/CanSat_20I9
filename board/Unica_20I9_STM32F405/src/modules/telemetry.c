@@ -195,28 +195,6 @@ taskEXIT_CRITICAL();
 	return error;
 }
 
-static uint8_t mavlink_msg_camera_orientation_send() {
-
-	mavlink_camera_orientation_t msg_camera_orient;
-	msg_camera_orient.time = (float)HAL_GetTick() / 1000;
-taskENTER_CRITICAL();
-	msg_camera_orient.servo_pos = stateCamera_orient.servo_pos;
-	msg_camera_orient.step_engine_pos = stateCamera_orient.step_engine_pos;
-taskEXIT_CRITICAL();
-
-	mavlink_message_t msg;
-	uint16_t len = mavlink_msg_camera_orientation_encode(UNISAT_ID, UNISAT_GPS, &msg, &msg_camera_orient);
-	uint8_t buffer[100];
-	len = mavlink_msg_to_send_buffer(buffer, &msg);
-	uint8_t error = nRF24L01_send(&spi_nRF24L01, buffer, len, 1);
-
-	taskENTER_CRITICAL();
-	state_system.SD_state = stream_file.res;
-	taskEXIT_CRITICAL();
-	dump(&stream_file, buffer, len);
-
-	return error;
-}
 
 
 

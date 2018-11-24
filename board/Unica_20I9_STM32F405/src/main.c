@@ -12,18 +12,18 @@
 
 #include "diag/Trace.h"
 #include <FreeRTOS.h>
+#include <tasks/control_task.h>
+#include <tasks/sensors_task.h>
+#include <tasks/telemetry.h>
 #include "task.h"
 #include "mavlink/UNISAT/mavlink.h"
 
 
 #include "state.h"
-#include "kinematic_unit.h"
-#include "dynamic_unit.h"
 #include "gps_nmea.h"
 #include "MPU9255.h"
 #include "UNICS_bmp280.h"
 #include "nRF24L01.h"
-#include "telemetry.h"
 
 // ----- Timing definitions -------------------------------------------------
 
@@ -85,14 +85,18 @@ static StaticTask_t _gpsTaskObj;
 static StackType_t	_IMUTaskStack[IMU_TASK_STACK_SIZE];
 static StaticTask_t	_IMUTaskObj;
 
-//	параметры MOTORS_task
-#define MOTORS_TASK_STACK_SIZE (40*configMINIMAL_STACK_SIZE)
-static StackType_t	_MOTORSTaskStack[MOTORS_TASK_STACK_SIZE];
-static StaticTask_t	_MOTORSTaskObj;
+////	параметры MOTORS_task
+//#define MOTORS_TASK_STACK_SIZE (40*configMINIMAL_STACK_SIZE)
+//static StackType_t	_MOTORSTaskStack[MOTORS_TASK_STACK_SIZE];
+//static StaticTask_t	_MOTORSTaskObj;
+
+#define CONTROL_TASK_STACK_SIZE (20*configMINIMAL_STACK_SIZE)
+static StackType_t _CONTROLTaskStack[CONTROL_TASK_STACK_SIZE];
+static StaticTask_t _CONTROLTaskObj;
 
 
 #define CALIBRATION_TASK_STACK_SIZE (20*configMINIMAL_STACK_SIZE)
-static StackType_t	_CALIBRATIONTaskStack[MOTORS_TASK_STACK_SIZE];
+static StackType_t	_CALIBRATIONTaskStack[CALIBRATION_TASK_STACK_SIZE];
 static StaticTask_t	_CALIBRATIONTaskObj;
 
 
@@ -193,11 +197,14 @@ int main(int argc, char* argv[])
 
 	xTaskCreateStatic(IO_RF_task, 	"IO_RF", 	IO_RF_TASK_STACK_SIZE,	NULL, 1, _iorfTaskStack, 	&_iorfTaskObj);
 
-	xTaskCreateStatic(MOTORS_task,	"MOTORS", 	MOTORS_TASK_STACK_SIZE, NULL, 1, _MOTORSTaskStack, 	&_MOTORSTaskObj);
+//	xTaskCreateStatic(MOTORS_task,	"MOTORS", 	MOTORS_TASK_STACK_SIZE, NULL, 1, _MOTORSTaskStack, 	&_MOTORSTaskObj);
 
 	xTaskCreateStatic(GPS_task, 	"GPS", 		GPS_TASK_STACK_SIZE, 	NULL, 1, _gpsTaskStack, 	&_gpsTaskObj);
 
+	xTaskCreateStatic(CONTROL_task, "CONTROL", CONTROL_TASK_STACK_SIZE, NULL, 2, _CONTROLTaskStack, &_CONTROLTaskObj);
 
+
+	handle_control = xTaskGetHandle(CONTROL_task);
 //	xTaskCreateStatic(CALIBRATION_task, "CALIBRATION", CALIBRATION_TASK_STACK_SIZE, NULL, 1, _CALIBRATIONTaskStack, &_CALIBRATIONTaskObj);
 
 

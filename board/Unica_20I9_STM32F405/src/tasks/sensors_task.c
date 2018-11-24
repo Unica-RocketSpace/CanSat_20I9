@@ -1,14 +1,10 @@
 /*
- * KINEMATIC_UNIT
+ * sensors_task.c
  *
- * 		This unit will be used for for getting orientation of device and it`s translations
- *  from transformed sensors data.
- * 		In a basis of getting orientation we use Madgwick`s algorythm,
- * 	which creates quaternion of translation from RSC to ISC from sensors data
- * 	(accelerometer, gyroscope, magnetometer).
- *
- * 	Authors: Korr237i, RaKetov
+ *  Created on: 24 нояб. 2018 г.
+ *      Author: developer
  */
+
 
 #include <math.h>
 #include <stdlib.h>
@@ -38,19 +34,6 @@ rscs_bmp280_descriptor_t * bmp280;
 rscs_bmp280_descriptor_t * IMUbmp280;
 const rscs_bmp280_calibration_values_t * bmp280_calibration_values;
 
-
-//void apply_KalmanFilter(float * sensor_data, const float * sensor_data_prev, float Kalman_gain, int data_array_size) {
-//	for (int i = 0; i < data_array_size; i++)
-//		sensor_data[i] = Kalman_gain * sensor_data[i] + (1 - Kalman_gain) * sensor_data_prev[i];
-//}
-//
-//void apply_NoiseFilter(float * sensor_data, float noise, int data_array_size) {
-//	for (int i = 0; i < data_array_size; i++)
-//	{
-//		if (fabsf(sensor_data[i]) < noise)
-//				sensor_data[i] = 0;
-//	}
-//}
 
 uint8_t get_gyro_staticShift(float* gyro_staticShift) {
 	uint8_t error = 0;
@@ -195,7 +178,7 @@ taskEXIT_CRITICAL();
 
 
 ///////  ОБНОВЛЯЕМ КООРДИНАТЫ И СКОРОСТИ  //////////
-	if (state_system.globalStage >= 2) {
+	if (state_system.globalStage >= 2) { //FIXME: Посмотреть в каком этапе это нужно?
 
 		float delta_velo[3] = {0, 0, 0};
 		float delta_coord[3] = {0, 0, 0};
@@ -251,18 +234,11 @@ taskENTER_CRITICAL();
 	stateIMUSensors.height = height;
 taskEXIT_CRITICAL();
 
-	pressure = 0;
-	temp = 0;
-	pressure_f = 0;
-	temp_f = 0;
-	height = 0;
+	pressure = 0; temp = 0; pressure_f = 0;	temp_f = 0; height = 0;
 
 	rscs_bmp280_read(bmp280, &pressure, &temp);
 	rscs_bmp280_calculate(bmp280_calibration_values, pressure, temp, &pressure_f, &temp_f);
 
-taskENTER_CRITICAL();
-	float zero_pressure = state_zero.zero_pressure;
-taskEXIT_CRITICAL();
 	height = 18.4 * log(zero_pressure / pressure_f);
 
 taskENTER_CRITICAL();
@@ -334,87 +310,40 @@ void IMU_Init() {
 	state_system.BMP_state = bmp280_initError;
 }
 
+void zero_data(){
+	taskENTER_CRITICAL();
+	state_zero.zero_pressure = stateSensors.pressure;
+	for (int i = 0; i < 3; i++)
+		state_zero.zero_GPS[i] = stateGPS.coordinates[i];
+	for (int i = 0; i < 4; i++)
+		state_zero.zero_quaternion[i] = stateIMU_isc.quaternion[i];
+	taskEXIT_CRITICAL();
+}
+
 
 void IMU_task() {
 
 	for (;;) {
-//		vTaskDelay(10/portTICK_RATE_MS);
-		// Этап 0. Подтверждение инициализации отправкой пакета состояния и ожидание ответа от НС
-		if (state_system.globalStage == 0) {
-		}
 
-		// Этап 1. Определение начального состояния
-		if (state_system.globalStage == 1) {
-			static uint8_t counter = 0;
+		// start all
 
-			if (counter == 0) {
-				vTaskDelay(10000);
-				get_staticShifts();
-				bmp280_update();
-				IMU_updateDataAll();
-				_IMUtask_updateData();
-			taskENTER_CRITICAL();
-				state_zero.zero_pressure = stateSensors.pressure;
-				for (int i = 0; i < 3; i++)
-					state_zero.zero_GPS[i] = stateGPS.coordinates[i];
-				for (int i = 0; i < 4; i++)
-					state_zero.zero_quaternion[i] = stateIMU_isc.quaternion[i];
-			taskEXIT_CRITICAL();
-				counter = 1;
-			}
+//		get_staticShifts();
+//
+//
+//
+////		workig
+//		bmp280_update();
+//		IMU_updateDataAll();
+//		_IMUtask_updateData();
+//
+//
+//		//zero_data
+//		zero_data();
+		trace_printf("SENSORS_task");
 
-			bmp280_update();
-			IMU_updateDataAll();
-			_IMUtask_updateData();
+		vTaskDelay(1000);
 
-		}
-		// Этап 2. Полет в ракете
-		if (state_system.globalStage == 2) {
-			bmp280_update();
-			IMU_updateDataAll();
-			_IMUtask_updateData();
-
-			// ОПРЕДЕЛЯЕМ НАЧАЛО ПАДЕНИЯ
-			static int exit_cnt = 0;
-			taskENTER_CRITICAL();
-			exit_cnt = (stateSensors.pressure > stateSensors_prev.pressure) ? (exit_cnt+1) : 0;
-			if (exit_cnt == 5)
-				state_system.globalStage = 3;
-			taskEXIT_CRITICAL();
-		}
-		// Этап 3. Свободное падение
-		if (state_system.globalStage == 3) {
-			bmp280_update();
-			IMU_updateDataAll();
-			_IMUtask_updateData();
-
-//			// ОПРЕДЕЛЯЕМ НАЧАЛО СПУСКА
-//			taskENTER_CRITICAL();
-//			if (stateSensors.height <= 270)
-//				state_system.globalStage = 4;
-//			taskEXIT_CRITICAL();
-		}
-		// Этап 4. Спуск
-		if (state_system.globalStage == 4) {
-			bmp280_update();
-			IMU_updateDataAll();
-			_IMUtask_updateData();
-
-			//	FIXME: RETURN
-//			// ОПРЕДЕЛЯЕМ НАЧАЛО СПУСКА
-//			static int exit_cnt = 0;
-//			taskENTER_CRITICAL();
-//			exit_cnt = (fabs(stateSensors_prev.height - stateSensors.height) < 0.005) ? (exit_cnt+1) : 0;
-//			if (exit_cnt == 5)
-//				state_system.globalStage = 5;
-//			taskEXIT_CRITICAL();
-		}
-		// Этап 5. Окончание полета
-		if (state_system.globalStage == 5) {
-			bmp280_update();
-			IMU_updateDataAll();
-			_IMUtask_updateData();
-		}
+		xTaskNotifyGive(&handle_control);
 	}
 
 /*
@@ -429,6 +358,10 @@ void IMU_task() {
 	HAL_USART_Init(&usart_dbg);
 */
 }
+
+
+
+
 
 
 

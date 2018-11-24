@@ -7,6 +7,7 @@
  * 	Authors: Korr237i, RaKetov
  */
 
+#include <tasks/telemetry.h>
 #include "stdint.h"
 
 #include "diag/Trace.h"
@@ -15,7 +16,6 @@
 #include "mavlink/UNISAT/mavlink.h"
 
 #include "state.h"
-#include "telemetry.h"
 #include "nRF24L01.h"
 #include "drivers/sd/sd.h"
 #include "drivers/sd/dump.h"
@@ -42,11 +42,11 @@ taskENTER_CRITICAL();
 	msg_state.MPU_state		= state_system.MPU_state;
 	msg_state.BMP_state 	= state_system.BMP_state;
 	msg_state.SD_state 		= state_system.SD_state;
-	msg_state.NRF_state		= state_system.NRF_state;
-	msg_state.MOTOR_state	= state_system.MOTOR_state;
-	msg_state.GPS_state		= state_system.GPS_state;
+//	msg_state.NRF_state		= state_system.NRF_state;
+//	msg_state.MOTOR_state	= state_system.MOTOR_state;
+//	msg_state.GPS_state		= state_system.GPS_state;
 
-	msg_state.globalStage	= state_system.globalStage;
+//	msg_state.globalStage	= state_system.globalStage;
 taskEXIT_CRITICAL();
 
 	mavlink_message_t msg;
@@ -97,8 +97,8 @@ taskENTER_CRITICAL();
 	for (int i = 0; i < 3; i++) {
 		msg_imu_isc.accel[i] = stateIMU_isc.accel[i];
 		msg_imu_isc.compass[i] = stateIMU_isc.compass[i];
-		msg_imu_isc.velocities[i] = stateIMU_isc.velocities[i];
-		msg_imu_isc.coordinates[i] = stateIMU_isc.coordinates[i];
+//		msg_imu_isc.velocities[i] = stateIMU_isc.velocities[i];
+//		msg_imu_isc.coordinates[i] = stateIMU_isc.coordinates[i];
 	}
 	for (int j = 0; j < 4; j++) {
 		msg_imu_isc.quaternion[j] = stateIMU_isc.quaternion[j];
@@ -143,28 +143,28 @@ taskEXIT_CRITICAL();
 	return error;
 }
 
-static uint8_t mavlink_msg_gps_send() {
-
-	mavlink_gps_t msg_gps;
-	msg_gps.time = (float)HAL_GetTick() / 1000;
-taskENTER_CRITICAL();
-	for (int i = 0; i < 3; i++)
-		msg_gps.coordinates[i] = stateGPS.coordinates[i];
-taskEXIT_CRITICAL();
-
-	mavlink_message_t msg;
-	uint16_t len = mavlink_msg_gps_encode(UNISAT_ID, UNISAT_GPS, &msg, &msg_gps);
-	uint8_t buffer[100];
-	len = mavlink_msg_to_send_buffer(buffer, &msg);
-	uint8_t error = nRF24L01_send(&spi_nRF24L01, buffer, len, 1);
-
-	taskENTER_CRITICAL();
-	state_system.SD_state = stream_file.res;
-	taskEXIT_CRITICAL();
-	dump(&stream_file, buffer, len);
-
-	return error;
-}
+//static uint8_t mavlink_msg_gps_send() {
+//
+//	mavlink_gps_t msg_gps;
+//	msg_gps.time = (float)HAL_GetTick() / 1000;
+//taskENTER_CRITICAL();
+//	for (int i = 0; i < 3; i++)
+//		msg_gps.coordinates[i] = stateGPS.coordinates[i];
+//taskEXIT_CRITICAL();
+//
+//	mavlink_message_t msg;
+//	uint16_t len = mavlink_msg_gps_encode(UNISAT_ID, UNISAT_GPS, &msg, &msg_gps);
+//	uint8_t buffer[100];
+//	len = mavlink_msg_to_send_buffer(buffer, &msg);
+//	uint8_t error = nRF24L01_send(&spi_nRF24L01, buffer, len, 1);
+//
+//	taskENTER_CRITICAL();
+//	state_system.SD_state = stream_file.res;
+//	taskEXIT_CRITICAL();
+//	dump(&stream_file, buffer, len);
+//
+//	return error;
+//}
 
 static uint8_t mavlink_msg_state_zero_send() {
 
@@ -175,7 +175,7 @@ taskENTER_CRITICAL();
 	for (int i = 0; i < 4; i++)
 		msg_state_zero.zero_quaternion[i] = state_zero.zero_quaternion[i];
 	for (int i = 0; i < 3; i++) {
-		msg_state_zero.zero_GPS[i] = state_zero.zero_GPS[i];
+//		msg_state_zero.zero_GPS[i] = state_zero.zero_GPS[i];
 		msg_state_zero.gyro_staticShift[i] = state_zero.gyro_staticShift[i];
 		msg_state_zero.accel_staticShift[i] = state_zero.accel_staticShift[i];
 	}

@@ -1,12 +1,12 @@
 /*
- * kinematic_unit.h
+ * sensors_task.h
  *
- *  Created on: 11 нояб. 2017 г.
+ *  Created on: 24 нояб. 2018 г.
  *      Author: developer
  */
 
-#ifndef KINEMATIC_UNIT_H_
-#define KINEMATIC_UNIT_H_
+#ifndef SENSORS_TASK_H_
+#define SENSORS_TASK_H_
 
 #include "state.h"
 
@@ -21,4 +21,5 @@ void IMU_Init();
 void IMU_task();
 
 
-#endif /* KINEMATIC_UNIT_H_ */
+
+#endif /* SENSORS_TASK_H_ */

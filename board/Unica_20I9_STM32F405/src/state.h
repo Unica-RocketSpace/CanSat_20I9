@@ -154,4 +154,7 @@ extern state_system_t		state_system_prev;
 extern stateCamera_orient_t	stateCamera_orient_prev;
 
 
+static TaskHandle_t handle_control;
+
+
 #endif /* STATE_H_ */

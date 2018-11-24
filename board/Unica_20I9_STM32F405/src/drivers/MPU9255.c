@@ -7,14 +7,12 @@
 
 #include <stdio.h>
 #include <math.h>
-
 #include <stm32f4xx_hal.h>
 #include "diag/Trace.h"
 
 #include <sofa.h>
 #include <tasks/dynamic_unit.h>
 #include <tasks/kinematic_unit.h>
-
 #include "FreeRTOS.h"
 #include "task.h"
 

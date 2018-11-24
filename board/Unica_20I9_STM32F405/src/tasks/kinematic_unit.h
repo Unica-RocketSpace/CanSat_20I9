@@ -5,8 +5,8 @@
 // *      Author: developer
 // */
 //
-//#ifndef KINEMATIC_UNIT_H_
-//#define KINEMATIC_UNIT_H_
+#ifndef KINEMATIC_UNIT_H_
+#define KINEMATIC_UNIT_H_
 //
 //#include "state.h"
 //
@@ -22,4 +22,4 @@
 //void CONTROL_task();
 //
 //
-//#endif /* KINEMATIC_UNIT_H_ */
+#endif /* KINEMATIC_UNIT_H_ */

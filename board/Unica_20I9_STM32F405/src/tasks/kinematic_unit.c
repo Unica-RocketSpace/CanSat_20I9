@@ -9,7 +9,7 @@
 // *
 // * 	Authors: Korr237i, RaKetov
 // */
-//
+
 //#include <math.h>
 //#include <stdlib.h>
 //#include <string.h>

@@ -27,6 +27,8 @@
 #define BETA_2	0.3
 #define BETA_3	0.25
 
+
+
 I2C_HandleTypeDef 	i2c_mpu9255;
 USART_HandleTypeDef usart_dbg;
 
@@ -321,10 +323,11 @@ void zero_data(){
 }
 
 
-void IMU_task() {
+void SENSORS_task() {
 
 	for (;;) {
 
+		if (state_system.globalStage == 1)
 		// start all
 
 //		get_staticShifts();
@@ -332,18 +335,24 @@ void IMU_task() {
 //
 //
 ////		workig
-//		bmp280_update();
-//		IMU_updateDataAll();
-//		_IMUtask_updateData();
+		bmp280_update();
+		IMU_updateDataAll();
+		_IMUtask_updateData();
 //
 //
 //		//zero_data
 //		zero_data();
 		trace_printf("SENSORS_task");
 
+		while(1){
 		vTaskDelay(1000);
+		}
 
-		xTaskNotifyGive(&handle_control);
+		xTaskNotifyGive(handleControl);
+		xTaskNotifyGive(handleRF);
+
+		vTaskDelay(10/portTICK_RATE_MS);
+
 	}
 
 /*

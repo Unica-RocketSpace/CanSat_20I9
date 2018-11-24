@@ -67,6 +67,8 @@ stateSensors_t		stateIMUSensors_prev;
 stateSensors_t		stateSensors_prev;
 state_system_t		state_system_prev;
 stateCamera_orient_t stateCamera_orient_prev;
+TaskHandle_t 		handleControl;
+TaskHandle_t		handleRF;
 
 
 //	параметры IO_RF_task
@@ -193,18 +195,18 @@ int main(int argc, char* argv[])
 	state_system.NRF_state = 255;
 	state_system.SD_state = 255;
 
-	xTaskCreateStatic(IMU_task, 	"IMU", 		IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack, 	&_IMUTaskObj);
+	xTaskCreateStatic(SENSORS_task, 	"SENSORS", 		IMU_TASK_STACK_SIZE, 	NULL, 2, _IMUTaskStack, 	&_IMUTaskObj);
 
-	xTaskCreateStatic(IO_RF_task, 	"IO_RF", 	IO_RF_TASK_STACK_SIZE,	NULL, 1, _iorfTaskStack, 	&_iorfTaskObj);
+	handleRF = xTaskCreateStatic(IO_RF_task, 	"IO_RF", 	IO_RF_TASK_STACK_SIZE,	NULL, 1, _iorfTaskStack, 	&_iorfTaskObj);
 
 //	xTaskCreateStatic(MOTORS_task,	"MOTORS", 	MOTORS_TASK_STACK_SIZE, NULL, 1, _MOTORSTaskStack, 	&_MOTORSTaskObj);
 
-	xTaskCreateStatic(GPS_task, 	"GPS", 		GPS_TASK_STACK_SIZE, 	NULL, 1, _gpsTaskStack, 	&_gpsTaskObj);
+//	xTaskCreateStatic(GPS_task, 	"GPS", 		GPS_TASK_STACK_SIZE, 	NULL, 1, _gpsTaskStack, 	&_gpsTaskObj);
 
-	xTaskCreateStatic(CONTROL_task, "CONTROL", CONTROL_TASK_STACK_SIZE, NULL, 2, _CONTROLTaskStack, &_CONTROLTaskObj);
+	handleControl = xTaskCreateStatic(CONTROL_task, "CONTROL", CONTROL_TASK_STACK_SIZE, NULL, 2, _CONTROLTaskStack, &_CONTROLTaskObj);
 
 
-	handle_control = xTaskGetHandle(CONTROL_task);
+
 //	xTaskCreateStatic(CALIBRATION_task, "CALIBRATION", CALIBRATION_TASK_STACK_SIZE, NULL, 1, _CALIBRATIONTaskStack, &_CALIBRATIONTaskObj);
 
 

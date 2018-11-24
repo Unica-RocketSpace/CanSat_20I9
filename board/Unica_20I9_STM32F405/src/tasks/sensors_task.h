@@ -18,7 +18,8 @@ void IMU_Init();
 /*
  * 	FreeRTOS задача для работы с IMU
  */
-void IMU_task();
+void SENSORS_task();
+
 
 
 

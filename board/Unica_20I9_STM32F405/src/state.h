@@ -21,6 +21,9 @@
 #include "stm32f4xx_hal_gpio.h"
 #include "stm32f4xx_hal_dma.h"
 
+#include <FreeRTOS.h>
+#include "task.h"
+
 
 #include "drivers/UNICS_bmp280.h"
 
@@ -135,6 +138,9 @@ extern USART_HandleTypeDef	usart_dbg;
 extern SPI_HandleTypeDef	spi_nRF24L01;
 extern I2C_HandleTypeDef 	i2c_mpu9255;
 
+extern TaskHandle_t 		handleControl;
+extern TaskHandle_t			handleRF;
+
 // глобальные структуры
 extern stateSensors_raw_t 	stateIMUSensors_raw;
 extern stateSensors_raw_t	stateSensors_raw;
@@ -152,6 +158,9 @@ extern stateSensors_t		stateIMUSensors_prev;
 extern stateSensors_t		stateSensors_prev;
 extern state_system_t		state_system_prev;
 extern stateCamera_orient_t	stateCamera_orient_prev;
+
+
+
 
 
 #endif /* STATE_H_ */

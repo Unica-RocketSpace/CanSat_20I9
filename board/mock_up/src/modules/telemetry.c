@@ -19,6 +19,8 @@
 #include "drivers/sd/sd.h"
 #include "drivers/sd/dump.h"
 
+uint8_t first;
+
 
 SPI_HandleTypeDef	spi_nRF24L01;
 
@@ -61,7 +63,7 @@ taskEXIT_CRITICAL();
 	state_system.SD_state = stream_file.res;
 	taskEXIT_CRITICAL();
 	if(USE_SD){
-		trace_printf("sd used\n");
+		//trace_printf("sd used\n");
 		dump(&stream_file, buffer, len_state);
 	}
 	return len_state;
@@ -92,7 +94,7 @@ taskEXIT_CRITICAL();
 	state_system.SD_state = stream_file.res;
 	taskEXIT_CRITICAL();
 	if(USE_SD){
-		trace_printf("sd used\n");
+		//trace_printf("sd used\n");
 		dump(&stream_file, buffer, len_imu_rsc);
 	}
 	return len_imu_rsc;
@@ -126,7 +128,7 @@ taskEXIT_CRITICAL();
 	taskEXIT_CRITICAL();
 
 	if(USE_SD){
-		trace_printf("sd used\n");
+		//trace_printf("sd used\n");
 		dump(&stream_file, buffer, len_imu_isc);
 	}
 	return len_imu_isc;
@@ -155,7 +157,7 @@ taskEXIT_CRITICAL();
 	state_system.SD_state = stream_file.res;
 	taskEXIT_CRITICAL();
 	if(USE_SD){
-		trace_printf("sd used\n");
+		//trace_printf("sd used\n");
 		dump(&stream_file, buffer, len_sensors);
 	}
 	return len_sensors;
@@ -184,41 +186,42 @@ static uint16_t mavlink_msg_BMP_send() {
 		state_system.SD_state = stream_file.res;
 		taskEXIT_CRITICAL();
 		if(USE_SD){
-			trace_printf("sd used\n");
+			//trace_printf("sd used\n");
 			dump(&stream_file, buffer, len_sensors);
 		}
 		return len_sensors;
 	//	return error;
 	}
 //
-//static void mavlink_msg_state_zero_send() {
-//
-//	mavlink_state_zero_t msg_state_zero;
-//	msg_state_zero.time = (float)HAL_GetTick() / 1000;
-//taskENTER_CRITICAL();
-//	msg_state_zero.zero_pressure = state_zero.zero_pressure;
-//	for (int i = 0; i < 4; i++)
-//		msg_state_zero.zero_quaternion[i] = state_zero.zero_quaternion[i];
-//	for (int i = 0; i < 3; i++) {
-////		msg_state_zero.zero_GPS[i] = state_zero.zero_GPS[i];
-//		msg_state_zero.gyro_staticShift[i] = state_zero.gyro_staticShift[i];
-//		msg_state_zero.accel_staticShift[i] = state_zero.accel_staticShift[i];
-//	}
-//taskEXIT_CRITICAL();
-//
-//	mavlink_message_t msg;
-//	uint16_t len = mavlink_msg_state_zero_encode(UNISAT_ID, UNISAT_GPS, &msg, &msg_state_zero);
-//	uint8_t buffer[100];
-//	len = mavlink_msg_to_send_buffer(buffer, &msg);
-////	uint8_t error = nRF24L01_send(&spi_nRF24L01, buffer, len, 1);
-//
-//	taskENTER_CRITICAL();
-//	state_system.SD_state = stream_file.res;
-//	taskEXIT_CRITICAL();
-//	dump(&stream_file, buffer, len);
-//
-////	return error;
-//}
+static void mavlink_msg_state_zero_send() {
+
+	mavlink_state_zero_t msg_state_zero;
+	msg_state_zero.time = (float)HAL_GetTick() / 1000;
+taskENTER_CRITICAL();
+	msg_state_zero.zero_pressure = state_zero.zero_pressure;
+	for (int i = 0; i < 4; i++)
+		msg_state_zero.zero_quaternion[i] = state_zero.zero_quaternion[i];
+	for (int i = 0; i < 3; i++) {
+//		msg_state_zero.zero_GPS[i] = state_zero.zero_GPS[i];
+		msg_state_zero.gyro_staticShift[i] = state_zero.gyro_staticShift[i];
+		msg_state_zero.accel_staticShift[i] = state_zero.accel_staticShift[i];
+	}
+taskEXIT_CRITICAL();
+
+	mavlink_message_t msg;
+	uint16_t len = mavlink_msg_state_zero_encode(UNISAT_ID, UNISAT_GPS, &msg, &msg_state_zero);
+	uint8_t buffer[100];
+	len = mavlink_msg_to_send_buffer(buffer, &msg);
+//	uint8_t error = nRF24L01_send(&spi_nRF24L01, buffer, len, 1);
+
+	taskENTER_CRITICAL();
+	state_system.SD_state = stream_file.res;
+	taskEXIT_CRITICAL();
+	dump(&stream_file, buffer, len);
+
+//	return error;
+}
+
 void IO_RF_Init() {
 
 	stream_file.res = 1;
@@ -239,18 +242,22 @@ void IO_RF_task() {
 	HAL_GPIO_Init(GPIOC, &gpioc);
 	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
 
+	first = 1;
 
 	for (;;) {
 
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
 		vTaskDelay(20/portTICK_RATE_MS);
 //
-
+		if (first == 1){
+			mavlink_msg_state_zero_send();
+			first = 0;
+		}
 			$(mavlink_msg_state_send());
 			$(mavlink_msg_imu_isc_send());
 			$(mavlink_msg_imu_rsc_send());
 			$(mavlink_msg_sensors_send());
-			$(mavlink_msg_BMP_send())
+			$(mavlink_msg_BMP_send());
 		}
 
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);

@@ -139,9 +139,9 @@ taskENTER_CRITICAL();
 			stateIMU_rsc.compass[k] = compass[k];
 		}
 	}
-	trace_printf("gyro  %f %f %f\n", gyro[0], gyro[1], gyro[2]);
+	/*trace_printf("gyro  %f %f %f\n", gyro[0], gyro[1], gyro[2]);
 	trace_printf("accel  %f %f %f\n", accel[0], accel[1], accel[2]);
-	trace_printf("compass  %f %f %f \n", compass[0], compass[1], compass[2]);
+	trace_printf("compass  %f %f %f \n", compass[0], compass[1], compass[2]);*/
 taskEXIT_CRITICAL();
 ////////////////////////////////////////////////////
 
@@ -210,7 +210,7 @@ void bmp280_update() {
 taskENTER_CRITICAL();
 	float zero_pressure = state_zero.zero_pressure;
 taskEXIT_CRITICAL();
-	height = 18.4 * log(zero_pressure / pressure_f);
+	height = 18400 * log(zero_pressure / pressure_f);
 
 taskENTER_CRITICAL();
 	stateIMUSensors_raw.pressure = pressure;
@@ -219,8 +219,8 @@ taskENTER_CRITICAL();
 	stateIMUSensors.temp = temp_f;
 	stateIMUSensors.height = height;
 
-	trace_printf("pressure_mpu %f\n", pressure_f);
-	trace_printf("temp_mpu %f\n", temp_f);
+	//trace_printf("pressure_mpu %f\n", pressure_f);
+	//trace_printf("temp_mpu %f\n", temp_f);
 
 taskEXIT_CRITICAL();
 
@@ -229,7 +229,7 @@ taskEXIT_CRITICAL();
 	rscs_bmp280_read(bmp280, &pressure, &temp);
 	rscs_bmp280_calculate(bmp280_calibration_values, pressure, temp, &pressure_f, &temp_f);
 
-	height = 18.4 * log(zero_pressure / pressure_f);
+	height = 18400 * log(zero_pressure / pressure_f);
 
 taskENTER_CRITICAL();
 	stateSensors_raw.pressure = pressure;
@@ -237,8 +237,8 @@ taskENTER_CRITICAL();
 	stateSensors.pressure = pressure_f;
 	stateSensors.temp = temp_f;
 
-	trace_printf("pressure %f\n", pressure_f);
-	trace_printf("temp %f\n", temp_f);
+	//trace_printf("pressure %f\n", pressure_f);
+	//trace_printf("temp %f\n", temp_f);
 
 taskEXIT_CRITICAL();
 }
@@ -272,7 +272,7 @@ taskEXIT_CRITICAL();
 void IMU_Init() {
 	//---ИНИЦИАЛИЗАЦИЯ MPU9255---//
 	uint8_t mpu9255_initError = mpu9255_init(&i2c_mpu9255);
-	trace_printf("mpu: %d\n", mpu9255_initError);
+	//trace_printf("mpu: %d\n", mpu9255_initError);
 
 	//---ИНИЦИАЛИЗАЦИЯ IMU_BMP280---//
 	IMU_bmp280 = rscs_bmp280_initi2c(&i2c_mpu9255, RSCS_BMP280_I2C_ADDR_HIGH);					//создание дескриптора
@@ -283,7 +283,7 @@ void IMU_Init() {
 	IMU_bmp280_parameters.filter = RSCS_BMP280_FILTER_X16;							//x16	x16		фильтр
 
 	int8_t IMU_bmp280_initError = rscs_bmp280_setup(IMU_bmp280, &IMU_bmp280_parameters);								//запись параметров
-	trace_printf("IMU_bmp %d\n", IMU_bmp280_initError);
+	//trace_printf("IMU_bmp %d\n", IMU_bmp280_initError);
 	rscs_bmp280_changemode(IMU_bmp280, RSCS_BMP280_MODE_NORMAL);					//установка режима NORMAL, постоянные измерения
 	IMU_bmp280_calibration_values = rscs_bmp280_get_calibration_values(IMU_bmp280);
 
@@ -298,7 +298,7 @@ void IMU_Init() {
 	bmp280_parameters.filter = RSCS_BMP280_FILTER_X16;							//x16	x16		фильтр
 
 	int8_t bmp280_initError = rscs_bmp280_setup(bmp280, &bmp280_parameters);								//запись параметров
-	trace_printf("bmp: %d\n", bmp280_initError);
+	//trace_printf("bmp: %d\n", bmp280_initError);
 	rscs_bmp280_changemode(bmp280, RSCS_BMP280_MODE_NORMAL);					//установка режима NORMAL, постоянные измерения
 	bmp280_calibration_values = rscs_bmp280_get_calibration_values(bmp280);
 
@@ -318,7 +318,6 @@ void IMU_task() {
 //				vTaskDelay(10000);
 
 				if(USE_MPU){
-					trace_printf("mpu_start used\n");
 					get_staticShifts();
 					IMU_updateDataAll();
 					_IMUtask_updateData();
@@ -334,11 +333,9 @@ void IMU_task() {
 			}
 
 		if(USE_BMP280){
-			trace_printf("bmp used\n");
 			bmp280_update();}
 
 		if(USE_MPU){
-			trace_printf("mpu used\n");
 			IMU_updateDataAll();
 			_IMUtask_updateData();
 		}

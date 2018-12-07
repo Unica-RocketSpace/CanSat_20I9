@@ -2,6 +2,8 @@
 #include "config.h"
 #include <math.h>
 #include "state.h"
+#include "quaternion.h"
+//#include <vector.h>
 
 stateGPS_t stateGPS;
 stateIMU_isc_t stateIMU;
@@ -35,6 +37,7 @@ void height_predictor() {
 }
 
 void direction_predictor() {
+	char turn;
 	if (check_tube_target()) {
 		height_predictor();
 	}
@@ -58,45 +61,34 @@ void direction_predictor() {
 	target_lenght = sqrt(centerX * centerX + centerY * centerY);
 	float access_radius;
 	access_radius = r + delta_r;
-	if (target_lenght >= access_radius) {
-		if (c > 0) {
-			turn_flight(x0, y0, 'L');
-			return;
-		} else {
-			turn_flight(x0, y0, 'R');
-			return;
-		}
+	if (c > 0) {
+		turn = 'L';
 	} else {
-		//дописать передачу ключа поворота L R;
-		calculating_distance_of_linear_further_motion(access_radius, r, vx, vy);
+		turn = 'R';
+	}
+	if (target_lenght >= access_radius) {
+		turn_flight(x0, y0, turn);
+		return;
+	} else {
+		calculating_distance_of_linear_further_motion(access_radius, r, vx, vy, turn);
 		return;
 	}
 	return;
 }
 
-void calculating_distance_of_linear_further_motion(float R, float r, float vx, float vy) {
+void calculating_distance_of_linear_further_motion(float R, float r, float vx, float vy, char turn) {
 	float dist;
-	dist = sqrt(R * R - (y - r) * (y - r));
-	if (x > 0) {
-		//дописать х и y для перехода в turn_flight(), с помощью кватарниона
-		turn_flight(x + dist + vx * spare_time, );
-	}
+	float coordinates[3] = {0};
+	float new_coordinates[3] = {0};
+	float quat[4] = {0};
+	quat_invert(stateIMU_isc.quaternion, quat);
+	vect_rotate(stateGPS.coordinates, quat, coordinates);
+	float x = coordinates[0];
+	float y = coordinates[1];
+	float z = coordinates[2];
+	dist = sqrt(R * R - (z - r) * (z - r));
+	x += dist + vx * spare_time;
+	vect_rotate(coordinates, stateIMU_isc.quaternion, new_coordinates);
+	turn_flight(new_coordinates[0], new_coordinates[1], turn);
     return;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

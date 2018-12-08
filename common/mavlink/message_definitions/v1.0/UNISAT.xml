@@ -14,7 +14,13 @@
             <field type="uint8_t" name="MPU_state">state of MPU9255</field>
             <field type="uint8_t" name="IMU_BMP_state">state of barometer</field>
             <field type="uint8_t" name="SD_state">state of SD</field>
+            <field type="uint8_t" name="NRF_state">state of NRF24L01</field>
             <field type="uint8_t" name="BMP_state">state of baro</field>
+            <field type="uint8_t" name="GPS_state">state of GPS-module</field>
+            <field type="uint8_t" name="master_state">state of master MC</field>
+            <field type="uint8_t" name="buttons">state of buttons</field>
+            <field type="uint8_t" name="globalStage">current global stage number</field>
+
         </message>
 
 
@@ -31,6 +37,8 @@
             <description>IMU data in ISC</description>
             <field type="float[3]" name="accel">accelerations</field>
             <field type="float[3]" name="compass">compass (magnetometer) vector</field>
+            <field type="float[3]" name="velocities">velocities</field>
+            <field type="float[3]" name="coordinates">coordinates from IMU</field>
             <field type="float[4]" name="quaternion">quaternion for translating RSC into ISC</field>
             <field type="float" name="time">current time</field>
         </message>
@@ -49,6 +57,7 @@
             <description>Zero parameters of UNISAT</description>
             <field type="float" name="zero_pressure">pressure at zero level (on the earth)</field>
             <field type="float[4]" name="zero_quaternion">quaternion at zero level (on the earth)</field>
+            <field type="float[3]" name="zero_GPS">GPS coordinates at zero level (on the earth)</field>
             <field type="float[3]" name="gyro_staticShift">Static shift of gyro</field>
             <field type="float[3]" name="accel_staticShift">Static shift of accel</field>
             <field type="float" name="time">current time</field>
@@ -63,5 +72,16 @@
         </message>
 
 
+        <message id="156" name="GPS">
+            <description>GPS data</description>
+            <field type="float[3]" name="coordinates">coordinates from GPS</field>
+            <field type="float" name="time">current time</field>
+        </message>
+
+
+		<message id="157" name="CMD">
+            <description>Msg to send commands from GSC to UNISAT</description>
+            <field type="uint8_t" name="cmd"> </field>
+        </message>
     </messages>
 </mavlink>

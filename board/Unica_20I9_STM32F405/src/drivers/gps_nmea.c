@@ -96,6 +96,7 @@ void GPS_Init() {
 
     // поидее теперь все - дма крутится само по себе
 
+
 end:
 	state_system.GPS_state = error;
 }
@@ -109,6 +110,7 @@ void GPS_task()	{
 		do {
 			_msg_buffer[0] = _read_dma_buffer();
 		} while (_msg_buffer[0] != '$');
+
 
 		// Оп! нашли
 		_msg_carret = 1;

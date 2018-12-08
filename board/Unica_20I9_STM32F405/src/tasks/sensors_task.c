@@ -1,5 +1,5 @@
 /*
- * sensors_task.c
+ * sensors_task*.c
  *
  *  Created on: 24 нояб. 2018 г.
  *      Author: developer
@@ -8,8 +8,6 @@
 
 #include <math.h>
 #include <stdlib.h>
-#include <string.h>
-#include <math.h>
 
 #include <sofa.h>
 
@@ -28,6 +26,10 @@
 #define BETA_3	0.25
 
 
+uint8_t zero_state = 1;
+uint8_t get_shifts = 1;
+uint8_t my_stage = -1;
+uint8_t command = -1;
 
 I2C_HandleTypeDef 	i2c_mpu9255;
 USART_HandleTypeDef usart_dbg;
@@ -144,7 +146,7 @@ taskEXIT_CRITICAL();
 //	if (state_system.globalStage <=2)
 //		MadgwickAHRSupdateIMU(quaternion, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], dt, 0.033);
 //	if (state_system.globalStage >= 3)
-		MadgwickAHRSupdate(quaternion, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], compass[0], compass[1], compass[2], dt, 1);
+		MadgwickAHRSupdate(quaternion, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], compass[0], compass[1], compass[2], dt, 1.0);
 
 	//	копируем кватернион в глобальную структуру
 taskENTER_CRITICAL();
@@ -226,7 +228,7 @@ void bmp280_update() {
 taskENTER_CRITICAL();
 	float zero_pressure = state_zero.zero_pressure;
 taskEXIT_CRITICAL();
-	height = 18.4 * log(zero_pressure / pressure_f);
+	height = 18400 * log(zero_pressure / pressure_f);
 
 taskENTER_CRITICAL();
 	stateIMUSensors_raw.pressure = pressure;
@@ -241,7 +243,7 @@ taskEXIT_CRITICAL();
 	rscs_bmp280_read(bmp280, &pressure, &temp);
 	rscs_bmp280_calculate(bmp280_calibration_values, pressure, temp, &pressure_f, &temp_f);
 
-	height = 18.4 * log(zero_pressure / pressure_f);
+	height = 18400 * log(zero_pressure / pressure_f);
 
 taskENTER_CRITICAL();
 	stateSensors_raw.pressure = pressure;
@@ -272,7 +274,6 @@ taskENTER_CRITICAL();
 	memcpy(&stateIMU_isc_prev, 			&stateIMU_isc,			sizeof(stateIMU_isc));
 	memcpy(&stateSensors_prev,			&stateSensors, 			sizeof(stateSensors));
 	memcpy(&state_system_prev, 			&state_system,		 	sizeof(state_system));
-	memcpy(&stateCamera_orient_prev, 	&stateCamera_orient, 	sizeof(stateCamera_orient));
 taskEXIT_CRITICAL();
 }
 
@@ -327,26 +328,42 @@ void SENSORS_task() {
 
 	for (;;) {
 
-		if (state_system.globalStage == 1)
-		// start all
 
-//		get_staticShifts();
-//
-//
-//
-////		workig
-		bmp280_update();
-		IMU_updateDataAll();
-		_IMUtask_updateData();
-//
-//
-//		//zero_data
-//		zero_data();
-		trace_printf("SENSORS_task");
+		taskENTER_CRITICAL();
+		my_stage = state_system.globalStage;
+		command = state_system.globalCommand;
+		taskEXIT_CRITICAL();
 
-		while(1){
-		vTaskDelay(1000);
+		if (command != -1){
+			if (command == 0){
+				my_stage = 0;
+				get_shifts = 1;
+			}
+			if (command == 2){
+				my_stage = 2;
+				zero_state = 1;
+			}
 		}
+
+
+		if (my_stage == 0){
+			if (get_shifts){
+				get_staticShifts();
+				get_shifts = 0;
+			}
+		}
+		if (state_system.globalStage == 2){
+			if (zero_state){
+				zero_data();
+				zero_state = 0;
+			}
+		}
+
+
+		bmp280_update();
+			IMU_updateDataAll();
+			_IMUtask_updateData();
+
 
 		xTaskNotifyGive(handleControl);
 		xTaskNotifyGive(handleRF);

@@ -8,7 +8,8 @@
 #ifndef CONTROL_TASK_H_
 #define CONTROL_TASK_H_
 
-
+#include "state.h"
+#include <stdint.h>
 
 void CONTROL_task();
 

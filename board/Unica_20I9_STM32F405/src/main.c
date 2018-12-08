@@ -31,15 +31,6 @@
 #define BLINK_ON_TICKS  (TIMER_FREQUENCY_HZ * 3 / 4)
 #define BLINK_OFF_TICKS (TIMER_FREQUENCY_HZ - BLINK_ON_TICKS)
 
-
-#define STAGE_PRELAUNCH_CHECK	0	//  Предстартовая провкерка
-#define STAGE_INSTALLATION		1	//  Установка в ракету
-#define STAGE_LAUNCH_ROCKET		2	//  Полет в ракете
-#define STAGE_FALLING			3	//  Падение
-#define STAGE_DESCENT			4	//  Спуск
-#define STAGE_FLIGHT			5	//  Управляемый полет
-#define STAGE_SLEEP				6	//  Режим ожидания
-
 // ----- main() ---------------------------------------------------------------
 
 // Sample pragmas to cope with warnings. Please note the related line at
@@ -58,7 +49,6 @@ stateIMU_rsc_t 		stateIMU_rsc;
 stateIMU_isc_t 		stateIMU_isc;
 stateSensors_t 		stateIMUSensors;
 stateSensors_t		stateSensors;
-stateCamera_orient_t stateCamera_orient;
 state_system_t 		state_system;
 state_zero_t		state_zero;
 
@@ -66,7 +56,7 @@ stateIMU_isc_t		stateIMU_isc_prev;
 stateSensors_t		stateIMUSensors_prev;
 stateSensors_t		stateSensors_prev;
 state_system_t		state_system_prev;
-stateCamera_orient_t stateCamera_orient_prev;
+
 TaskHandle_t 		handleControl;
 TaskHandle_t		handleRF;
 
@@ -150,11 +140,6 @@ void CALIBRATION_task() {
 		//	flashing the led
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
 
-		//	rotating the motor
-//		float tickstart = HAL_GetTick();
-		float STEP_DEGREES = M_PI / 2;
-		rotate_step_engine_by_angles(&STEP_DEGREES);
-
 		vTaskDelay(2000);
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
 //		float tickend = HAL_GetTick();
@@ -178,7 +163,6 @@ int main(int argc, char* argv[])
 	memset(&stateIMU_isc, 			0x00, sizeof(stateIMU_isc));
 	memset(&stateIMUSensors, 		0x00, sizeof(stateIMUSensors));
 	memset(&stateSensors,			0x00, sizeof(stateSensors));
-	memset(&stateCamera_orient, 	0x00, sizeof(stateCamera_orient));
 	memset(&state_system, 			0x00, sizeof(state_system));
 	memset(&state_zero, 			0x00, sizeof(state_zero));
 
@@ -186,50 +170,32 @@ int main(int argc, char* argv[])
 	memset(&stateIMUSensors_prev,		0x00, sizeof(stateIMUSensors_prev));
 	memset(&stateSensors_prev,			0x00, sizeof(stateSensors_prev));
 	memset(&state_system_prev, 			0x00, sizeof(state_system_prev));
-	memset(&stateCamera_orient_prev, 	0x00, sizeof(stateCamera_orient_prev));
 
-	state_system.BMP_state = 255;
-	state_system.GPS_state = 255;
-	state_system.buttons = 255;
-	state_system.MPU_state = 255;
-	state_system.NRF_state = 255;
-	state_system.SD_state = 255;
+	state_system.BMP_state 	= 255;
+	state_system.GPS_state 	= 255;
+	state_system.buttons 	= 255;
+	state_system.MPU_state 	= 255;
+	state_system.NRF_state 	= 255;
+	state_system.SD_state 	= 255;
 
 	xTaskCreateStatic(SENSORS_task, 	"SENSORS", 		IMU_TASK_STACK_SIZE, 	NULL, 2, _IMUTaskStack, 	&_IMUTaskObj);
 
 	handleRF = xTaskCreateStatic(IO_RF_task, 	"IO_RF", 	IO_RF_TASK_STACK_SIZE,	NULL, 1, _iorfTaskStack, 	&_iorfTaskObj);
 
-//	xTaskCreateStatic(MOTORS_task,	"MOTORS", 	MOTORS_TASK_STACK_SIZE, NULL, 1, _MOTORSTaskStack, 	&_MOTORSTaskObj);
-
-//	xTaskCreateStatic(GPS_task, 	"GPS", 		GPS_TASK_STACK_SIZE, 	NULL, 1, _gpsTaskStack, 	&_gpsTaskObj);
-
 	handleControl = xTaskCreateStatic(CONTROL_task, "CONTROL", CONTROL_TASK_STACK_SIZE, NULL, 2, _CONTROLTaskStack, &_CONTROLTaskObj);
 
-
+	xTaskCreateStatic(GPS_task, 	"GPS", 		GPS_TASK_STACK_SIZE, 	NULL, 2, _gpsTaskStack, 	&_gpsTaskObj);
 
 //	xTaskCreateStatic(CALIBRATION_task, "CALIBRATION", CALIBRATION_TASK_STACK_SIZE, NULL, 1, _CALIBRATIONTaskStack, &_CALIBRATIONTaskObj);
 
+	IMU_Init();
+	IO_RF_Init();
+	GPS_Init();
 
-
-//	HAL_InitTick(15);
+	HAL_InitTick(15);
 
 
 	vTaskStartScheduler();
-
-
-//
-//	switch (state_system.globalStage){
-//		case STAGE_PRELAUNCH_CHECK:
-//			IO_RF_Init();
-//			IMU_Init();
-//			MOTORS_Init();
-//			GPS_Init();
-//			HAL_Delay(300);
-//
-//	}
-//
-//
-//
 
 
 	return 0;

@@ -105,7 +105,7 @@ typedef struct {
 	uint8_t buttons;		//  state of all buttons
 
 	uint8_t globalStage;	//	number of current global stage
-	uint8_t globalCommand;
+	uint8_t globalCommand;	// entering command
 
 	float time;				//	current time
 } state_system_t;
@@ -149,7 +149,6 @@ extern stateIMU_rsc_t 		stateIMU_rsc;
 extern stateIMU_isc_t 		stateIMU_isc;
 extern stateSensors_t 		stateIMUSensors;
 extern stateSensors_t		stateSensors;
-extern stateCamera_orient_t	stateCamera_orient;
 extern state_system_t 		state_system;
 extern state_zero_t			state_zero;
 
@@ -157,7 +156,6 @@ extern stateIMU_isc_t		stateIMU_isc_prev;
 extern stateSensors_t		stateIMUSensors_prev;
 extern stateSensors_t		stateSensors_prev;
 extern state_system_t		state_system_prev;
-extern stateCamera_orient_t	stateCamera_orient_prev;
 
 
 

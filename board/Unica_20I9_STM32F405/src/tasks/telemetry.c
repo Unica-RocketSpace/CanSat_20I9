@@ -14,6 +14,7 @@
 #include "diag/Trace.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "queue.h"
 #include "mavlink/UNISAT/mavlink.h"
 
 #include "state.h"
@@ -24,8 +25,9 @@
 #include "mavlink/UNISAT/mavlink.h"
 
 
-uint8_t msg_state = 1;
-uint8_t msg_state_zero = 1;
+int8_t msg_state = 1;
+int8_t msg_state_zero = 1;
+int8_t command;
 
 
 uint8_t UNISAT_ID = 0x01;
@@ -234,6 +236,7 @@ void IO_RF_Init() {
 	HAL_Delay(200);
 }
 
+//TODO; Сделать обработку ошибок при отправке данных в очередь
 
 void IO_RF_task() {
 
@@ -250,12 +253,14 @@ void IO_RF_task() {
 		mavlink_msg_gps_send();
 
 		taskENTER_CRITICAL();
-		state_system.globalCommand = mavlink_msg_get_command();
+		command = state_system.globalCommand = mavlink_msg_get_command();
+
+		if (command != -1)
+			xQueueSendToBack(handleInternalCmdQueue, &command, 0);
 		taskEXIT_CRITICAL();
 
-
 //		// Этап 0. Подтверждение инициализации отправкой пакета состояния и ожидание ответа от НС
-		if (state_system.globalStage == 0) {
+		if (command == 0) {
 			if (msg_state){
 				mavlink_msg_state_send();
 				msg_state = 0;
@@ -263,32 +268,13 @@ void IO_RF_task() {
 		}
 //
 //		// Этап 2. Определение начального состояния и полет в ракете
-		if (state_system.globalStage == 2) {
+		if (command == 2) {
 			if (msg_state_zero){
 				mavlink_msg_state_zero_send();
 				msg_state_zero = 0;
 			}
 		}
-//		// Этап 3. Полет в ракете
-//		if (state_system.globalStage == 2) {
-//		taskENTER_CRITICAL();
-//			if (state_system.globalCommand == 3)
-//				state_system.globalStage = 3;
-//		taskEXIT_CRITICAL();
-//		}
-//		// Этап 4. Свободное падение
-//		if (state_system.globalStage == 3) {
-//		taskENTER_CRITICAL();
-//			if (state_system.globalCommand == 4)
-//				state_system.globalStage = 4;
-//		taskEXIT_CRITICAL();
-//		}
-//		// Этап 5. Спуск
-//		if (state_system.globalStage == 4) {
-//		}
-//		// Этап 6. Окончание полета
-//		if (state_system.globalStage == 5) {
-//		}
+//
 	}
 }
 

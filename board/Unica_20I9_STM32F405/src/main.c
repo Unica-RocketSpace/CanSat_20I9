@@ -12,6 +12,7 @@
 
 #include "diag/Trace.h"
 #include <FreeRTOS.h>
+#include <FreeRTOSConfig.h>
 #include <tasks/control_task.h>
 #include <tasks/sensors_task.h>
 #include <tasks/telemetry.h>
@@ -60,6 +61,8 @@ state_system_t		state_system_prev;
 TaskHandle_t 		handleControl;
 TaskHandle_t		handleRF;
 
+QueueHandle_t		handleInternalCmdQueue;
+
 
 //	параметры IO_RF_task
 #define IO_RF_TASK_STACK_SIZE (50*configMINIMAL_STACK_SIZE)
@@ -77,11 +80,6 @@ static StaticTask_t _gpsTaskObj;
 static StackType_t	_IMUTaskStack[IMU_TASK_STACK_SIZE];
 static StaticTask_t	_IMUTaskObj;
 
-////	параметры MOTORS_task
-//#define MOTORS_TASK_STACK_SIZE (40*configMINIMAL_STACK_SIZE)
-//static StackType_t	_MOTORSTaskStack[MOTORS_TASK_STACK_SIZE];
-//static StaticTask_t	_MOTORSTaskObj;
-
 #define CONTROL_TASK_STACK_SIZE (20*configMINIMAL_STACK_SIZE)
 static StackType_t _CONTROLTaskStack[CONTROL_TASK_STACK_SIZE];
 static StaticTask_t _CONTROLTaskObj;
@@ -90,6 +88,13 @@ static StaticTask_t _CONTROLTaskObj;
 #define CALIBRATION_TASK_STACK_SIZE (20*configMINIMAL_STACK_SIZE)
 static StackType_t	_CALIBRATIONTaskStack[CALIBRATION_TASK_STACK_SIZE];
 static StaticTask_t	_CALIBRATIONTaskObj;
+
+
+#define INTERNAL_QUEUE_LENGHT  sizeof( uint8_t )
+#define INTERNAL_QUEUE_ITEM_SIZE  5
+uint8_t internal_queue_storage_area[INTERNAL_QUEUE_LENGHT * INTERNAL_QUEUE_ITEM_SIZE];
+static StaticQueue_t internal_queue_static;
+
 
 
 void CALIBRATION_task() {
@@ -185,6 +190,10 @@ int main(int argc, char* argv[])
 	handleControl = xTaskCreateStatic(CONTROL_task, "CONTROL", CONTROL_TASK_STACK_SIZE, NULL, 2, _CONTROLTaskStack, &_CONTROLTaskObj);
 
 	xTaskCreateStatic(GPS_task, 	"GPS", 		GPS_TASK_STACK_SIZE, 	NULL, 2, _gpsTaskStack, 	&_gpsTaskObj);
+
+
+
+	handleInternalCmdQueue = xQueueCreateStatic(INTERNAL_QUEUE_LENGHT, INTERNAL_QUEUE_ITEM_SIZE, internal_queue_storage_area, &internal_queue_static);
 
 //	xTaskCreateStatic(CALIBRATION_task, "CALIBRATION", CALIBRATION_TASK_STACK_SIZE, NULL, 1, _CALIBRATIONTaskStack, &_CALIBRATIONTaskObj);
 

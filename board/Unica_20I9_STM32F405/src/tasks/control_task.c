@@ -18,7 +18,7 @@
 #define ALL_BUTTONS_WORKED 255
 #define DELTA_HEIGHT 0.2
 
-uint8_t global_command;
+int8_t global_command;
 uint8_t global_stage = 0;
 float height;
 uint8_t buttons = 0;

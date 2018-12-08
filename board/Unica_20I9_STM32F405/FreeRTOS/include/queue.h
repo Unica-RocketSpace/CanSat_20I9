@@ -147,13 +147,14 @@ typedef void * QueueSetMemberHandle_t;
 
 /**
  * queue. h
- * <pre>
+ * <pre>*/
  QueueHandle_t xQueueCreateStatic(
 							  UBaseType_t uxQueueLength,
 							  UBaseType_t uxItemSize,
 							  uint8_t *pucQueueStorageBuffer,
 							  StaticQueue_t *pxQueueBuffer
 						  );
+ /*
  * </pre>
  *
  * Creates a new queue instance, and returns a handle by which the new queue

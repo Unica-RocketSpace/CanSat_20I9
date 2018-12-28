@@ -1,5 +1,5 @@
-z = open('U86.txt', 'r')
-l = open('U86_bin.txt', 'w')
+z = open('U1488.txt', 'r')
+l = open('U1488_bin.txt', 'w')
 
 line = z.readline()
 al = len(line) * 16886

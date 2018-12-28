@@ -8,7 +8,7 @@ _log = _root_log.getChild("main")
 
 
 # Файл, из которого мы читаем данные
-read_file = "U2.bin"
+read_file = "U1488.bin"
 
 
 

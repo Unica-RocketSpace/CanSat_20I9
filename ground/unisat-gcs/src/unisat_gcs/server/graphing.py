@@ -693,9 +693,9 @@ class MyWin(QtWidgets.QMainWindow):
             self.av_z.append(msgs[i].gyro[2])
 
             self.buffer_imu_rsc_msg.append(  str(msgs[i].time) + '\t' + '\t' +
-                                        str(msgs[i].accel[0]) + ' ' + str(msgs[i].accel[1]) + str(msgs[i].accel[2]) + '\t' + '\t' +
-                                        str(msgs[i].compass[0]) + ' ' + str(msgs[i].compass[1]) + ' ' + str(msgs[i].compass[2]) + '\t' + '\t' +
-                                        str(msgs[i].gyro[0]) + ' ' + str(msgs[i].gyro[1]) + ' ' + str(msgs[i].gyro[2]) + '\n')
+                                        str(msgs[i].accel[0]) + '  ' + str(msgs[i].accel[1]) + '  ' + str(msgs[i].accel[2]) + '\t' + '\t' +
+                                        str(msgs[i].compass[0]) + '  ' + str(msgs[i].compass[1]) + '  ' + str(msgs[i].compass[2]) + '\t' + '\t' +
+                                        str(msgs[i].gyro[0]) + '  ' + str(msgs[i].gyro[1]) + '  ' + str(msgs[i].gyro[2]) + '\n')
 
 
             self.ui.textBrowser_2.append(
@@ -752,9 +752,9 @@ class MyWin(QtWidgets.QMainWindow):
             self.vmf_z.append(msgs[i].compass[2])
 
             self.buffer_imu_isc_msg.append(  str(msgs[i].time) + '\t' + '\t' +
-                                        str(msgs[i].accel[0]) + ' ' + str(msgs[i].accel[1]) + str(msgs[i].accel[2]) + '\t' + '\t' +
-                                        str(msgs[i].compass[0]) + ' ' + str(msgs[i].compass[1]) + ' ' + str(msgs[i].compass[2]) + '\t' + '\t' +
-                                        str(msgs[i].quaternion[0]) + ' ' + str(msgs[i].quaternion[1]) + ' ' + str(msgs[i].quaternion[2]) + '\n')
+                                        str(msgs[i].accel[0]) + '  ' + str(msgs[i].accel[1]) + '  ' + str(msgs[i].accel[2]) + '\t' + '\t' +
+                                        str(msgs[i].compass[0]) + '  ' + str(msgs[i].compass[1]) + '  ' + str(msgs[i].compass[2]) + '\t' + '\t' +
+                                        str(msgs[i].quaternion[0]) + '  ' + str(msgs[i].quaternion[1]) + '  ' + str(msgs[i].quaternion[2]) + '\n')
 
             q_0 = msgs[i].quaternion[0]
             teta = 2 * acos(q_0)
@@ -793,12 +793,12 @@ class MyWin(QtWidgets.QMainWindow):
             self.vmf_x = self.vmf_x[self.cut:(self.lenght - 1)]
             self.vmf_y = self.vmf_y[self.cut:(self.lenght - 1)]
             self.vmf_z = self.vmf_z[self.cut:(self.lenght - 1)]
-            self.v_x = self.v_x[self.cut:(self.lenght - 1)]
-            self.v_y = self.v_y[self.cut:(self.lenght - 1)]
-            self.v_z = self.v_z[self.cut:(self.lenght - 1)]
-            self.mov_x = self.mov_x[self.cut:(self.lenght - 1)]
-            self.mov_y = self.mov_y[self.cut:(self.lenght - 1)]
-            self.mov_z = self.mov_z[self.cut:(self.lenght - 1)]
+            # self.v_x = self.v_x[self.cut:(self.lenght - 1)]
+            # self.v_y = self.v_y[self.cut:(self.lenght - 1)]
+            # self.v_z = self.v_z[self.cut:(self.lenght - 1)]
+            # self.mov_x = self.mov_x[self.cut:(self.lenght - 1)]
+            # self.mov_y = self.mov_y[self.cut:(self.lenght - 1)]
+            # self.mov_z = self.mov_z[self.cut:(self.lenght - 1)]
 
         # self.plt.setData(pos=self.GPS, color=(1.0, 1.0, 1.0, 1.0))
         # m = len(self.mov_x)

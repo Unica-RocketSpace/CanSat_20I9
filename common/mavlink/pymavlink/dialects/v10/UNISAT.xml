@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<mavlink>
+        <include>common.xml</include>
+        <!-- NOTE: If the included file already contains a version tag, remove the version tag here, else uncomment to enable. -->
+        <!--<version>3</version>-->
+    <enums>
+    </enums>
+
+    <messages>
+
+        <message id="150" name="STATE">
+            <description>State of all UNISAT's devices</description>
+            <field type="float" name="time">current time</field>
+            <field type="uint8_t" name="MPU_state">state of MPU9255</field>
+            <field type="uint8_t" name="IMU_BMP_state">state of barometer</field>
+            <field type="uint8_t" name="SD_state">state of SD</field>
+            <field type="uint8_t" name="BMP_state">state of baro</field>
+        </message>
+
+
+        <message id="151" name="IMU_rsc">
+            <description>IMU data in RSC</description>
+            <field type="float[3]" name="accel">accelerations</field>
+            <field type="float[3]" name="gyro">angle velocities</field>
+            <field type="float[3]" name="compass">compass (magnetometer) vector</field>
+            <field type="float" name="time">current time</field>
+        </message>
+
+
+        <message id="152" name="IMU_isc">
+            <description>IMU data in ISC</description>
+            <field type="float[3]" name="accel">accelerations</field>
+            <field type="float[3]" name="compass">compass (magnetometer) vector</field>
+            <field type="float[4]" name="quaternion">quaternion for translating RSC into ISC</field>
+            <field type="float" name="time">current time</field>
+        </message>
+
+
+        <message id="153" name="Sensors">
+            <description>Baro data and temp</description>
+            <field type="float" name="temp">temperature</field>
+            <field type="float" name="pressure">pressure</field>
+            <field type="float" name="height">height</field>
+            <field type="float" name="time">current time</field>
+        </message>
+
+
+        <message id="154" name="STATE_ZERO">
+            <description>Zero parameters of UNISAT</description>
+            <field type="float" name="zero_pressure">pressure at zero level (on the earth)</field>
+            <field type="float[4]" name="zero_quaternion">quaternion at zero level (on the earth)</field>
+            <field type="float[3]" name="gyro_staticShift">Static shift of gyro</field>
+            <field type="float[3]" name="accel_staticShift">Static shift of accel</field>
+            <field type="float" name="time">current time</field>
+        </message>
+
+
+         <message id="155" name="BMP280">
+            <description>Baro data and temp</description>
+            <field type="float" name="temp">temperature</field>
+            <field type="float" name="pressure">pressure</field>
+            <field type="float" name="time">current time</field>
+        </message>
+
+
+    </messages>
+</mavlink>

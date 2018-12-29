@@ -10,6 +10,7 @@
 
 #include "FreeRTOS.h"
 #include "task.h"
+#include "queue.h"
 
 #include "state.h"
 
@@ -22,6 +23,8 @@ int8_t global_command;
 uint8_t global_stage = 0;
 float height;
 uint8_t buttons = 0;
+
+uint8_t command;
 
 
 void CONTROL_task() {
@@ -82,7 +85,8 @@ void CONTROL_task() {
 
 
 		if (global_stage == 0){
-			//тут МК должны пообщаться
+			xQueueSendToBack(handleInternalCmdQueue, &command, 0);
+
 		}
 		if (global_stage == 1){
 			//проверка на затемнение фотосенсора

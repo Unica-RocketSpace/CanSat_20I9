@@ -5,15 +5,21 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../src/drivers/MPU9255.c \
-../src/drivers/UNICS_bmp280.c 
+../src/drivers/UNICS_bmp280.c \
+../src/drivers/gps_nmea.c \
+../src/drivers/minmea.c 
 
 OBJS += \
 ./src/drivers/MPU9255.o \
-./src/drivers/UNICS_bmp280.o 
+./src/drivers/UNICS_bmp280.o \
+./src/drivers/gps_nmea.o \
+./src/drivers/minmea.o 
 
 C_DEPS += \
 ./src/drivers/MPU9255.d \
-./src/drivers/UNICS_bmp280.d 
+./src/drivers/UNICS_bmp280.d \
+./src/drivers/gps_nmea.d \
+./src/drivers/minmea.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes

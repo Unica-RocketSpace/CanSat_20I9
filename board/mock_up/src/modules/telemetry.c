@@ -21,7 +21,6 @@
 
 uint8_t first;
 
-
 SPI_HandleTypeDef	spi_nRF24L01;
 
 
@@ -41,14 +40,16 @@ static uint16_t mavlink_msg_state_send() {
 	mavlink_state_t msg_state;
 	msg_state.time = (float)HAL_GetTick() / 1000;
 taskENTER_CRITICAL();
-	msg_state.MPU_state		= state_system.MPU_state;
+msg_state.MPU_state		= state_system.MPU_state;
 	msg_state.IMU_BMP_state = state_system.IMU_BMP_state;
 	msg_state.SD_state 		= state_system.SD_state;
+	msg_state.NRF_state		= 0;
+	msg_state.GPS_state		= state_system.GPS_state;
 	msg_state.BMP_state		= state_system.BMP_state;
-//	msg_state.MOTOR_state	= state_system.MOTOR_state;
-//	msg_state.GPS_state		= state_system.GPS_state;
+	msg_state.master_state	= 0;
+	msg_state.buttons		= 0;
 
-//	msg_state.globalStage	= state_system.globalStage;
+	msg_state.globalStage	= 0;
 taskEXIT_CRITICAL();
 
 	mavlink_message_t msg;
@@ -69,6 +70,7 @@ taskEXIT_CRITICAL();
 	return len_state;
 //	return error;
 }
+
 
 static uint16_t mavlink_msg_imu_rsc_send() {
 
@@ -100,6 +102,7 @@ taskEXIT_CRITICAL();
 	return len_imu_rsc;
 //	return error;
 }
+
 
 static uint16_t mavlink_msg_imu_isc_send() {
 
@@ -135,6 +138,7 @@ taskEXIT_CRITICAL();
 //	return error;
 }
 
+
 static uint16_t mavlink_msg_sensors_send() {
 
 	mavlink_sensors_t msg_sensors;
@@ -164,35 +168,64 @@ taskEXIT_CRITICAL();
 //	return error;
 }
 
+
 static uint16_t mavlink_msg_BMP_send() {
 
 	mavlink_bmp280_t msg_BMP;
-		msg_BMP.time = (float)HAL_GetTick() / 1000;
+	msg_BMP.time = (float)HAL_GetTick() / 1000;
 	taskENTER_CRITICAL();
-		msg_BMP.temp = stateSensors.temp;
-		msg_BMP.pressure = stateSensors.pressure;
+	msg_BMP.temp = stateSensors.temp;
+	msg_BMP.pressure = stateSensors.pressure;
 
 	taskEXIT_CRITICAL();
 
-		mavlink_message_t msg;
-		uint16_t len_sensors = mavlink_msg_bmp280_encode(UNISAT_ID, UNISAT_SENSORS, &msg, &msg_BMP);
-		uint8_t buffer[100];
-		len_sensors = mavlink_msg_to_send_buffer(buffer, &msg);
-		if(USE_RF){
-			uint8_t error = nRF24L01_send(&spi_nRF24L01, buffer, len_sensors, 1);
-		}
-
-		taskENTER_CRITICAL();
-		state_system.SD_state = stream_file.res;
-		taskEXIT_CRITICAL();
-		if(USE_SD){
-			//trace_printf("sd used\n");
-			dump(&stream_file, buffer, len_sensors);
-		}
-		return len_sensors;
-	//	return error;
+	mavlink_message_t msg;
+	uint16_t len_sensors = mavlink_msg_bmp280_encode(UNISAT_ID, UNISAT_SENSORS, &msg, &msg_BMP);
+	uint8_t buffer[100];
+	len_sensors = mavlink_msg_to_send_buffer(buffer, &msg);
+	if(USE_RF){
+		uint8_t error = nRF24L01_send(&spi_nRF24L01, buffer, len_sensors, 1);
 	}
-//
+
+	taskENTER_CRITICAL();
+	state_system.SD_state = stream_file.res;
+	taskEXIT_CRITICAL();
+	if(USE_SD){
+		//trace_printf("sd used\n");
+		dump(&stream_file, buffer, len_sensors);
+	}
+	return len_sensors;
+//	return error;
+}
+
+
+static uint8_t mavlink_msg_gps_send() {
+
+	mavlink_gps_t msg_gps;
+	msg_gps.time = (float)HAL_GetTick() / 1000;
+taskENTER_CRITICAL();
+	for (int i = 0; i < 3; i++){
+		msg_gps.coordinates[i] = stateGPS.coordinates[i];
+	}
+taskEXIT_CRITICAL();
+
+	mavlink_message_t msg;
+	uint16_t len_gps = mavlink_msg_gps_encode(UNISAT_ID, UNISAT_GPS, &msg, &msg_gps);
+	uint8_t buffer[100];
+	len_gps = mavlink_msg_to_send_buffer(buffer, &msg);
+	if (USE_RF){
+		uint8_t error = nRF24L01_send(&spi_nRF24L01, buffer, len_gps, 1);
+	}
+
+	taskENTER_CRITICAL();
+	state_system.SD_state = stream_file.res;
+	taskEXIT_CRITICAL();
+	dump(&stream_file, buffer, len_gps);
+
+	return len_gps;
+}
+
+
 static void mavlink_msg_state_zero_send() {
 
 	mavlink_state_zero_t msg_state_zero;
@@ -202,7 +235,7 @@ taskENTER_CRITICAL();
 	for (int i = 0; i < 4; i++)
 		msg_state_zero.zero_quaternion[i] = state_zero.zero_quaternion[i];
 	for (int i = 0; i < 3; i++) {
-//		msg_state_zero.zero_GPS[i] = state_zero.zero_GPS[i];
+		msg_state_zero.zero_GPS[i] = state_zero.zero_GPS[i];
 		msg_state_zero.gyro_staticShift[i] = state_zero.gyro_staticShift[i];
 		msg_state_zero.accel_staticShift[i] = state_zero.accel_staticShift[i];
 	}
@@ -254,6 +287,7 @@ void IO_RF_task() {
 			first = 0;
 		}
 			$(mavlink_msg_state_send());
+			$(mavlink_msg_gps_send());
 			$(mavlink_msg_imu_isc_send());
 			$(mavlink_msg_imu_rsc_send());
 			$(mavlink_msg_sensors_send());

@@ -87,6 +87,12 @@ typedef struct {
 
 
 typedef struct {
+	float temp;
+	float pressure;
+} stateBMPSensors_t;
+
+
+typedef struct {
 	//	"position" of servo and step engine
 	float servo_pos;
 	float step_engine_pos;
@@ -96,7 +102,7 @@ typedef struct {
 //	system parameters
 typedef struct {
 	uint8_t MPU_state;		//	state of MPU9255
-	uint8_t IMU_BMP_state;		//	state of IMU barometer
+	uint8_t IMU_BMP_state;	//	state of IMU barometer
 	uint8_t BMP_state;		//  state of barometer
 	uint8_t SD_state;		//	state of SD
 	uint8_t NRF_state;		//	state of NRF24L01
@@ -154,7 +160,7 @@ extern stateGPS_t 			stateGPS;
 extern stateIMU_rsc_t 		stateIMU_rsc;
 extern stateIMU_isc_t 		stateIMU_isc;
 extern stateSensors_t 		stateIMUSensors;
-extern stateSensors_t		stateSensors;
+extern stateBMPSensors_t	stateSensors;
 extern state_system_t 		state_system;
 extern state_zero_t			state_zero;
 

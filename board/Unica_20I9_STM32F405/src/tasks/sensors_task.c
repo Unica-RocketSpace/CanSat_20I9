@@ -243,14 +243,12 @@ taskEXIT_CRITICAL();
 	rscs_bmp280_read(bmp280, &pressure, &temp);
 	rscs_bmp280_calculate(bmp280_calibration_values, pressure, temp, &pressure_f, &temp_f);
 
-	height = 18400 * log(zero_pressure / pressure_f);
 
 taskENTER_CRITICAL();
 	stateSensors_raw.pressure = pressure;
 	stateSensors_raw.temp = temp;
 	stateSensors.pressure = pressure_f;
 	stateSensors.temp = temp_f;
-	stateSensors.height = height;
 taskEXIT_CRITICAL();
 }
 

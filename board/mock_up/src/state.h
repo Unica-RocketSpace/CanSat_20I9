@@ -43,6 +43,7 @@
 #define USE_RF		0
 #define USE_MPU		1
 #define USE_BMP280 	1
+#define USE_GPS		1
 
 /*#################################################*/
 /*################## СТРУКТУРЫ ###################*/
@@ -92,6 +93,10 @@ typedef struct {
 	float pressure;
 } stateBMPSensors_t;
 
+typedef struct {
+	//GPS data
+	float coordinates[3];
+} stateGPS_t;
 
 //	system parameters
 typedef struct {
@@ -101,7 +106,7 @@ typedef struct {
 	uint8_t BMP_state;		//  state of barometer
 //	uint8_t NRF_state;		//	state of NRF24L01
 //	uint8_t MOTOR_state;	//	state of motor with parashute
-//	uint8_t GPS_state;		//	state of GPS-module
+	uint8_t GPS_state;		//	state of GPS-module
 
 //	uint8_t globalStage;	//	number of current global stage
 //	uint8_t globalCommand;
@@ -116,6 +121,7 @@ typedef struct {
 	float zero_quaternion[4];
 	float gyro_staticShift[3];
 	float accel_staticShift[3];
+	float zero_GPS[3];
 } state_zero_t;
 
 
@@ -145,10 +151,11 @@ extern stateSensors_t 		stateIMUSensors;
 extern stateBMPSensors_t 	stateSensors;
 extern state_system_t 		state_system;
 extern state_zero_t			state_zero;
+extern stateGPS_t			stateGPS;
 
 extern stateIMU_isc_t		stateIMU_isc_prev;
 extern stateSensors_t 		stateIMUSensors_prev;
-extern stateBMPSensors_t		stateSensors_prev;
+extern stateBMPSensors_t	stateSensors_prev;
 extern state_system_t		state_system_prev;
 
 

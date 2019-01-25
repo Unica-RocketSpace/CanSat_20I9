@@ -49,7 +49,7 @@ stateGPS_t 			stateGPS;
 stateIMU_rsc_t 		stateIMU_rsc;
 stateIMU_isc_t 		stateIMU_isc;
 stateSensors_t 		stateIMUSensors;
-stateSensors_t		stateSensors;
+stateBMPSensors_t	stateSensors;
 state_system_t 		state_system;
 state_zero_t		state_zero;
 

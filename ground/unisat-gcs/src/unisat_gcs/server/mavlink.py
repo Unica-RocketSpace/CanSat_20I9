@@ -8,7 +8,7 @@ _log = _root_log.getChild("main")
 
 
 # Файл, из которого мы читаем данные
-read_file = "test.BIN"
+read_file = "test_mew.bin"
 
 
 

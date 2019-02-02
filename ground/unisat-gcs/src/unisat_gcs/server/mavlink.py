@@ -8,8 +8,15 @@ _log = _root_log.getChild("main")
 
 
 # Файл, из которого мы читаем данные
-read_file = "test_mew.bin"
+read_file = r'C:\Users\MI\PycharmProjects\CanSat_20I9\ground\unisat-gcs\src\unisat_gcs\server\test.bin'
 
+
+all_packet = 0
+bmp_packet = 0
+imu_isc_packet = 0
+imu_rsc_packet = 0
+sensors_packet = 0
+gps_packet = 0
 
 
 
@@ -19,6 +26,7 @@ class MsgAccumulator:
         self.batch_size = batch_size
         self.signal = signal
         self.accumulator = []
+        self.all_packet, self.bmp_packet, self.imu_isc_packet, self.imu_rsc_packet, self.sensors_packet, self.gps_packet = 0, 0, 0, 0, 0, 0
 
     def push_message(self, msg):
         self.accumulator.append(msg)
@@ -55,28 +63,39 @@ class MavlinkThread(QThread):
     def process_message(self, msg):
         # _log.debug(msg)
         # _log.info(msg)
+        # self.all_packet += 1
         if isinstance(msg, MAVLink_bmp280_message):
             self.atmega_accum.push_message(msg)
+            # self.bmp_packet += 1
             # print('bmp msg')
 
         elif isinstance(msg, MAVLink_imu_rsc_message):
             self.imu_rsc_accum.push_message(msg)
             # print('rsc msg')
+            # self.imu_rsc_accum += 1
 
         elif isinstance(msg, MAVLink_imu_isc_message):
             self.imu_isc_accum.push_message(msg)
             # print('isc msg')
+            # self.imu_isc_packet += 1
 
         elif isinstance(msg, MAVLink_sensors_message):
             self.sensors_accum.push_message(msg)
             # print('sensors msg')
+            # self.sensors_packet += 1
 
-        # elif isinstance(msg, MAVLink_gps_message):
-        #     self.gps_accum.push_message(msg)
+        elif isinstance(msg, MAVLink_state_message):
+            self.state_accum.push_message(msg)
+            # print('sensors msg')
+
+
+        elif isinstance(msg, MAVLink_gps_message):
+            self.gps_accum.push_message(msg)
+            # self.gps_packet += 1
 
         else:
-            # _log.warning("неизвестный тип сообщения! %s", msg.data())
-            pass
+            _log.warning("неизвестный тип сообщения!")
+
     # self.f.close()
 
 
@@ -84,7 +103,7 @@ class MavlinkThread(QThread):
         # _log.info("Запускаюсь. Использую url:")
         # mav1 = mavutil.mavlink_connection("udpin:0.0.0.0:22466")
         # mav2 = mavutil.mavlink_connection("udpin:0.0.0.0:22467")
-        mav_read_file = mavutil.mavlogfile(read_file, robust_parsing= False, notimestamps= True)
+        mav_read_file = mavutil.mavlogfile(read_file, robust_parsing=True, notimestamps= True)
 
         while True:
         # msg1 = mav1.recv_match(blocking=False)
@@ -105,3 +124,4 @@ class MavlinkThread(QThread):
 
             if msg_read_file:
                 self.process_message(msg_read_file)
+

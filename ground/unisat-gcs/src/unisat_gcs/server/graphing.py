@@ -874,11 +874,11 @@ class MyWin(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(list)
     def gps_msg(self, msgs):
-        # i = 0
-        # for i in range(len(msgs)):
-        #     self.x.append(msgs[i].coordinates[0])
-        #     self.y.append(msgs[i].coordinates[1])
-        #     self.z.append(msgs[i].coordinates[2])
+        i = 0
+        for i in range(len(msgs)):
+            self.x.append(msgs[i].coordinates[0])
+            self.y.append(msgs[i].coordinates[1])
+            self.z.append(msgs[i].coordinates[2])
         #
         #     self.ui.textBrowser_2.append(
         #         "GPS\t {n: %ld, time: %0.3f, coordinates: [%0.5f, %0.5f, %0.5f]}"
@@ -886,20 +886,20 @@ class MyWin(QtWidgets.QMainWindow):
         #         (msgs[i].get_header().seq, msgs[i].time, msgs[i].coordinates[1], msgs[i].coordinates[0], msgs[i].coordinates[2])
         #     )
         #
-        #     y0 = []
-        #     x0 = []
-        #     x0.append(self.x[0])
-        #     y0.append(self.y[0])
-        #
-        # self.pl_graf_down3_y.setData(x=x0, y=y0, pen=('b'), width=10)
-        #
-        # if len(self.x) > self.lenght:
-        #     self.x = self.x[self.cut:(self.lenght - 1)]
-        #     self.y = self.y[self.cut:(self.lenght - 1)]
-            # self.z = self.z[self.cut:(self.lenght - 1)]
+            y0 = []
+            x0 = []
+            x0.append(self.x[0])
+            y0.append(self.y[0])
+
+        self.pl_graf_down3_y.setData(x=x0, y=y0, pen=('b'), width=10)
+
+        if len(self.x) > self.lenght:
+            self.x = self.x[self.cut:(self.lenght - 1)]
+            self.y = self.y[self.cut:(self.lenght - 1)]
+            self.z = self.z[self.cut:(self.lenght - 1)]
 
 
-        # self.pl_graf_down3_x.setData(x=self.x, y=self.y, pen=('r'))
+        self.pl_graf_down3_x.setData(x=self.x, y=self.y, pen=('r'))
         pass
 
     @QtCore.pyqtSlot(list)

@@ -8,7 +8,7 @@ _log = _root_log.getChild("main")
 
 
 # Файл, из которого мы читаем данные
-read_file = "U2.bin"
+read_file = "U16.BIN"
 
 
 
@@ -71,6 +71,9 @@ class MavlinkThread(QThread):
             self.sensors_accum.push_message(msg)
             # print('sensors msg')
 
+        # elif isinstance(msg, MAVLink_gps_message):
+        #     self.gps_accum.push_message(msg)
+
         else:
             # _log.warning("неизвестный тип сообщения! %s", msg.data())
             pass
@@ -78,9 +81,9 @@ class MavlinkThread(QThread):
 
 
     def run(self):
-        _log.info("Запускаюсь. Использую url:")
+        # _log.info("Запускаюсь. Использую url:")
         # mav1 = mavutil.mavlink_connection("udpin:0.0.0.0:22466")
-        mav2 = mavutil.mavlink_connection("udpin:0.0.0.0:22467")
+        # mav2 = mavutil.mavlink_connection("udpin:0.0.0.0:22467")
         mav_read_file = mavutil.mavlogfile(read_file, robust_parsing= False, notimestamps= True)
 
         while True:

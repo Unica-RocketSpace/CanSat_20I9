@@ -32,8 +32,8 @@ if __name__ == "__main__":
     myapp.new_send_command.connect(thread.post_msg)
 
     sys.exit(app.exec_())
-    MyWin.accel_f.close()
-    MyWin.compass_f.close()
+    # MyWin.accel_f.close()
+    # MyWin.compass_f.close()
     # thread.exit()
     # exit(main(sys.argv[1:]))
 

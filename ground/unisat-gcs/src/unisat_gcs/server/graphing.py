@@ -41,25 +41,25 @@ file_sensors = file_name + "_sensors" + expansion
 file_gps = file_name + "_gps" + expansion
 
 
-# f = open(file_bmp, 'w')
-# f.write("Time" + '\t' + "Pressure" + '\t' + "Temp" + '\n')
-# f.close()
-#
-# f = open(file_sensors, 'w')
-# f.write("Time" + '\t' + "pressure" + '\t' + "Temp" + '\t' + "Height" + '\n')
-# f.close()
-#
-# f = open(file_imu_isc, 'w')
-# f.write("Time" + '\t' + "Accel" + '\t' + '\t' + '\t' + "Compass" + '\t' + '\t' + '\t' + "Quaternion" + '\n')
-# f.close()
-#
-# f = open(file_imu_rsc, 'w')
-# f.write("Time" + '\t' + "Accel" + '\t' + '\t' + '\t' + "Compass" + '\t' + '\t' + '\t' + "Gyro" + '\n')
-# f.close()
-#
-# f = open(file_gps, 'w')
-# f.write("Time" + '\t' + "GPS" + '\n')
-# f.close()
+f = open(file_bmp, 'w')
+f.write("Time" + '\t' + "Pressure" + '\t' + "Temp" + '\n')
+f.close()
+
+f = open(file_sensors, 'w')
+f.write("Time" + '\t' + "Pressure" + '\t' + "Height" + '\t' + "Temp" + '\n')
+f.close()
+
+f = open(file_imu_isc, 'w')
+f.write("Time" + '\t' + "Accel" + '\t' + '\t' + '\t' + "Compass" + '\t' + '\t' + '\t' + "Quaternion" + '\n')
+f.close()
+
+f = open(file_imu_rsc, 'w')
+f.write("Time" + '\t' + "Accel" + '\t' + '\t' + '\t' + "Compass" + '\t' + '\t' + '\t' + "Gyro" + '\n')
+f.close()
+
+f = open(file_gps, 'w')
+f.write("Time" + '\t' + "x" + '\t' + '\t' + '\t' + "y" + '\t' + '\t' + '\t' + "z" + '\n')
+f.close()
 
 log_text = ''
 global_vars={'x': 0, 'y': 0}
@@ -91,13 +91,14 @@ class MyWin(QtWidgets.QMainWindow):
         self.pressure_atmega = []
         self.time_atm = []
 
-        self.state_atm_motor = None
-        self.state_amt_para = None
+        self.state_time = None
+        self.state_mpu_bmp = None
+        self.state_master_state = None
+        self.state_buttons = None
         self.state_mpu = None
         self.state_bmp = None
         self.state_sd = None
         self.state_nrf = None
-        self.state_stm_motor = None
         self.state_gps = None
         self.state_fly = None
 
@@ -151,11 +152,7 @@ class MyWin(QtWidgets.QMainWindow):
         self.ui.top.addWidget(self.ui.glv_top)
         self.ui.plot_top = pg.GraphicsLayout()
         self.ui.glv_top.addItem(self.ui.plot_top)
-        # Создаем title для графика
-        # title="title"
-        # График для нескольких прямых
-        # self.sc_item = self.ui.plot.addPlot(title="title")
-        #######
+
 
         self.sc_item_top1 = pg.PlotItem(title='Accel ISC', labels={'left': 'accel', 'bottom': 'time'})
         self.ui.plot_top.addItem(self.sc_item_top1)
@@ -223,8 +220,9 @@ class MyWin(QtWidgets.QMainWindow):
         self.ui.glv_large.addItem(self.ui.plot_large)
         self.sc_item_large = pg.PlotItem()
         self.ui.plot_large.addItem(self.sc_item_large)
-        # self.graf_large = pg.PlotCurveItem()
-        # self.sc_item_large.addItem(self.graf_large)
+        self.graf_large = pg.PlotCurveItem()
+        self.sc_item_large.addItem(self.graf_large)
+
 
         self.ui.dockwid = QtWidgets.QDockWidget()
         self.ui.grid_3D.addWidget(self.ui.dockwid)
@@ -252,6 +250,7 @@ class MyWin(QtWidgets.QMainWindow):
         self.ui.glwid.addItem(self.rsc_coord)
         self.ui.glwid.show()
 
+
         self.pl_graf_top1_x = self.sc_item_top1.plot()
         self.pl_graf_top2_x = self.sc_item_top2.plot()
         self.pl_graf_top3_x = self.sc_item_top3.plot()
@@ -264,6 +263,7 @@ class MyWin(QtWidgets.QMainWindow):
         self.pl_graf_top2_z = self.sc_item_top2.plot()
         self.pl_graf_top3_z = self.sc_item_top3.plot()
 
+
         self.pl_graf_middle1_x = self.sc_item_middle1.plot()
         self.pl_graf_middle2_x = self.sc_item_middle2.plot()
         self.pl_graf_middle3_x = self.sc_item_middle3.plot()
@@ -275,6 +275,7 @@ class MyWin(QtWidgets.QMainWindow):
         self.pl_graf_middle1_z = self.sc_item_middle1.plot()
         self.pl_graf_middle2_z = self.sc_item_middle2.plot()
         self.pl_graf_middle3_z = self.sc_item_middle3.plot()
+
 
         self.pl_graf_down1_x = self.sc_item_down1.plot()
         self.pl_graf_down2_x = self.sc_item_down2.plot()
@@ -644,24 +645,24 @@ class MyWin(QtWidgets.QMainWindow):
             self.pressure_atmega.append(msgs[i].pressure)
             self.temp_atmega.append(msgs[i].temp)
 
-            # self.buffer_bmp_msg.append(  str(msgs[i].time) +'\t' + '\t' +
-            #                         str(msgs[i].pressure) + '\t' + '\t' +
-            #                         str(msgs[i].temp) + '\n')
+            self.buffer_bmp_msg.append(  str(msgs[i].time) +'\t' + '\t' +
+                                    str(msgs[i].pressure) + '\t' + '\t' +
+                                    str(msgs[i].temp) + '\n')
 
 
-            # self.ui.textBrowser_2.append(
-            #     "ATmega {n: %ld, time : %0.3f, pressure : %0.3f, temp : %0.1f}"
-            #     %
-            #     (msgs[i].get_header().seq, msgs[i].time, msgs[i].pressure, msgs[i].temp)
-            # )
+            self.ui.textBrowser_2.append(
+                "ATmega {n: %ld, time : %0.3f, pressure : %0.3f, temp : %0.1f}"
+                %
+                (msgs[i].get_header().seq, msgs[i].time, msgs[i].pressure, msgs[i].temp)
+            )
 
 
-        # if len(self.buffer_bmp_msg) >= 9:
-        #     f = open(file_bmp, 'a')
-        #     for foo in range(len(self.buffer_bmp_msg)):
-        #         f.write(self.buffer_bmp_msg[foo])
-        #     self.buffer_bmp_msg = []
-        #     f.close()
+        if len(self.buffer_bmp_msg) >= 9:
+            f = open(file_bmp, 'a')
+            for foo in range(len(self.buffer_bmp_msg)):
+                f.write(self.buffer_bmp_msg[foo])
+            self.buffer_bmp_msg = []
+            f.close()
 
 
         if len(self.time_atm) > self.lenght:
@@ -696,24 +697,24 @@ class MyWin(QtWidgets.QMainWindow):
             self.av_y.append(msgs[i].gyro[1])
             self.av_z.append(msgs[i].gyro[2])
 
-            # self.buffer_imu_rsc_msg.append(  str(msgs[i].time) + '\t' + '\t' +
-            #                             str(msgs[i].accel[0]) + ' ' + str(msgs[i].accel[1]) + str(msgs[i].accel[2]) + '\t' + '\t' +
-            #                             str(msgs[i].compass[0]) + ' ' + str(msgs[i].compass[1]) + ' ' + str(msgs[i].compass[2]) + '\t' + '\t' +
-            #                             str(msgs[i].gyro[0]) + ' ' + str(msgs[i].gyro[1]) + ' ' + str(msgs[i].gyro[2]) + '\n')
+            self.buffer_imu_rsc_msg.append(str(msgs[i].time) + '\t' + '\t' +
+                                        str(msgs[i].accel[0]) + ' ' + str(msgs[i].accel[1]) + str(msgs[i].accel[2]) + '\t' + '\t' +
+                                        str(msgs[i].compass[0]) + ' ' + str(msgs[i].compass[1]) + ' ' + str(msgs[i].compass[2]) + '\t' + '\t' +
+                                        str(msgs[i].gyro[0]) + ' ' + str(msgs[i].gyro[1]) + ' ' + str(msgs[i].gyro[2]) + '\n')
 
 
-            # self.ui.textBrowser_2.append(
-            #     "IMU_RSC\t {n: %ld, time: %0.3f, A: [%0.4f, %0.4f, %0.4f] G: [%0.4f, %0.4f, %0.4f] M: [%0.3f, %0.3f, %0.3f]}"
-            #         %
-            #         (msgs[i].get_header().seq, msgs[i].time, msgs[i].accel[0], msgs[i].accel[1], msgs[i].accel[2], msgs[i].gyro[0], msgs[i].gyro[1], msgs[i].gyro[2], msgs[i].compass[0], msgs[i].compass[1], msgs[i].compass[2])
-            #     )
+            self.ui.textBrowser_2.append(
+                "IMU_RSC\t {n: %ld, time: %0.3f, A: [%0.4f, %0.4f, %0.4f] G: [%0.4f, %0.4f, %0.4f] M: [%0.3f, %0.3f, %0.3f]}"
+                    %
+                    (msgs[i].get_header().seq, msgs[i].time, msgs[i].accel[0], msgs[i].accel[1], msgs[i].accel[2], msgs[i].gyro[0], msgs[i].gyro[1], msgs[i].gyro[2], msgs[i].compass[0], msgs[i].compass[1], msgs[i].compass[2])
+                )
 
-        # if len(self.buffer_imu_rsc_msg) >= 9:
-        #     f = open(file_imu_rsc, 'a')
-        #     for foo in range(len(self.buffer_imu_rsc_msg)):
-        #         f.write(self.buffer_imu_rsc_msg[foo])
-        #     self.buffer_imu_rsc_msg = []
-        #     f.close()
+        if len(self.buffer_imu_rsc_msg) >= 9:
+            f = open(file_imu_rsc, 'a')
+            for foo in range(len(self.buffer_imu_rsc_msg)):
+                f.write(self.buffer_imu_rsc_msg[foo])
+            self.buffer_imu_rsc_msg = []
+            f.close()
 
 
         if len(self.time_RSC) > self.lenght:
@@ -755,38 +756,38 @@ class MyWin(QtWidgets.QMainWindow):
             self.vmf_y.append(msgs[i].compass[1])
             self.vmf_z.append(msgs[i].compass[2])
 
-            # self.buffer_imu_isc_msg.append(  str(msgs[i].time) + '\t' + '\t' +
-            #                             str(msgs[i].accel[0]) + ' ' + str(msgs[i].accel[1]) + str(msgs[i].accel[2]) + '\t' + '\t' +
-            #                             str(msgs[i].compass[0]) + ' ' + str(msgs[i].compass[1]) + ' ' + str(msgs[i].compass[2]) + '\t' + '\t' +
-            #                             str(msgs[i].quaternion[0]) + ' ' + str(msgs[i].quaternion[1]) + ' ' + str(msgs[i].quaternion[2]) + '\n')
+            self.buffer_imu_isc_msg.append(str(msgs[i].time) + '\t' + '\t' +
+                                        str(msgs[i].accel[0]) + ' ' + str(msgs[i].accel[1]) + str(msgs[i].accel[2]) + '\t' + '\t' +
+                                        str(msgs[i].compass[0]) + ' ' + str(msgs[i].compass[1]) + ' ' + str(msgs[i].compass[2]) + '\t' + '\t' +
+                                        str(msgs[i].quaternion[0]) + ' ' + str(msgs[i].quaternion[1]) + ' ' + str(msgs[i].quaternion[2]) + '\n')
 
-            # q_0 = msgs[i].quaternion[0]
-            # teta = 2 * acos(q_0)
-            # sin_teta = sqrt(1 - q_0*q_0)
-            # self.rsc_coord.rotate(180*teta/math.pi, - msgs[i].quaternion[1] / sin_teta, - msgs[i].quaternion[2] / sin_teta, - msgs[i].quaternion[3] / sin_teta)
+            q_0 = msgs[i].quaternion[0]
+            teta = 2 * acos(q_0)
+            sin_teta = sqrt(1 - q_0*q_0)
+            self.rsc_coord.rotate(180*teta/math.pi, - msgs[i].quaternion[1] / sin_teta, - msgs[i].quaternion[2] / sin_teta, - msgs[i].quaternion[3] / sin_teta)
 
-            # self.ui.textBrowser_2.append(
-            #     "IMU_ISC\t {n: %ld, time: %0.3f, A: [%0.4f, %0.4f, %0.4f] M: [%0.3f, %0.3f, %0.3f]}"
-            #     %
-            #     (msgs[i].get_header().seq, msgs[i].time, msgs[i].accel[0], msgs[i].accel[1], msgs[i].accel[2], msgs[i].compass[0], msgs[i].compass[1], msgs[i].compass[2])
-            # )
-            # self.ui.textBrowser_2.append(
-            #     "QUAT\t {n: %ld, time: %0.3f, quat: [%0.4f, %0.4f, %0.4f, %0.4f]}"
-            #     %
-            #     (msgs[i].get_header().seq, msgs[i].time, msgs[i].quaternion[0], msgs[i].quaternion[1], msgs[i].quaternion[2], msgs[i].quaternion[3])
-            # )
+            self.ui.textBrowser_2.append(
+                "IMU_ISC\t {n: %ld, time: %0.3f, A: [%0.4f, %0.4f, %0.4f] M: [%0.3f, %0.3f, %0.3f]}"
+                %
+                (msgs[i].get_header().seq, msgs[i].time, msgs[i].accel[0], msgs[i].accel[1], msgs[i].accel[2], msgs[i].compass[0], msgs[i].compass[1], msgs[i].compass[2])
+            )
+            self.ui.textBrowser_2.append(
+                "QUAT\t {n: %ld, time: %0.3f, quat: [%0.4f, %0.4f, %0.4f, %0.4f]}"
+                %
+                (msgs[i].get_header().seq, msgs[i].time, msgs[i].quaternion[0], msgs[i].quaternion[1], msgs[i].quaternion[2], msgs[i].quaternion[3])
+            )
             # self.ui.textBrowser_2.append(
             #     "POS\t {n: %ld, time: %0.3f, velo: [%0.3f, %0.3f, %0.3f], pos: [%0.3f, %0.3f, %0.3f]}"
             #     %
             #     (msgs[i].get_header().seq, msgs[i].time, *msgs[i].velocities, *msgs[i].coordinates)
             # )
 
-        # if len(self.buffer_imu_isc_msg) >= 9:
-        #     f = open(file_imu_isc, 'a')
-        #     for foo in range(len(self.buffer_imu_isc_msg)):
-        #         f.write(self.buffer_imu_isc_msg[foo])
-        #     self.buffer_imu_isc_msg = []
-        #     f.close()
+        if len(self.buffer_imu_isc_msg) >= 9:
+            f = open(file_imu_isc, 'a')
+            for foo in range(len(self.buffer_imu_isc_msg)):
+                f.write(self.buffer_imu_isc_msg[foo])
+            self.buffer_imu_isc_msg = []
+            f.close()
 
 
         if len(self.time_ISC) > self.lenght:
@@ -842,24 +843,24 @@ class MyWin(QtWidgets.QMainWindow):
 
             time = msgs[i].time
 
-            # self.buffer_sensors_msg.append( str(time) + '\t' + '\t' +
-            #                                 str(msgs[i].pressure) + '\t' + '\t' +
-            #                                 str(msgs[i].temp) + '\t' + '\t' +
-            #                                 str(msgs[i].height) + '\n')
+            self.buffer_sensors_msg.append( str(time) + '\t' + '\t' +
+                                            str(msgs[i].pressure) + '\t' + '\t' +
+                                            str(msgs[i].temp) + '\t' + '\t' +
+                                            str(msgs[i].height) + '\n')
 
 
-            # self.ui.textBrowser_2.append(
-            #     "SENSORS  {n: %ld, time: %0.3f, temp: %0.3f, pressure: %0.3f}"
-            #     %
-            #     (msgs[i].get_header().seq, msgs[i].time, msgs[i].temp, msgs[i].pressure)
-            # )
+            self.ui.textBrowser_2.append(
+                "SENSORS  {n: %ld, time: %0.3f, temp: %0.3f, pressure: %0.3f}"
+                %
+                (msgs[i].get_header().seq, msgs[i].time, msgs[i].temp, msgs[i].pressure)
+            )
 
-        # if len(self.buffer_sensors_msg) >= 10:
-        #     f = open(file_sensors, 'a')
-        #     for foo in range(len(self.buffer_sensors_msg)):
-        #         f.write(self.buffer_sensors_msg[foo])
-        #     self.buffer_sensors_msg = []
-        #     f.close()
+        if len(self.buffer_sensors_msg) >= 10:
+            f = open(file_sensors, 'a')
+            for foo in range(len(self.buffer_sensors_msg)):
+                f.write(self.buffer_sensors_msg[foo])
+            self.buffer_sensors_msg = []
+            f.close()
 
 
         if len(self.time_sens) > self.lenght:
@@ -880,12 +881,12 @@ class MyWin(QtWidgets.QMainWindow):
             self.y.append(msgs[i].coordinates[1])
             self.z.append(msgs[i].coordinates[2])
         #
-        #     self.ui.textBrowser_2.append(
-        #         "GPS\t {n: %ld, time: %0.3f, coordinates: [%0.5f, %0.5f, %0.5f]}"
-        #         %
-        #         (msgs[i].get_header().seq, msgs[i].time, msgs[i].coordinates[1], msgs[i].coordinates[0], msgs[i].coordinates[2])
-        #     )
-        #
+            self.ui.textBrowser_2.append(
+                "GPS {n: %ld, time: %0.3f, coordinates: [%0.5f, %0.5f, %0.5f]}"
+                %
+                (msgs[i].get_header().seq, msgs[i].time, msgs[i].coordinates[1], msgs[i].coordinates[0], msgs[i].coordinates[2])
+            )
+
             y0 = []
             x0 = []
             x0.append(self.x[0])
@@ -900,58 +901,59 @@ class MyWin(QtWidgets.QMainWindow):
 
 
         self.pl_graf_down3_x.setData(x=self.x, y=self.y, pen=('r'))
-        pass
+
 
     @QtCore.pyqtSlot(list)
     def state_msg(self, msgs):
-        # i = 0
-        # for i in range(len(msgs)):
-        #     self.state_fly = msgs[i].globalStage
-        #     self.state_bmp = msgs[i].BMP_state
-        #     self.state_gps = msgs[i].GPS_state
-        #     self.state_mpu = msgs[i].MPU_state
-        #     self.state_nrf = msgs[i].NRF_state
-        #     self.state_sd = msgs[i].SD_state
-        #     self.state_stm_motor = msgs[i].MOTOR_state
-        #
-        #
-        #     self.ui.mpu_state.clear()
-        #     self.ui.bmp_state.clear()
-        #     self.ui.sd_state.clear()
-        #     self.ui.nrf_state.clear()
-        #     self.ui.morot_stm_state.clear()
-        #     self.ui.gps_state.clear()
-        #
-        #
-        #     self.ui.init.clear()
-        #     self.ui.init_param.clear()
-        #     self.ui.in_rocket.clear()
-        #     self.ui.lowering.clear()
-        #     self.ui.falling.clear()
-        #     self.ui.end.clear()
-        #
-        #     self.ui.mpu_state.setText(str(self.state_mpu))
-        #     self.ui.bmp_state.setText(str(self.state_bmp))
-        #     self.ui.sd_state.setText(str(self.state_sd))
-        #     self.ui.nrf_state.setText(str(self.state_nrf))
-        #     self.ui.morot_stm_state.setText(str(self.state_stm_motor))
-        #     self.ui.gps_state.setText(str(self.state_gps))
-        #
-        # if self.state_fly == 0:
-        #     self.ui.init.setText(str('1'))
-        #
-        # if self.state_fly == 1:
-        #     self.ui.init_param.setText(str('1'))
-        #
-        # if self.state_fly == 2:
-        #     self.ui.in_rocket.setText(str('1'))
-        #
-        # if self.state_fly == 3:
-        #     self.ui.falling.setText(str('1'))
-        #
-        # if self.state_fly == 4:
-        #     self.ui.lowering.setText(str('1'))
-        #
-        # if self.state_fly == 5:
-        #     self.ui.end.setText(str('1'))
-        pass
+        i = 0
+        for i in range(len(msgs)):
+            self.state_time = msgs[i].time
+            self.state_mpu = msgs[i].MPU_state
+            self.state_mpu_bmp = msgs[i].IMU_BMP_state
+            self.state_sd = msgs[i].SD_state
+            self.state_nrf = msgs[i].NRF_state
+            self.state_bmp = msgs[i].BMP_state
+            self.state_gps = msgs[i].GPS_state
+            self.state_master_state = msgs[i].master_state
+            self.state_buttons = msgs[i].buttons
+            self.state_fly = msgs[i].globalStage
+
+
+            self.ui.mpu_state.clear()
+            self.ui.bmp_state.clear()
+            self.ui.sd_state.clear()
+            self.ui.nrf_state.clear()
+            # self.ui.morot_stm_state.clear()
+            self.ui.gps_state.clear()
+
+
+            self.ui.init.clear()
+            self.ui.init_param.clear()
+            self.ui.in_rocket.clear()
+            self.ui.lowering.clear()
+            self.ui.falling.clear()
+            self.ui.end.clear()
+
+            self.ui.mpu_state.setText(str(self.state_mpu))
+            self.ui.bmp_state.setText(str(self.state_bmp))
+            self.ui.sd_state.setText(str(self.state_sd))
+            self.ui.nrf_state.setText(str(self.state_nrf))
+            self.ui.gps_state.setText(str(self.state_gps))
+
+        if self.state_fly == 0:
+            self.ui.init.setText(str('1'))
+
+        if self.state_fly == 1:
+            self.ui.init_param.setText(str('1'))
+
+        if self.state_fly == 2:
+            self.ui.in_rocket.setText(str('1'))
+
+        if self.state_fly == 3:
+            self.ui.falling.setText(str('1'))
+
+        if self.state_fly == 4:
+            self.ui.lowering.setText(str('1'))
+
+        if self.state_fly == 5:
+            self.ui.end.setText(str('1'))

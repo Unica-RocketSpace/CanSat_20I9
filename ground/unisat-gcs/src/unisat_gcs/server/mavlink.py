@@ -8,16 +8,7 @@ _log = _root_log.getChild("main")
 
 
 # Файл, из которого мы читаем данные
-read_file = r'C:\Users\MI\PycharmProjects\CanSat_20I9\ground\unisat-gcs\src\unisat_gcs\server\test.bin'
-
-
-all_packet = 0
-bmp_packet = 0
-imu_isc_packet = 0
-imu_rsc_packet = 0
-sensors_packet = 0
-gps_packet = 0
-
+read_file = r'C:\Users\MI\PycharmProjects\CanSat_20I9\ground\unisat-gcs\src\unisat_gcs\server\U31.bin'
 
 
 class MsgAccumulator:
@@ -63,35 +54,31 @@ class MavlinkThread(QThread):
     def process_message(self, msg):
         # _log.debug(msg)
         # _log.info(msg)
-        # self.all_packet += 1
         if isinstance(msg, MAVLink_bmp280_message):
             self.atmega_accum.push_message(msg)
-            # self.bmp_packet += 1
             # print('bmp msg')
+
+        elif isinstance(msg, MAVLink_state_zero_message):
+            print("zero data")
 
         elif isinstance(msg, MAVLink_imu_rsc_message):
             self.imu_rsc_accum.push_message(msg)
             # print('rsc msg')
-            # self.imu_rsc_accum += 1
 
         elif isinstance(msg, MAVLink_imu_isc_message):
             self.imu_isc_accum.push_message(msg)
             # print('isc msg')
-            # self.imu_isc_packet += 1
 
         elif isinstance(msg, MAVLink_sensors_message):
             self.sensors_accum.push_message(msg)
             # print('sensors msg')
-            # self.sensors_packet += 1
 
         elif isinstance(msg, MAVLink_state_message):
             self.state_accum.push_message(msg)
             # print('sensors msg')
 
-
         elif isinstance(msg, MAVLink_gps_message):
             self.gps_accum.push_message(msg)
-            # self.gps_packet += 1
 
         else:
             _log.warning("неизвестный тип сообщения!")

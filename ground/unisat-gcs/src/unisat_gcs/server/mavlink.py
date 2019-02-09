@@ -8,7 +8,7 @@ _log = _root_log.getChild("main")
 
 
 # Файл, из которого мы читаем данные
-read_file = r'C:\Users\MI\PycharmProjects\CanSat_20I9\ground\unisat-gcs\src\unisat_gcs\server\U31.bin'
+read_file = r'C:\Users\MI\PycharmProjects\CanSat_20I9\ground\unisat-gcs\src\unisat_gcs\server\U79.bin'
 
 
 class MsgAccumulator:
@@ -79,6 +79,7 @@ class MavlinkThread(QThread):
 
         elif isinstance(msg, MAVLink_gps_message):
             self.gps_accum.push_message(msg)
+            print("gps")
 
         else:
             _log.warning("неизвестный тип сообщения!")

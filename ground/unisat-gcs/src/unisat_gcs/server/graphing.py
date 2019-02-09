@@ -876,15 +876,16 @@ class MyWin(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot(list)
     def gps_msg(self, msgs):
         i = 0
+        speed = 0
         for i in range(len(msgs)):
             self.x.append(msgs[i].coordinates[0])
             self.y.append(msgs[i].coordinates[1])
-            self.z.append(msgs[i].coordinates[2])
+            speed = msgs[i].speed
         #
             self.ui.textBrowser_2.append(
-                "GPS {n: %ld, time: %0.3f, coordinates: [%0.5f, %0.5f, %0.5f]}"
+                "GPS {n: %ld, time: %0.3f, coordinates: [%0.5f, %0.5f], speed: %0.3f}"
                 %
-                (msgs[i].get_header().seq, msgs[i].time, msgs[i].coordinates[1], msgs[i].coordinates[0], msgs[i].coordinates[2])
+                (msgs[i].get_header().seq, msgs[i].time, msgs[i].coordinates[1], msgs[i].coordinates[0], speed)
             )
 
             y0 = []

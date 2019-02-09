@@ -66,6 +66,11 @@ static StaticTask_t	_IMUTaskObj;
 static StackType_t _gpsTaskStack[GPS_TASK_STACK_SIZE];
 static StaticTask_t _gpsTaskObj;
 
+#define LED_TASK_STACK_SIZE (50*configMINIMAL_STACK_SIZE)
+static StackType_t	_ledTaskStack[LED_TASK_STACK_SIZE];
+static StaticTask_t	_ledfTaskObj;
+
+
 
 void CALIBRATION_task() {
 
@@ -92,6 +97,21 @@ void CALIBRATION_task() {
 	end:
 		error = 0;
 		continue;
+	}
+}
+
+void LED_task(){
+	blink_led();
+	for(;;){
+		taskENTER_CRITICAL();
+		if ((state_system.BMP_state == 0) & (state_system.GPS_state == 0) & (state_system.IMU_BMP_state == 0) & (state_system.MPU_state == 0) & (state_system.SD_state == 0)){
+			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
+			vTaskDelay(1000);
+			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
+			vTaskDelay(10/portTICK_RATE_MS);
+		}
+//		trace_printf("");
+		taskEXIT_CRITICAL();
 	}
 }
 
@@ -126,14 +146,26 @@ int main(int argc, char* argv[])
 
 	xTaskCreateStatic(GPS_task, "GPS", GPS_TASK_STACK_SIZE, NULL, 1, _gpsTaskStack, &_gpsTaskObj);
 
+	xTaskCreateStatic(LED_task, "LED", LED_TASK_STACK_SIZE, NULL, 1, _ledTaskStack, &_ledfTaskObj);
+
 //	xTaskCreateStatic(CALIBRATION_task, "CALIBRATION", CALIBRATION_TASK_STACK_SIZE, NULL, 1, _CALIBRATIONTaskStack, &_CALIBRATIONTaskObj);
 
+
+	__GPIOA_CLK_ENABLE();
+	__GPIOB_CLK_ENABLE();
+	__GPIOC_CLK_ENABLE();
+	__GPIOD_CLK_ENABLE();
+	__GPIOE_CLK_ENABLE();
+	__GPIOF_CLK_ENABLE();
+	__GPIOG_CLK_ENABLE();
+	__GPIOH_CLK_ENABLE();
 	IO_RF_Init();
 	IMU_Init();
 	GPS_Init();
 	HAL_Delay(300);
 
 //	HAL_InitTick(15);
+
 
 
 	vTaskStartScheduler();

@@ -74,7 +74,9 @@
 
         <message id="156" name="GPS">
             <description>GPS data</description>
-            <field type="float[3]" name="coordinates">coordinates from GPS</field>
+            <field type="float[2]" name="coordinates">coordinates from GPS</field>
+            <field type="float" name="speed">speed from GPS</field>
+            <field type="float" name="course">course from GPS</field>
             <field type="float" name="time">current time</field>
         </message>
 

@@ -13,6 +13,7 @@
 
 void IO_RF_Init();
 void IO_RF_task();
+void blink_led();
 
 
 #endif /* TELEMETRY_H_ */

@@ -204,9 +204,11 @@ static uint8_t mavlink_msg_gps_send() {
 	mavlink_gps_t msg_gps;
 	msg_gps.time = (float)HAL_GetTick() / 1000;
 taskENTER_CRITICAL();
-	for (int i = 0; i < 3; i++){
+	for (int i = 0; i < 2; i++){
 		msg_gps.coordinates[i] = stateGPS.coordinates[i];
 	}
+	msg_gps.speed = stateGPS.speed;
+	msg_gps.course = stateGPS.course;
 taskEXIT_CRITICAL();
 
 	mavlink_message_t msg;
@@ -265,15 +267,18 @@ void IO_RF_Init() {
 	HAL_Delay(200);
 }
 
-
-void IO_RF_task() {
+void blink_led(){
 	GPIO_InitTypeDef gpioc;
 	gpioc.Mode = GPIO_MODE_OUTPUT_PP;
 	gpioc.Pin = GPIO_PIN_12;
 	gpioc.Pull = GPIO_NOPULL;
-	gpioc.Speed = GPIO_SPEED_FREQ_HIGH;
+	gpioc.Speed = GPIO_SPEED_HIGH;
 	HAL_GPIO_Init(GPIOC, &gpioc);
 	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
+}
+
+
+void IO_RF_task() {
 
 	first = 1;
 

@@ -135,24 +135,28 @@ void GPS_task()	{
 		if (!minmea_check(_msg_buffer, false))
 			continue;
 
-		struct minmea_sentence_gga frame;
-		if (!minmea_parse_gga(&frame, _msg_buffer))
+		struct minmea_sentence_rmc frame;
+		if (!minmea_parse_rmc(&frame, _msg_buffer))
 			continue; // опс, что-то пошло не так
 
-		if (frame.fix_quality == 0)
+		/*if (frame.fix_quality == 0)
 		{
 			trace_printf("gps no fix\n");
 			continue;
-		}
+		}*/
 
 		float _lon = minmea_tocoord(&frame.longitude);
 		float _lat = minmea_tocoord(&frame.latitude);
-		float _height = minmea_tofloat(&frame.altitude);
+		float _speed = minmea_tofloat(&frame.speed);
+		float _course = minmea_tofloat(&frame.course);
+		float _time = minmea_tofloat(&frame.time);
 
 		taskENTER_CRITICAL();
 		stateGPS.coordinates[0] = _lon;
 		stateGPS.coordinates[1] = _lat;
-		stateGPS.coordinates[2] = _height;
+		stateGPS.speed = _speed;
+		stateGPS.course = _course;
+		stateGPS.time = _time;
 		taskEXIT_CRITICAL();
 
 	end:

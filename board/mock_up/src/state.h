@@ -95,7 +95,10 @@ typedef struct {
 
 typedef struct {
 	//GPS data
-	float coordinates[3];
+	float time;
+	float coordinates[2];
+	float speed;
+	float course;
 } stateGPS_t;
 
 //	system parameters

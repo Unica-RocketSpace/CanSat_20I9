@@ -207,6 +207,7 @@ taskENTER_CRITICAL();
 	for (int i = 0; i < 2; i++){
 		msg_gps.coordinates[i] = stateGPS.coordinates[i];
 	}
+	trace_printf("longitude  %f", stateGPS.coordinates[0]);
 	msg_gps.speed = stateGPS.speed;
 	msg_gps.course = stateGPS.course;
 taskEXIT_CRITICAL();

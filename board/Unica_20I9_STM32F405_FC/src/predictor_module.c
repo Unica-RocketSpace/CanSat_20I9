@@ -9,7 +9,11 @@ stateGPS_t stateGPS;
 stateIMU_isc_t stateIMU;
 //WTF
 
-bool check_tube_target() {
+bool check_tube_target(float a, float b, float c) {
+	float dist = abs(c) / sqrt(a * a + b * b);
+	if (dist < tube_size) {
+		return 1;
+	}
 	return 0;
 }
 void height_predictor() {
@@ -38,9 +42,6 @@ void height_predictor() {
 
 void direction_predictor() {
 	char turn;
-	if (check_tube_target()) {
-		height_predictor();
-	}
 	float x = stateGPS.coordinates[0];
 	float y = stateGPS.coordinates[1];
 	//float z = stateGPS.coordinates[2];
@@ -53,6 +54,9 @@ void direction_predictor() {
 	a = y0 - y;
 	b = x - x0;
 	c = x0 * y - x * y0;
+	if (check_tube_target(a, b, c)) {
+		height_predictor();
+	}
 	float centerX, centerY;
 	float r = radius_of_turn_circle;
 	centerX = - a * r;

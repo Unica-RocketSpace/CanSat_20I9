@@ -57,18 +57,30 @@ void direction_predictor() {
 		height_predictor(x, y, z);
 		return;
 	}
-	double centerz, centerx;
+	double center_left[3] = {0, 0, -40}, center_right[3] = {0, 0, 40};
 	double r = radius_of_turn_circle;
-	centerz = - a * r;
-	centerx = b * r;
+	//double first_vector[3] = {0, 0, 1};
+	//double second_vector[3] = {vz, vx, 0};
+	/*iauPxp(first_vector, second_vector, center_left);
+	iauPxp(second_vector, first_vector, center_right);
+	printf("Центр левой окружности: %lf %lf %lf \n", center_left[3], center_left[1], center_left[2]);
+	printf("Центр правой окружности: %lf %lf %lf \n", center_right[3], center_right[1], center_left[2]);
+	center_left[1] *= r;
+	center_left[3] *= r;
+	center_right[1] *= r;
+	center_right[3] *= r;
+	printf("Центр левой окружности: %lf %lf %lf \n", center_left[3], center_left[1], center_left[2]);
+	printf("Центр правой окружности: %lf %lf %lf \n", center_right[3], center_right[1], center_left[2]);
+	*/
 	double target_lenght;
-	target_lenght = sqrt(centerz * centerz + centerx * centerx);
 	double access_radius;
 	access_radius = r + delta_r;
 	if (c > 0) {
 		turn = 'L';
+		target_lenght = sqrt(center_left[1] * center_left[1] + center_left[3] * center_left[3]);
 	} else {
 		turn = 'R';
+		target_lenght = sqrt(center_right[1] * center_right[1] + center_right[3] * center_right[3]);
 	}
 	if (target_lenght >= access_radius) {
 		turn_flight(z0, x0, turn);

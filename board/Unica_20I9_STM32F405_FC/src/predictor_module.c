@@ -9,6 +9,11 @@ stateGPS_t stateGPS;
 stateIMU_isc_t stateIMU;
 //WTF
 
+void straight_flight(double alpha) {
+	//set angle of incidence equal to alpha
+	return;
+}
+
 bool check_tube_target(double a, double b, double c, double z, double x, bool flag) {
 	double dist = abs(c) / sqrt(a * a + b * b);
 	double target_dist = sqrt(z * z + x * x);
@@ -25,7 +30,7 @@ void height_predictor(double x, double y, double z) {
 	distmax = y / tan(descent_angle_min);
 	if ((target_dist > distmin) && (target_dist < distmax)) {
 		double good_angle = atan2(y, target_dist);
-		straight_flight(atan2(y, target_dist));
+		straight_flight(good_angle);
 		return;
 	}
 	if (target_dist <= distmin) {
@@ -37,6 +42,14 @@ void height_predictor(double x, double y, double z) {
 		return;
 	}
 	return;
+}
+
+void turn_flight(double z, double x, char turn) {
+	if (turn == 'L') {
+		//do rotation using the left turn circle
+	} else if (turn == 'R') {
+		//do rotation using the right turn circle
+	}
 }
 
 void direction_predictor() {
@@ -63,26 +76,26 @@ void direction_predictor() {
 	//double second_vector[3] = {vz, vx, 0};
 	/*iauPxp(first_vector, second_vector, center_left);
 	iauPxp(second_vector, first_vector, center_right);
-	printf("Центр левой окружности: %lf %lf %lf \n", center_left[3], center_left[1], center_left[2]);
-	printf("Центр правой окружности: %lf %lf %lf \n", center_right[3], center_right[1], center_left[2]);
+	printf("Центр левой окружности: %lf %lf %lf \n", center_left[2], center_left[0], center_left[1]);
+	printf("Центр правой окружности: %lf %lf %lf \n", center_right[2], center_right[0], center_left[1]);
 	center_left[1] *= r;
 	center_left[3] *= r;
 	center_right[1] *= r;
 	center_right[3] *= r;
-	printf("Центр левой окружности: %lf %lf %lf \n", center_left[3], center_left[1], center_left[2]);
-	printf("Центр правой окружности: %lf %lf %lf \n", center_right[3], center_right[1], center_left[2]);
+	printf("Центр левой окружности: %lf %lf %lf \n", center_left[2], center_left[0], center_left[1]);
+	printf("Центр правой окружности: %lf %lf %lf \n", center_right[2], center_right[0], center_left[1]);
 	*/
-	double target_lenght;
+	double target_length_left, target_length_right;
 	double access_radius;
 	access_radius = r + delta_r;
-	if (c > 0) {
+	target_length_left = sqrt(center_left[0] * center_left[0] + center_left[2] * center_left[2]);
+	target_length_right = sqrt(center_right[0] * center_right[0] + center_right[2] * center_right[2]);
+	if (((c > 0) && (flag)) || ((c < 0) && (!flag))) {
 		turn = 'L';
-		target_lenght = sqrt(center_left[1] * center_left[1] + center_left[3] * center_left[3]);
-	} else {
+	} else if (((c < 0) && (flag)) || ((c > 0) && (!flag))){
 		turn = 'R';
-		target_lenght = sqrt(center_right[1] * center_right[1] + center_right[3] * center_right[3]);
 	}
-	if (target_lenght >= access_radius) {
+	if ((target_length_left > access_radius) && (target_length_right > access_radius)) {
 		turn_flight(z0, x0, turn);
 		return;
 	} else {
@@ -96,12 +109,12 @@ void calculating_distance_of_linear_further_motion(double R, double r, double vz
 	double dist;
 	double coordinates[3] = {0};
 	double new_coordinates[3] = {0};
-	double quat[4] = {0};
+	double quat[4] = {0, 0, 0, 0};
 	quat_invert(stateIMU_isc.quaternion, quat);
 	vect_rotate(stateGPS.coordinates, quat, coordinates);
 	double z = coordinates[0];
 	double x = coordinates[1];
-	double z = coordinates[2];
+	double y = coordinates[2];
 	dist = sqrt(R * R - (z - r) * (z - r));
 	z += dist + vz * spare_time;
 	vect_rotate(coordinates, stateIMU_isc.quaternion, new_coordinates);

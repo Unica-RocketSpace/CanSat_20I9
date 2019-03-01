@@ -55,9 +55,11 @@ void turn_flight(double z, double x, char turn) {
 void direction_predictor() {
 	char turn;
 	double x, y, z;
+	double coordinates_SC[3] = {x, y, z};
 	double vz, vx;
 	double z0 = z + vz * spare_time;
 	double x0 = x + vx * spare_time;
+	double v = sqrt(vx * vx + vz * vz);
 	double a, b, c;
 	a = x0 - x;
 	b = z - z0;
@@ -70,21 +72,17 @@ void direction_predictor() {
 		height_predictor(x, y, z);
 		return;
 	}
-	double center_left[3] = {0, 0, -40}, center_right[3] = {0, 0, 40};
+	double center_left[3], center_right[3];
 	double r = radius_of_turn_circle;
-	//double first_vector[3] = {0, 0, 1};
-	//double second_vector[3] = {vz, vx, 0};
-	/*iauPxp(first_vector, second_vector, center_left);
+	double first_vector[3] = {0, 1, 0};
+	double second_vector[3] = {vx, 0, vz};
+	double temporary_vector[3];
+	iauPxp(first_vector, second_vector, center_left);
 	iauPxp(second_vector, first_vector, center_right);
-	printf("Центр левой окружности: %lf %lf %lf \n", center_left[2], center_left[0], center_left[1]);
-	printf("Центр правой окружности: %lf %lf %lf \n", center_right[2], center_right[0], center_left[1]);
-	center_left[1] *= r;
-	center_left[3] *= r;
-	center_right[1] *= r;
-	center_right[3] *= r;
-	printf("Центр левой окружности: %lf %lf %lf \n", center_left[2], center_left[0], center_left[1]);
-	printf("Центр правой окружности: %lf %lf %lf \n", center_right[2], center_right[0], center_left[1]);
-	*/
+	iauSxp(r / v, center_left, temporary_vector);
+	iauPpp(temporary_vector, coordinates_SC, center_left);
+	iauSxp(r / v, center_right, temporary_vector);
+	iauPpp(temporary_vector, coordinates_SC, center_right);
 	double target_length_left, target_length_right;
 	double access_radius;
 	access_radius = r + delta_r;

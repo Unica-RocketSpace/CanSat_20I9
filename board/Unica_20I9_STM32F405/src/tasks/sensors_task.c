@@ -8,6 +8,7 @@
 
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <sofa.h>
 
@@ -132,6 +133,7 @@ taskENTER_CRITICAL();
 		gyro[k] -= state_zero.gyro_staticShift[k];
 		stateIMU_rsc.gyro[k] = gyro[k];
 		stateIMU_rsc.compass[k] = compass[k];
+
 	}
 taskEXIT_CRITICAL();
 ////////////////////////////////////////////////////
@@ -177,6 +179,7 @@ taskENTER_CRITICAL();
 	stateIMU_isc.compass[0] = compass_ISC[0];
 	stateIMU_isc.compass[1] = compass_ISC[1];
 	stateIMU_isc.compass[2] = compass_ISC[2];
+
 taskEXIT_CRITICAL();
 ////////////////////////////////////////////////////
 
@@ -209,6 +212,8 @@ taskEXIT_CRITICAL();
 		}
 	taskEXIT_CRITICAL();
 }
+
+
 ////////////////////////////////////////////////////
 
 end:
@@ -237,7 +242,7 @@ taskENTER_CRITICAL();
 	stateIMUSensors.temp = temp_f;
 	stateIMUSensors.height = height;
 taskEXIT_CRITICAL();
-
+/*
 	pressure = 0; temp = 0; pressure_f = 0;	temp_f = 0; height = 0;
 
 	rscs_bmp280_read(bmp280, &pressure, &temp);
@@ -249,7 +254,9 @@ taskENTER_CRITICAL();
 	stateSensors_raw.temp = temp;
 	stateSensors.pressure = pressure_f;
 	stateSensors.temp = temp_f;
+
 taskEXIT_CRITICAL();
+*/
 }
 
 
@@ -289,26 +296,30 @@ void IMU_Init() {
 	IMUbmp280_parameters.standbytyme = RSCS_BMP280_STANDBYTIME_500US;				//0.5ms	62.5ms	время между 2 измерениями
 	IMUbmp280_parameters.filter = RSCS_BMP280_FILTER_X16;							//x16	x16		фильтр
 
-	int8_t IMUbmp280_initError = rscs_bmp280_setup(bmp280, &IMUbmp280_parameters);								//запись параметров
-	rscs_bmp280_changemode(bmp280, RSCS_BMP280_MODE_NORMAL);					//установка режима NORMAL, постоянные измерения
+	int8_t IMUbmp280_initError = rscs_bmp280_setup(IMUbmp280, &IMUbmp280_parameters);								//запись параметров
+	rscs_bmp280_changemode(IMUbmp280, RSCS_BMP280_MODE_NORMAL);					//установка режима NORMAL, постоянные измерения
 	bmp280_calibration_values = rscs_bmp280_get_calibration_values(IMUbmp280);
 
 	state_system.MPU_state = mpu9255_initError;
 	state_system.IMU_BMP_state = IMUbmp280_initError;
 
-	//---ИНИЦИАЛИЗАЦИЯ BMP280---//
-	bmp280 = rscs_bmp280_initi2c(&i2c_mpu9255, RSCS_BMP280_I2C_ADDR_LOW);					//создание дескриптора
-	rscs_bmp280_parameters_t bmp280_parameters;
-	bmp280_parameters.pressure_oversampling = RSCS_BMP280_OVERSAMPLING_X4;		//4		16		измерения на один результат
-	bmp280_parameters.temperature_oversampling = RSCS_BMP280_OVERSAMPLING_X2;	//1		2		измерение на один результат
-	bmp280_parameters.standbytyme = RSCS_BMP280_STANDBYTIME_500US;				//0.5ms	62.5ms	время между 2 измерениями
-	bmp280_parameters.filter = RSCS_BMP280_FILTER_X16;							//x16	x16		фильтр
+	trace_printf("bmpInitError   %d\n", IMUbmp280_initError);
+	trace_printf("imuIniterror   %d\n", mpu9255_initError);
 
-	int8_t bmp280_initError = rscs_bmp280_setup(bmp280, &bmp280_parameters);								//запись параметров
-	rscs_bmp280_changemode(bmp280, RSCS_BMP280_MODE_NORMAL);					//установка режима NORMAL, постоянные измерения
-	bmp280_calibration_values = rscs_bmp280_get_calibration_values(bmp280);
 
-	state_system.BMP_state = bmp280_initError;
+//	//---ИНИЦИАЛИЗАЦИЯ BMP280---//
+//	bmp280 = rscs_bmp280_initi2c(&i2c_mpu9255, RSCS_BMP280_I2C_ADDR_LOW);					//создание дескриптора
+//	rscs_bmp280_parameters_t bmp280_parameters;
+//	bmp280_parameters.pressure_oversampling = RSCS_BMP280_OVERSAMPLING_X4;		//4		16		измерения на один результат
+//	bmp280_parameters.temperature_oversampling = RSCS_BMP280_OVERSAMPLING_X2;	//1		2		измерение на один результат
+//	bmp280_parameters.standbytyme = RSCS_BMP280_STANDBYTIME_500US;				//0.5ms	62.5ms	время между 2 измерениями
+//	bmp280_parameters.filter = RSCS_BMP280_FILTER_X16;							//x16	x16		фильтр
+//
+//	int8_t bmp280_initError = rscs_bmp280_setup(bmp280, &bmp280_parameters);								//запись параметров
+//	rscs_bmp280_changemode(bmp280, RSCS_BMP280_MODE_NORMAL);					//установка режима NORMAL, постоянные измерения
+//	bmp280_calibration_values = rscs_bmp280_get_calibration_values(bmp280);
+//
+//	state_system.BMP_state = bmp280_initError;
 }
 
 void zero_data(){
@@ -326,7 +337,7 @@ void SENSORS_task() {
 
 	for (;;) {
 
-
+/*
 		taskENTER_CRITICAL();
 		my_stage = state_system.globalStage;
 		command = state_system.globalCommand;
@@ -356,16 +367,16 @@ void SENSORS_task() {
 				zero_state = 0;
 			}
 		}
-
+*/
 
 		bmp280_update();
-			IMU_updateDataAll();
-			_IMUtask_updateData();
+		IMU_updateDataAll();
+		_IMUtask_updateData();
 
-
+/*
 		xTaskNotifyGive(handleControl);
 		xTaskNotifyGive(handleRF);
-
+*/
 		vTaskDelay(10/portTICK_RATE_MS);
 
 	}

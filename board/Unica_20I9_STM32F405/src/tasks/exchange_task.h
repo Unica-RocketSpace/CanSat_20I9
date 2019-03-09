@@ -21,6 +21,13 @@
 #define EXCHANGE_BUFFER_SIZE			(100)
 
 
+#define COMMAND_TEST 		2
+#define COMMAND_SLEEP_MODE 	0
+#define COMMAND_START 		1
+#define COMMAND_DATA 		3
+#define COMMAND_OK			4
+
+
 extern uint8_t dma_usartBuffer[100];
 
 void initExUsartDma();

@@ -15,12 +15,6 @@
 
 #include "state.h"
 
-#define COMMAND_TEST 		2
-#define COMMAND_SLEEP_MODE 	0
-#define COMMAND_START 		1
-#define COMMAND_DATA 		3
-#define COMMAND_OK			4
-
 uint8_t internal_cmd;
 portBASE_TYPE internal_queue_status;
 
@@ -146,12 +140,25 @@ void initAll(){
 
 
 
-void ReciveCommand(){
-	HAL_UART_Receive(&uartExchangeData, &uplink_command, sizeof(uplink_command), 1000);
+void ReciveCommand(UART_HandleTypeDef * uart, uint8_t * command){
+	HAL_UART_Receive(&uart, &command, sizeof(command), 0);
+}
+
+void TransmitData(UART_HandleTypeDef * uart, state_master_t * stateToSend){
+	HAL_UART_Transmit(&uart, stateToSend, sizeof(stateToSend), 0);
 }
 
 void ParseCommand(uint8_t * uplink_command){
 	if (uplink_command == COMMAND_DATA){
+		taskENTER_CRITICAL();
+		for (int i = 0; i < 3; i++){
+			state_master.coordinates[i] = stateIMU_isc.coordinates[i];
+			state_master.velosities[i] = stateIMU_isc.velocities[i];
+			state_master.quaternion[i] = stateIMU_isc.quaternion[i];
+		}
+		state_master.quaternion[4] = stateIMU_isc.quaternion[4];
+
+		taskEXIT_CRITICAL();
 		//copy_data for FC
 	}
 	else if (uplink_command == COMMAND_OK){

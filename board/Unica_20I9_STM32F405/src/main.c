@@ -51,6 +51,7 @@ stateIMU_isc_t 		stateIMU_isc;
 stateSensors_t 		stateIMUSensors;
 stateBMPSensors_t	stateSensors;
 state_system_t 		state_system;
+state_master_t		state_master;
 state_zero_t		state_zero;
 
 stateIMU_isc_t		stateIMU_isc_prev;
@@ -69,7 +70,6 @@ QueueHandle_t		handleInternalCmdQueue;
 static StackType_t	_iorfTaskStack[IO_RF_TASK_STACK_SIZE];
 static StaticTask_t	_iorfTaskObj;
 
-
 //	параметры GPS_task
 #define GPS_TASK_STACK_SIZE (80*configMINIMAL_STACK_SIZE)
 static StackType_t _gpsTaskStack[GPS_TASK_STACK_SIZE];
@@ -84,10 +84,13 @@ static StaticTask_t	_IMUTaskObj;
 static StackType_t _CONTROLTaskStack[CONTROL_TASK_STACK_SIZE];
 static StaticTask_t _CONTROLTaskObj;
 
-
 #define CALIBRATION_TASK_STACK_SIZE (20*configMINIMAL_STACK_SIZE)
 static StackType_t	_CALIBRATIONTaskStack[CALIBRATION_TASK_STACK_SIZE];
 static StaticTask_t	_CALIBRATIONTaskObj;
+
+#define LED_TASK_STACK_SIZE (10*configMINIMAL_STACK_SIZE)
+static StackType_t	_ledTaskStack[LED_TASK_STACK_SIZE];
+static StaticTask_t	_ledfTaskObj;
 
 
 #define INTERNAL_QUEUE_LENGHT  sizeof( uint8_t )
@@ -157,6 +160,33 @@ void CALIBRATION_task() {
 
 }
 
+void Init_led(){
+	GPIO_InitTypeDef gpioc;
+	gpioc.Mode = GPIO_MODE_OUTPUT_PP;
+	gpioc.Pin = GPIO_PIN_12;
+	gpioc.Pull = GPIO_NOPULL;
+	gpioc.Speed = GPIO_SPEED_HIGH;
+	HAL_GPIO_Init(GPIOC, &gpioc);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
+}
+
+
+void LED_task(){
+
+	for(;;){
+		taskENTER_CRITICAL();
+		if ((state_system.BMP_state == 0) & (state_system.GPS_state == 0) & (state_system.IMU_BMP_state == 0) & (state_system.MPU_state == 0) & (state_system.SD_state == 0)){
+			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
+			//volatile int x = 0;
+			vTaskDelay(10);
+			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
+		}
+		taskEXIT_CRITICAL();
+	}
+}
+
+
+
 
 int main(int argc, char* argv[])
 {
@@ -169,7 +199,8 @@ int main(int argc, char* argv[])
 	memset(&stateIMUSensors, 		0x00, sizeof(stateIMUSensors));
 	memset(&stateSensors,			0x00, sizeof(stateSensors));
 	memset(&state_system, 			0x00, sizeof(state_system));
-	memset(&state_zero, 			0x00, sizeof(state_zero));
+	memset(&state_master,			0x00, sizeof(state_master));
+	memset(&state_zero, 	 		0x00, sizeof(state_zero));
 
 	memset(&stateIMU_isc_prev, 			0x00, sizeof(stateIMU_isc_prev));
 	memset(&stateIMUSensors_prev,		0x00, sizeof(stateIMUSensors_prev));
@@ -183,23 +214,36 @@ int main(int argc, char* argv[])
 	state_system.NRF_state 	= 255;
 	state_system.SD_state 	= 255;
 
-	xTaskCreateStatic(SENSORS_task, 	"SENSORS", 		IMU_TASK_STACK_SIZE, 	NULL, 2, _IMUTaskStack, 	&_IMUTaskObj);
+//	xTaskCreateStatic(SENSORS_task, 	"SENSORS", 		IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack, 	&_IMUTaskObj);
 
 	handleRF = xTaskCreateStatic(IO_RF_task, 	"IO_RF", 	IO_RF_TASK_STACK_SIZE,	NULL, 1, _iorfTaskStack, 	&_iorfTaskObj);
 
-	handleControl = xTaskCreateStatic(CONTROL_task, "CONTROL", CONTROL_TASK_STACK_SIZE, NULL, 2, _CONTROLTaskStack, &_CONTROLTaskObj);
+	//xTaskCreateStatic(LED_task, "LED", LED_TASK_STACK_SIZE, NULL, 1, _ledTaskStack, &_ledfTaskObj);
 
-	xTaskCreateStatic(GPS_task, 	"GPS", 		GPS_TASK_STACK_SIZE, 	NULL, 2, _gpsTaskStack, 	&_gpsTaskObj);
+//	handleControl = xTaskCreateStatic(CONTROL_task, "CONTROL", CONTROL_TASK_STACK_SIZE, NULL, 2, _CONTROLTaskStack, &_CONTROLTaskObj);
+
+//	xTaskCreateStatic(GPS_task, 	"GPS", 		GPS_TASK_STACK_SIZE, 	NULL, 2, _gpsTaskStack, 	&_gpsTaskObj);
 
 
 
-	handleInternalCmdQueue = xQueueCreateStatic(INTERNAL_QUEUE_LENGHT, INTERNAL_QUEUE_ITEM_SIZE, internal_queue_storage_area, &internal_queue_static);
+//	handleInternalCmdQueue = xQueueCreateStatic(INTERNAL_QUEUE_LENGHT, INTERNAL_QUEUE_ITEM_SIZE, internal_queue_storage_area, &internal_queue_static);
 
 //	xTaskCreateStatic(CALIBRATION_task, "CALIBRATION", CALIBRATION_TASK_STACK_SIZE, NULL, 1, _CALIBRATIONTaskStack, &_CALIBRATIONTaskObj);
 
+
+	__GPIOA_CLK_ENABLE();
+	__GPIOB_CLK_ENABLE();
+	__GPIOC_CLK_ENABLE();
+	__GPIOD_CLK_ENABLE();
+	__GPIOE_CLK_ENABLE();
+	__GPIOF_CLK_ENABLE();
+	__GPIOG_CLK_ENABLE();
+	__GPIOH_CLK_ENABLE();
+
 	IMU_Init();
 	IO_RF_Init();
-	GPS_Init();
+	Init_led();
+	//GPS_Init();
 
 	HAL_InitTick(15);
 

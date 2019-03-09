@@ -153,6 +153,8 @@ void GPS_task()	{
 		stateGPS.coordinates[0] = _lon;
 		stateGPS.coordinates[1] = _lat;
 		stateGPS.coordinates[2] = _height;
+
+//		FLAG_GPS_DATA = 1;
 		taskEXIT_CRITICAL();
 
 	end:

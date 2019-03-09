@@ -29,6 +29,7 @@
 #include "drivers/UNICS_bmp280.h"
 
 
+
 // if error set value and go to end
 #define PROCESS_ERROR(x) if (0 != (error = (x))) { goto end; }
 
@@ -117,6 +118,13 @@ typedef struct {
 	float time;				//	current time
 } state_system_t;
 
+typedef struct {
+	float coordinates[3];
+	float quaternion[4];
+	float velosities[3];
+
+}state_master_t;
+
 
 typedef struct {
 	//	zero params; this fields should be filled when device started it`s work
@@ -162,6 +170,7 @@ extern stateIMU_isc_t 		stateIMU_isc;
 extern stateSensors_t 		stateIMUSensors;
 extern stateBMPSensors_t	stateSensors;
 extern state_system_t 		state_system;
+extern state_master_t		state_master;
 extern state_zero_t			state_zero;
 
 extern stateIMU_isc_t		stateIMU_isc_prev;

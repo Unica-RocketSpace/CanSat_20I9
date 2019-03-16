@@ -10,8 +10,6 @@
 #ifndef STATE_H_
 #define STATE_H_
 
-#include <stdint.h>
-#include <stdbool.h>
 
 #include "stm32f4xx_hal.h"
 
@@ -22,7 +20,6 @@
 #include "stm32f4xx_hal_dma.h"
 
 
-#include "drivers/UNICS_bmp280.h"
 
 
 // if error set value and go to end
@@ -127,7 +124,7 @@ typedef enum {
 /*################### ПЕРЕМЕННЫЕ ###################*/
 /*##################################################*/
 
-extern USART_HandleTypeDef  usart_HC05;
+//extern USART_HandleTypeDef  usart_HC05;
 extern USART_HandleTypeDef	usart_dbg;
 extern SPI_HandleTypeDef	spi_nRF24L01;
 extern I2C_HandleTypeDef 	i2c_mpu9255;

@@ -47,7 +47,9 @@
 
 // For freestanding applications this file is not used and can be safely
 // ignored.
+//FIXME: Это было раскомментировано
 
+/*
 ssize_t
 _write (int fd, const char* buf, size_t nbyte);
 
@@ -66,3 +68,4 @@ _write (int fd __attribute__((unused)), const char* buf __attribute__((unused)),
   errno = ENOSYS;
   return -1;
 }
+*/

@@ -1,7 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include <stm32f4xx_hal.h>
 #include <stm32f4xx_hal_cortex.h>
 #include <stm32f4xx_hal_i2c.h>
@@ -13,17 +9,10 @@
 #include "diag/Trace.h"
 #include <FreeRTOS.h>
 #include "task.h"
-#include "mavlink/UNISAT/mavlink.h"
 
 
 #include "state.h"
-#include "kinematic_unit.h"
-#include "dynamic_unit.h"
-#include "gps_nmea.h"
-#include "MPU9255.h"
-#include "UNICS_bmp280.h"
-#include "nRF24L01.h"
-#include "telemetry.h"
+#include "Servo.h"
 
 // ----- Timing definitions -------------------------------------------------
 
@@ -40,6 +29,7 @@
 #pragma GCC diagnostic ignored "-Wmissing-declarations"
 #pragma GCC diagnostic ignored "-Wreturn-type"
 
+const uint16_t inf = 1e10;
 
 // глобальные структуры
 stateSensors_raw_t 	stateSensors_raw;
@@ -58,7 +48,7 @@ stateCamera_orient_t stateCamera_orient_prev;
 
 
 //	параметры IO_RF_task
-#define IO_RF_TASK_STACK_SIZE (50*configMINIMAL_STACK_SIZE)
+/*#define IO_RF_TASK_STACK_SIZE (50*configMINIMAL_STACK_SIZE)
 static StackType_t	_iorfTaskStack[IO_RF_TASK_STACK_SIZE];
 static StaticTask_t	_iorfTaskObj;
 
@@ -81,79 +71,13 @@ static StaticTask_t	_MOTORSTaskObj;
 
 #define CALIBRATION_TASK_STACK_SIZE (20*configMINIMAL_STACK_SIZE)
 static StackType_t	_CALIBRATIONTaskStack[MOTORS_TASK_STACK_SIZE];
-static StaticTask_t	_CALIBRATIONTaskObj;
-
-
-void CALIBRATION_task() {
-	GPIO_InitTypeDef gpioc;
-	gpioc.Mode = GPIO_MODE_OUTPUT_PP;
-	gpioc.Pin = GPIO_PIN_12;
-	gpioc.Pull = GPIO_NOPULL;
-	gpioc.Speed = GPIO_SPEED_FREQ_HIGH;
-	HAL_GPIO_Init(GPIOC, &gpioc);
-	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
-
-	uint8_t error = 0;
-
-	for (;;) {
-
-		int16_t accelData[3] = {0, 0, 0};
-		int16_t gyroData[3] = {0, 0, 0};
-		int16_t compassData[3] = {0, 0, 0};
-		float accel[3] = {0, 0, 0};
-		float gyro[3] = {0, 0, 0};
-		float compass[3] = {0, 0, 0};
-
-		//	geting data
-		PROCESS_ERROR(mpu9255_readIMU(accelData, gyroData));
-		PROCESS_ERROR(mpu9255_readCompass(compassData))
-		mpu9255_recalcAccel(accelData, accel);
-		mpu9255_recalcGyro(gyroData, gyro);
-		mpu9255_recalcCompass(compassData, compass);
-
-
-		//	transmitting raw values
-		mavlink_imu_rsc_t msg_imu_rsc;
-		msg_imu_rsc.time = (float)HAL_GetTick() / 1000;
-	taskENTER_CRITICAL();
-		for (int i = 0; i < 3; i++) {
-			msg_imu_rsc.accel[i] = accel[i];
-			msg_imu_rsc.gyro[i] = gyro[i];
-			msg_imu_rsc.compass[i] = compass[i];
-		}
-	taskEXIT_CRITICAL();
-		mavlink_message_t msg;
-		uint16_t len = mavlink_msg_imu_rsc_encode(0, 0, &msg, &msg_imu_rsc);
-		uint8_t buffer[100];
-		len = mavlink_msg_to_send_buffer(buffer, &msg);
-		nRF24L01_send(&spi_nRF24L01, buffer, len, 1);
-
-
-		//	flashing the led
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
-
-		//	rotating the motor
-//		float tickstart = HAL_GetTick();
-		float STEP_DEGREES = M_PI / 2;
-		rotate_step_engine_by_angles(&STEP_DEGREES);
-
-		vTaskDelay(2000);
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
-//		float tickend = HAL_GetTick();
-//		trace_printf("start: %f\nend %f\n", tickstart, tickend);
-
-	end:
-		error = 0;
-		continue;
-	}
-
-}
+static StaticTask_t	_CALIBRATIONTaskObj;*/
 
 
 int main(int argc, char* argv[])
 {
 	// Инициализация структур глобального состояния (в нашем случае просто заполняем их нулями)
-	memset(&stateSensors_raw, 	0x00, sizeof(stateSensors_raw));
+	/*memset(&stateSensors_raw, 	0x00, sizeof(stateSensors_raw));
 	memset(&stateGPS, 			0x00, sizeof(stateGPS));
 	memset(&stateIMU_rsc, 		0x00, sizeof(stateIMU_rsc));
 	memset(&stateIMU_isc, 		0x00, sizeof(stateIMU_isc));
@@ -195,9 +119,55 @@ int main(int argc, char* argv[])
 
 
 	vTaskStartScheduler();
+	*/
 
-	return 0;
+	//Включение тактирования портов
+	__GPIOA_CLK_ENABLE();
+	__GPIOB_CLK_ENABLE();
+	__GPIOC_CLK_ENABLE();
+	__GPIOD_CLK_ENABLE();
+	__TIM1_CLK_ENABLE();
+	 //__AFIO_CLK_ENABLE();
+
+	//Настройки пина для ШИМ таймера 1 на канале 1
+	GPIO_InitTypeDef gpiob;
+	gpiob.Alternate = GPIO_AF1_TIM1;
+	gpiob.Mode = GPIO_MODE_AF_PP;
+	gpiob.Pin = GPIO_PIN_13;
+	gpiob.Pull = GPIO_NOPULL;
+	gpiob.Speed = GPIO_SPEED_FREQ_HIGH;
+	HAL_GPIO_Init(GPIOB, &gpiob);
+
+	TIM_HandleTypeDef htimServo;
+	TIM_OC_InitTypeDef timCH1;
+	timerSEPWMStart(&htimServo, &timCH1);
+
+	//Настройки пина для мигания лампочкой
+	GPIO_InitTypeDef gpioc;
+	gpioc.Mode = GPIO_MODE_OUTPUT_PP;
+	gpioc.Pin = GPIO_PIN_12;
+	gpioc.Pull = GPIO_NOPULL;
+	gpioc.Speed = GPIO_SPEED_FREQ_HIGH;
+	HAL_GPIO_Init(GPIOC, &gpioc);
+	uint32_t pulse = 1000;
+	while(1)
+	{
+		timerSEPWMChangePulse(&htimServo, &timCH1, pulse);
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, GPIO_PIN_SET);
+		HAL_Delay(1);
+		trace_printf("Hallo, UNIKS?\n");
+		trace_printf("%d\n", HAL_TIMEx_HallSensor_GetState(&htimServo));
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, GPIO_PIN_RESET);
+		HAL_Delay(1);
+		//pulse += 10;
+		//i %= inf;
+	}
+
 }
+
+
+
+
 
 #pragma GCC diagnostic pop
 

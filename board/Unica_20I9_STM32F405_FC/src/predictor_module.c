@@ -3,6 +3,8 @@
 #include <math.h>
 #include "state.h"
 #include "quaternion.h"
+#include <stdbool.h>
+
 //#include <vector.h>
 
 stateGPS_t stateGPS;

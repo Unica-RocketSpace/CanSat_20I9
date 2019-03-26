@@ -16,6 +16,7 @@
 #include <tasks/control_task.h>
 #include <tasks/sensors_task.h>
 #include <tasks/telemetry.h>
+#include <tasks/ground.h>
 #include "task.h"
 #include "mavlink/UNISAT/mavlink.h"
 
@@ -87,6 +88,11 @@ static StaticTask_t _CONTROLTaskObj;
 #define CALIBRATION_TASK_STACK_SIZE (20*configMINIMAL_STACK_SIZE)
 static StackType_t	_CALIBRATIONTaskStack[CALIBRATION_TASK_STACK_SIZE];
 static StaticTask_t	_CALIBRATIONTaskObj;
+
+//	параметры GROUND_task
+#define GROUND_TASK_STACK_SIZE (50*configMINIMAL_STACK_SIZE)
+static StackType_t	_groundTaskStack[GROUND_TASK_STACK_SIZE];
+static StaticTask_t	_groundTaskObj;
 
 #define LED_TASK_STACK_SIZE (10*configMINIMAL_STACK_SIZE)
 static StackType_t	_ledTaskStack[LED_TASK_STACK_SIZE];
@@ -216,7 +222,9 @@ int main(int argc, char* argv[])
 
 //	xTaskCreateStatic(SENSORS_task, 	"SENSORS", 		IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack, 	&_IMUTaskObj);
 
-	handleRF = xTaskCreateStatic(IO_RF_task, 	"IO_RF", 	IO_RF_TASK_STACK_SIZE,	NULL, 1, _iorfTaskStack, 	&_iorfTaskObj);
+//	handleRF = xTaskCreateStatic(IO_RF_task, 	"IO_RF", 	IO_RF_TASK_STACK_SIZE,	NULL, 1, _iorfTaskStack, 	&_iorfTaskObj);
+
+	xTaskCreateStatic(GROUND_task, 	"GROUND", 	GROUND_TASK_STACK_SIZE,	NULL, 1, _groundTaskStack, 	&_groundTaskObj);
 
 	//xTaskCreateStatic(LED_task, "LED", LED_TASK_STACK_SIZE, NULL, 1, _ledTaskStack, &_ledfTaskObj);
 
@@ -240,9 +248,10 @@ int main(int argc, char* argv[])
 	__GPIOG_CLK_ENABLE();
 	__GPIOH_CLK_ENABLE();
 
-	IMU_Init();
-	IO_RF_Init();
+//	IMU_Init();
+//	IO_RF_Init();
 	Init_led();
+	GROUND_Init();
 	//GPS_Init();
 
 	HAL_InitTick(15);

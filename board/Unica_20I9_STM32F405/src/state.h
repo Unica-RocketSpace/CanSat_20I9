@@ -148,7 +148,6 @@ typedef enum {
 /*################### ПЕРЕМЕННЫЕ ###################*/
 /*##################################################*/
 
-extern USART_HandleTypeDef  usart_HC05;
 extern USART_HandleTypeDef	usart_dbg;
 extern SPI_HandleTypeDef	spi_nRF24L01;
 extern I2C_HandleTypeDef 	i2c_mpu9255;

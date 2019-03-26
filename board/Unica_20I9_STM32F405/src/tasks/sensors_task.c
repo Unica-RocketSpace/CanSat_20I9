@@ -241,7 +241,9 @@ taskENTER_CRITICAL();
 	stateIMUSensors.pressure = pressure_f;
 	stateIMUSensors.temp = temp_f;
 	stateIMUSensors.height = height;
+	trace_printf("pressure\t%f temp\t%f height\t%f\n------------------------------------------------\n", pressure_f, temp_f, height);
 taskEXIT_CRITICAL();
+
 /*
 	pressure = 0; temp = 0; pressure_f = 0;	temp_f = 0; height = 0;
 

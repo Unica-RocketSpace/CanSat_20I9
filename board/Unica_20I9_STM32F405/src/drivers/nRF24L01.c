@@ -290,8 +290,10 @@ uint8_t nRF24L01_write (SPI_HandleTypeDef* hspi, void * write_buffer, size_t buf
 	if (ACK) write_command = nRF24L01_WRITE_TX_FIFO;
 	else write_command = nRF24L01_WRITE_TX_FIFO_NO_ACK;
 	_cs_enable();
+	taskENTER_CRITICAL();
 	PROCESS_ERROR(HAL_SPI_Transmit(hspi, &write_command, 1, _TIMEOUT_));
 	PROCESS_ERROR(HAL_SPI_Transmit(hspi, write_buffer, buffer_size, _TIMEOUT_));
+	taskEXIT_CRITICAL();
 	_cs_disable();
 
 	_ce_up();
@@ -306,7 +308,7 @@ uint8_t nRF24L01_write (SPI_HandleTypeDef* hspi, void * write_buffer, size_t buf
 
 		tick = HAL_GetTick();
 		if (tick - tickstart >= 2)
-			break;
+			return -2;
 	}
 	_ce_down();
 
@@ -317,13 +319,17 @@ uint8_t nRF24L01_write (SPI_HandleTypeDef* hspi, void * write_buffer, size_t buf
 	{
 		uint8_t read_command = nRF24L01_READ_RX_FIFO;
 		_cs_enable();
+		taskENTER_CRITICAL();
 		PROCESS_ERROR(HAL_SPI_Transmit(hspi, &read_command, 1, _TIMEOUT_));
 		PROCESS_ERROR(HAL_SPI_Receive(hspi, read_buffer, 32, _TIMEOUT_));
+		taskEXIT_CRITICAL();
 		_cs_disable();
 		*cmd = read_buffer[0];
 	}
 
 end:
+	if (error != 0)
+		taskEXIT_CRITICAL();
 	_cs_disable();
 	return error;
 }
@@ -469,26 +475,26 @@ uint8_t nRF24L01_send(SPI_HandleTypeDef* hspi, uint8_t* write_buffer, uint16_t b
 
 		carret += portion;
 
-		uint32_t tickstart = HAL_GetTick();
-		uint32_t tick = tickstart;
-		int counter = 0;
-		for (;;) {
-			uint8_t status = 0;
-			nRF24L01_read_status(&spi_nRF24L01, &status);
-			bool finished = ((status) & (1 << TX_DS)) || ((status) & (1 << MAX_RT));
-			if (finished)
-				break;
-
-			/*if (counter > 5)
-				trace_printf("nRF TE  %d\n", counter);*/
-			counter++;
-
-			tick = HAL_GetTick();
-			if (tick - tickstart >= 25) {
-				trace_printf("exit by timeout");
-				break;
-			}
-		}
+//		uint32_t tickstart = HAL_GetTick();
+//		uint32_t tick = tickstart;
+//		int counter = 0;
+//		for (;;) {
+//			uint8_t status = 0;
+//			nRF24L01_read_status(&spi_nRF24L01, &status);
+//			bool finished = ((status) & (1 << TX_DS)) || ((status) & (1 << MAX_RT));
+//			if (finished)
+//				break;
+//
+//			/*if (counter > 5)
+//				trace_printf("nRF TE  %d\n", counter);*/
+//			counter++;
+//
+//			tick = HAL_GetTick();
+//			if (tick - tickstart >= 25) {
+//				trace_printf("exit by timeout");
+//				break;
+//			}
+//		}
 	}
 
 end:

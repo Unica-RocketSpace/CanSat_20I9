@@ -226,7 +226,7 @@ int main(int argc, char* argv[])
 
 	xTaskCreateStatic(GROUND_task, 	"GROUND", 	GROUND_TASK_STACK_SIZE,	NULL, 1, _groundTaskStack, 	&_groundTaskObj);
 
-	//xTaskCreateStatic(LED_task, "LED", LED_TASK_STACK_SIZE, NULL, 1, _ledTaskStack, &_ledfTaskObj);
+//	xTaskCreateStatic(LED_task, "LED", LED_TASK_STACK_SIZE, NULL, 1, _ledTaskStack, &_ledfTaskObj);
 
 //	handleControl = xTaskCreateStatic(CONTROL_task, "CONTROL", CONTROL_TASK_STACK_SIZE, NULL, 2, _CONTROLTaskStack, &_CONTROLTaskObj);
 
@@ -252,7 +252,7 @@ int main(int argc, char* argv[])
 //	IO_RF_Init();
 	Init_led();
 	GROUND_Init();
-	//GPS_Init();
+//	GPS_Init();
 
 	HAL_InitTick(15);
 

@@ -65,13 +65,18 @@ taskEXIT_CRITICAL();
 	mavlink_message_t msg;
 	uint16_t len = mavlink_msg_state_encode(UNISAT_ID, UNISAT_NoComp, &msg, &msg_state);
 	uint8_t buffer[100];
+	uint8_t error = 0;
 	len = mavlink_msg_to_send_buffer(buffer, &msg);
-	uint8_t error = nRF24L01_send(&spi_nRF24L01, buffer, len, 0);
+	if (RF)
+		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 0);
 
-	taskENTER_CRITICAL();
-	state_system.SD_state = stream_file.res;
-	taskEXIT_CRITICAL();
-	dump(&stream_file, buffer, len);
+	if (SD){
+		taskENTER_CRITICAL();
+		state_system.SD_state = stream_file.res;
+		taskEXIT_CRITICAL();
+
+		dump(&stream_file, buffer, len);
+	}
 
 	return error;
 }
@@ -91,13 +96,17 @@ taskEXIT_CRITICAL();
 	mavlink_message_t msg;
 	uint16_t len = mavlink_msg_imu_rsc_encode(UNISAT_GPS, UNISAT_IMU, &msg, &msg_imu_rsc);
 	uint8_t buffer[100];
+	uint8_t error = 0;
 	len = mavlink_msg_to_send_buffer(buffer, &msg);
-	uint8_t error = nRF24L01_send(&spi_nRF24L01, buffer, len, 0);
+	if (RF)
+		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 0);
 
-	taskENTER_CRITICAL();
-	state_system.SD_state = stream_file.res;
-	taskEXIT_CRITICAL();
-	dump(&stream_file, buffer, len);
+	if (SD){
+		taskENTER_CRITICAL();
+		state_system.SD_state = stream_file.res;
+		taskEXIT_CRITICAL();
+		dump(&stream_file, buffer, len);
+	}
 
 	return error;
 }
@@ -121,15 +130,19 @@ taskEXIT_CRITICAL();
 	mavlink_message_t msg;
 	uint16_t len = mavlink_msg_imu_isc_encode(UNISAT_ID, UNISAT_IMU, &msg, &msg_imu_isc);
 	uint8_t buffer[100];
+	uint8_t error = 0;
 	len = mavlink_msg_to_send_buffer(buffer, &msg);
-	uint8_t error = nRF24L01_send(&spi_nRF24L01, buffer, len, 0);
+	if (RF)
+		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 0);
 
 	trace_printf("len isc msg\t%d\n", len);
 
-	taskENTER_CRITICAL();
-	state_system.SD_state = stream_file.res;
-	taskEXIT_CRITICAL();
-	dump(&stream_file, buffer, len);
+	if (SD){
+		taskENTER_CRITICAL();
+		state_system.SD_state = stream_file.res;
+		taskEXIT_CRITICAL();
+		dump(&stream_file, buffer, len);
+	}
 
 	return error;
 }
@@ -144,23 +157,26 @@ taskENTER_CRITICAL();
 	msg_sensors.height = stateIMUSensors.height;
 taskEXIT_CRITICAL();
 
-taskENTER_CRITICAL();
-	trace_printf("temp %f\t pressure %f\t height %f\t \n",msg_sensors.temp, msg_sensors.pressure, msg_sensors.height);
-taskEXIT_CRITICAL();
-	trace_printf("------------------------------------------------------------------------------ \n");
+
+//	trace_printf("temp %f\t pressure %f\t height %f\t \n",msg_sensors.temp, msg_sensors.pressure, msg_sensors.height);
+//	trace_printf("------------------------------------------------------------------------------ \n");
 
 	mavlink_message_t msg;
 	uint16_t len = mavlink_msg_sensors_encode(UNISAT_ID, UNISAT_SENSORS, &msg, &msg_sensors);
 	uint8_t buffer[100];
+	uint8_t error = 0;
 	len = mavlink_msg_to_send_buffer(buffer, &msg);
-	uint8_t error = nRF24L01_send(&spi_nRF24L01, buffer, len, 0);
+	if (RF)
+		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 0);
 
 	trace_printf("len sensors msg\t%d\n", len);
 
-	taskENTER_CRITICAL();
-	state_system.SD_state = stream_file.res;
-	taskEXIT_CRITICAL();
-	dump(&stream_file, buffer, len);
+	if (SD){
+		taskENTER_CRITICAL();
+		state_system.SD_state = stream_file.res;
+		taskEXIT_CRITICAL();
+		dump(&stream_file, buffer, len);
+	}
 
 	return error;
 }
@@ -179,13 +195,17 @@ taskEXIT_CRITICAL();
 	mavlink_message_t msg;
 	uint16_t len = mavlink_msg_sensors_encode(UNISAT_ID, UNISAT_SENSORS, &msg, &msg_BMP);
 	uint8_t buffer[100];
+	uint8_t error = 0;
 	len = mavlink_msg_to_send_buffer(buffer, &msg);
-	uint8_t error = nRF24L01_send(&spi_nRF24L01, buffer, len, 0);
+	if (RF)
+		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 0);
 
-	taskENTER_CRITICAL();
-	state_system.SD_state = stream_file.res;
-	taskEXIT_CRITICAL();
-	dump(&stream_file, buffer, len);
+	if (SD){
+		taskENTER_CRITICAL();
+		state_system.SD_state = stream_file.res;
+		taskEXIT_CRITICAL();
+		dump(&stream_file, buffer, len);
+	}
 
 	return error;
 }
@@ -204,13 +224,17 @@ taskEXIT_CRITICAL();
 	mavlink_message_t msg;
 	uint16_t len = mavlink_msg_gps_encode(UNISAT_ID, UNISAT_GPS, &msg, &msg_gps);
 	uint8_t buffer[100];
+	uint8_t error = 0;
 	len = mavlink_msg_to_send_buffer(buffer, &msg);
-	uint8_t error = nRF24L01_send(&spi_nRF24L01, buffer, len, 0);
+	if (RF)
+		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 0);
 
-	taskENTER_CRITICAL();
-	state_system.SD_state = stream_file.res;
-	taskEXIT_CRITICAL();
-	dump(&stream_file, buffer, len);
+	if (SD){
+		taskENTER_CRITICAL();
+		state_system.SD_state = stream_file.res;
+		taskEXIT_CRITICAL();
+		dump(&stream_file, buffer, len);
+	}
 
 	return error;
 }
@@ -233,15 +257,17 @@ taskEXIT_CRITICAL();
 	mavlink_message_t msg;
 	uint16_t len = mavlink_msg_state_zero_encode(UNISAT_ID, UNISAT_GPS, &msg, &msg_state_zero);
 	uint8_t buffer[100];
+	uint8_t error = 0;
 	len = mavlink_msg_to_send_buffer(buffer, &msg);
-	uint8_t error = nRF24L01_send(&spi_nRF24L01, buffer, len, 0);
+	if (RF)
+		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 0);
 
-
-
-	taskENTER_CRITICAL();
-	state_system.SD_state = stream_file.res;
-	taskEXIT_CRITICAL();
-	dump(&stream_file, buffer, len);
+	if (SD){
+		taskENTER_CRITICAL();
+		state_system.SD_state = stream_file.res;
+		taskEXIT_CRITICAL();
+		dump(&stream_file, buffer, len);
+	}
 
 	return error;
 }
@@ -251,10 +277,12 @@ static uint8_t mavlink_msg_get_command(){
 	uint8_t buffer[32] = {0};
 	bool isData = 0;
 
-	nRF24L01_read(&spi_nRF24L01, buffer, 32, &isData);
+	if (RF){
+		nRF24L01_read(&spi_nRF24L01, buffer, 32, &isData);
 
-	if (isData){
-			return (int)buffer[0];
+		if (isData){
+				return (int)buffer[0];
+		}
 	}
 
 	return -1;
@@ -271,12 +299,13 @@ uint8_t read_error;
 void IO_RF_Init(){
 
 	uint8_t error = 255;
-	uint8_t nRF24L01_initError = nRF24L01_init(&spi_nRF24L01);
-	trace_printf("nRF init error  %d\n", nRF24L01_initError);
-	state_system.NRF_state = nRF24L01_initError;
-	HAL_Delay(100);
-	nRF24L01_RX_mode_on(&spi_nRF24L01, 0);
-
+	if (RF){
+		uint8_t nRF24L01_initError = nRF24L01_init(&spi_nRF24L01);
+		trace_printf("nRF init error  %d\n", nRF24L01_initError);
+		state_system.NRF_state = nRF24L01_initError;
+		HAL_Delay(100);
+		nRF24L01_RX_mode_on(&spi_nRF24L01, 0);
+	}
 
 	HAL_Delay(200);
 
@@ -290,9 +319,9 @@ void led(){
 }
 
 
-bool check_TX_DR(){
-	if ((_status & (1 << TX_DS)) != 0){
-		trace_printf("send_mess\n");
+bool check_TX_DR(status){
+	if ((status & (1 << TX_DS)) != 0){
+//		trace_printf("send_mess\n");
 		led();
 		return 1;
 	}
@@ -304,30 +333,38 @@ bool check_TX_DR(){
 
 void IO_RF_task() {
 
+	uint8_t error = 0;
 	for (;;) {
 
-			taskENTER_CRITICAL();
-			mavlink_msg_sensors_send();
-			nRF24L01_read_status(&spi_nRF24L01, &_status);
-			taskEXIT_CRITICAL();
+//			taskENTER_CRITICAL();
+		mavlink_msg_sensors_send();
+		nRF24L01_read_status(&spi_nRF24L01, &_status);
+//			taskEXIT_CRITICAL();
 
-			check_TX_DR();
-			nRF24L01_clear_status(&spi_nRF24L01, true, true, true);
+		check_TX_DR(_status);
+//			nRF24L01_clear_status(&spi_nRF24L01, true, true, true);
 
-			taskENTER_CRITICAL();
-			mavlink_msg_imu_isc_send();
-		//	mavlink_msg_imu_rsc_send();
-			nRF24L01_read_status(&spi_nRF24L01, &_status);
-			taskEXIT_CRITICAL();
+//			taskENTER_CRITICAL();
+		error = mavlink_msg_imu_isc_send();
+		HAL_USART_Transmit(&usart_dbg, &error, 1, 10);
+		error = 0xFF;
+		HAL_USART_Transmit(&usart_dbg, &error, 1, 10);
+		nRF24L01_read_status(&spi_nRF24L01, &_status);
+		check_TX_DR(_status);
 
-			check_TX_DR();
-			nRF24L01_clear_status(&spi_nRF24L01, true, true, true);
+		error = mavlink_msg_imu_rsc_send();
+		trace_printf("error_rsc: %d\n", error);
+		nRF24L01_read_status(&spi_nRF24L01, &_status);
+//			taskEXIT_CRITICAL();
 
-			trace_printf("error    %d\n", __error);
+		check_TX_DR(_status);
+		nRF24L01_clear_status(&spi_nRF24L01, true, true, true);
+
+		trace_printf("error    %d\n", __error);
 //			trace_printf("STATUS   %d\n", _status);
 
-			vTaskDelay(20/portTICK_RATE_MS);
-			//trace_printf();
+		vTaskDelay(20/portTICK_RATE_MS);
+		//trace_printf();
 
 
 	/*	ulTaskNotifyTake(pdTRUE, portMAX_DELAY);

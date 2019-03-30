@@ -132,12 +132,13 @@ taskEXIT_CRITICAL();
 }
 
 
+// FIXME:::::::::::::::::::::::::::::::
 static uint16_t mavlink_msg_gps(){
 
 	mavlink_gps_t msg_gps;
 	msg_gps.time = (float)HAL_GetTick() / 1000;
 taskENTER_CRITICAL();
-	for (int i = 0; i < 3; i++){
+	for (int i = 0; i < 2; i++){
 		msg_gps.coordinates[i] = stateGPS.coordinates[i];
 	}
 taskEXIT_CRITICAL();
@@ -194,7 +195,7 @@ uint16_t state_zero_len;
 
 void get_lenght_msg(){
 	sensors_len = mavlink_msg_sensors();
-	trace_printf("sensors_len\t%d\n",sensors_len);
+//	trace_printf("sensors_len\t%d\n",sensors_len);
 	BMP_len = mavlink_msg_BMP();
 	imu_isc_len = mavlink_msg_imu_isc();
 	imu_rsc_len = mavlink_msg_imu_rsc();
@@ -214,7 +215,7 @@ uint16_t check_len_mav_packet(uint32_t ID){
 	if (ID == MAVLINK_MSG_ID_Sensors) return sensors_len;
 	if (ID == MAVLINK_MSG_ID_STATE) return state_len;
 	if (ID == MAVLINK_MSG_ID_STATE_ZERO) return state_zero_len;
-	return 0;
+	return -2;
 }
 
 void GROUND_Init(){
@@ -247,31 +248,41 @@ end:
 
 void GROUND_task() {
 
+//:FIXME Первый бит в пакете для uart - длина mavlink пакета!!!!
+
 	for (;;) {
-			read_error = nRF24L01_read(&spi_nRF24L01, buffer, sizeof(buffer), &data);
-			for (int i = 0; i< 32; i++)
-				trace_printf("%d\t", buffer[i]);
-			uint32_t ID = (uint32_t)buffer[7];
+			read_error = nRF24L01_read(&spi_nRF24L01, buffer + 1, sizeof(buffer) - 1, &data);
+
+//			for (int i = 0; i< 32; i++)
+//				trace_printf("%d\t", buffer[i]);
+
+			uint32_t ID = (uint32_t)buffer[8];
 			uint16_t len = check_len_mav_packet(ID);
 
 			trace_printf("len\t%d\n", len);
 
+
 //			nRF24L01_read_status(&spi_nRF24L01, &_status);
 //			trace_printf("RE\t%d\tSTAT\t%d\n---------------------------\n", read_error, _status);
-			trace_printf("data\t%d\n", data);
-			if (data){
+//			trace_printf("data\t%d\n", data);
+			if (data && (len != 65534)){
 				trace_printf("DR\t");
 				nRF24L01_clear_status(&spi_nRF24L01, 1, 1, 1);
 
+				buffer[0] = len;
+//				trace_printf("%d\t", buffer[0]);
+//				len = 0xFF;
+//				HAL_USART_Transmit(&usart_ground, (uint8_t*)(&len), 1, 10);
+//				HAL_USART_Transmit(&usart_ground, &read_error, 1, 10);
+				read_error = HAL_USART_Transmit(&usart_ground, buffer, len + 1, 10);
 
-				read_error = HAL_USART_Transmit(&usart_ground, buffer, len, 20);
 				memset(buffer, 0, 100);
 
 				led();
 			}
 		}
 
-			vTaskDelay(20/portTICK_RATE_MS);
+//			vTaskDelay(5/portTICK_RATE_MS);
 			//trace_printf();
 
 }

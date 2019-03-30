@@ -145,6 +145,10 @@ void GPS_task()	{
 			continue;
 		}
 
+
+//		:FIXME !!!!!!в мавлик другое определение этого пакета!!!!!!
+
+
 		float _lon = minmea_tocoord(&frame.longitude);
 		float _lat = minmea_tocoord(&frame.latitude);
 		float _height = minmea_tofloat(&frame.altitude);

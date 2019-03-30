@@ -29,6 +29,15 @@
 #include "drivers/UNICS_bmp280.h"
 
 
+#define SD 		0
+#define RF		1
+#define IMU		1
+#define IMU_BMP	1
+#define BMP		0
+//:FIXME GPS не реализовано
+#define GPS		0
+
+
 
 // if error set value and go to end
 #define PROCESS_ERROR(x) if (0 != (error = (x))) { goto end; }
@@ -123,7 +132,7 @@ typedef struct {
 	float quaternion[4];
 	float velosities[3];
 
-}state_master_t;
+} state_master_t;
 
 
 typedef struct {

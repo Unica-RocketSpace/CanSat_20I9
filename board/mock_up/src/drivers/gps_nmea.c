@@ -149,7 +149,7 @@ void GPS_task()	{
 		float _lat = minmea_tocoord(&frame.latitude);
 		float _speed = minmea_tofloat(&frame.speed);
 		float _course = minmea_tofloat(&frame.course);
-		float _time = minmea_tofloat(&frame.time);
+		float _time = minmea_tofloat((struct minmea_float *)(&frame.time));
 
 		taskENTER_CRITICAL();
 		stateGPS.coordinates[0] = _lon;

@@ -140,15 +140,16 @@ void initAll(){
 
 
 
-void ReciveCommand(UART_HandleTypeDef * uart, uint8_t * command){
-	HAL_UART_Receive(&uart, &command, sizeof(command), 0);
+void ReciveCommand(UART_HandleTypeDef *uart, uint8_t * command){
+	HAL_UART_Receive(uart, command, sizeof(command), 0);
 }
 
-void TransmitData(UART_HandleTypeDef * uart, state_master_t * stateToSend){
-	HAL_UART_Transmit(&uart, stateToSend, sizeof(stateToSend), 0);
-}
+// FIXME: stateToSend - state_master_t, а должен быть uint8_t
+/*void TransmitData(UART_HandleTypeDef *uart, state_master_t * stateToSend){
+	HAL_UART_Transmit(uart, stateToSend, sizeof(stateToSend), 0);
+}*/
 
-void ParseCommand(uint8_t * uplink_command){
+void ParseCommand(uint8_t uplink_command){
 	if (uplink_command == COMMAND_DATA){
 		taskENTER_CRITICAL();
 		for (int i = 0; i < 3; i++){

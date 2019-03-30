@@ -319,7 +319,7 @@ void led(){
 }
 
 
-bool check_TX_DR(status){
+bool check_TX_DR(int status){
 	if ((status & (1 << TX_DS)) != 0){
 //		trace_printf("send_mess\n");
 		led();

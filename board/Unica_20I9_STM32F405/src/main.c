@@ -220,17 +220,22 @@ int main(int argc, char* argv[])
 	state_system.NRF_state 	= 255;
 	state_system.SD_state 	= 255;
 
-//	xTaskCreateStatic(SENSORS_task, 	"SENSORS", 		IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack, 	&_IMUTaskObj);
 
-//	handleRF = xTaskCreateStatic(IO_RF_task, 	"IO_RF", 	IO_RF_TASK_STACK_SIZE,	NULL, 1, _iorfTaskStack, 	&_iorfTaskObj);
+	if (BMP || IMU_BMP || IMU)
+		xTaskCreateStatic(SENSORS_task, 	"SENSORS", 		IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack, 	&_IMUTaskObj);
 
-	xTaskCreateStatic(GROUND_task, 	"GROUND", 	GROUND_TASK_STACK_SIZE,	NULL, 1, _groundTaskStack, 	&_groundTaskObj);
+	if (RF)
+		handleRF = xTaskCreateStatic(IO_RF_task, 	"IO_RF", 	IO_RF_TASK_STACK_SIZE,	NULL, 1, _iorfTaskStack, 	&_iorfTaskObj);
+
+	if (GROUND)
+		xTaskCreateStatic(GROUND_task, 	"GROUND", 	GROUND_TASK_STACK_SIZE,	NULL, 1, _groundTaskStack, 	&_groundTaskObj);
 
 //	xTaskCreateStatic(LED_task, "LED", LED_TASK_STACK_SIZE, NULL, 1, _ledTaskStack, &_ledfTaskObj);
 
 //	handleControl = xTaskCreateStatic(CONTROL_task, "CONTROL", CONTROL_TASK_STACK_SIZE, NULL, 2, _CONTROLTaskStack, &_CONTROLTaskObj);
 
-//	xTaskCreateStatic(GPS_task, 	"GPS", 		GPS_TASK_STACK_SIZE, 	NULL, 2, _gpsTaskStack, 	&_gpsTaskObj);
+	if (GPS)
+		xTaskCreateStatic(GPS_task, 	"GPS", 		GPS_TASK_STACK_SIZE, 	NULL, 2, _gpsTaskStack, 	&_gpsTaskObj);
 
 
 
@@ -248,11 +253,12 @@ int main(int argc, char* argv[])
 	__GPIOG_CLK_ENABLE();
 	__GPIOH_CLK_ENABLE();
 
-//	IMU_Init();
-//	IO_RF_Init();
+	if (IMU || BMP || IMU_BMP) IMU_Init();
+	if (RF) IO_RF_Init();
+	if (GROUND) GROUND_Init();
+	if (GPS) GPS_Init();
+
 	Init_led();
-	GROUND_Init();
-//	GPS_Init();
 
 	HAL_InitTick(15);
 

@@ -34,8 +34,8 @@
 #define IMU		1
 #define IMU_BMP	1
 #define BMP		0
-//:FIXME GPS не реализовано
 #define GPS		0
+#define GROUND	0
 
 
 
@@ -61,6 +61,9 @@ typedef struct {
 typedef struct {
 	//GPS data
 	float coordinates[3];
+	float speed;
+	float course;
+	float time;
 } stateGPS_t;
 
 

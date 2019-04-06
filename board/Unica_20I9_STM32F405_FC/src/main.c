@@ -20,16 +20,46 @@
 #define BLINK_ON_TICKS  (TIMER_FREQUENCY_HZ * 3 / 4)
 #define BLINK_OFF_TICKS (TIMER_FREQUENCY_HZ - BLINK_ON_TICKS)
 
+#define fl float
+#define u32 uint32_t
+
 // ----- main() ---------------------------------------------------------------
 
 // Sample pragmas to cope with warnings. Please note the related line at
 // the end of this function, used to pop the compiler diagnostics status.
+#pragma GCC optimize("Ofast,unroll-all-loops")
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wmissing-declarations"
 #pragma GCC diagnostic ignored "-Wreturn-type"
 
-const uint16_t inf = 1e10;
+//some constants
+const fl angleMin = -30;
+const fl angleMax = 60;
+
+void speedRot(fl speed, servo_id_t servo, int flag) {
+	if (!flag) {
+		for (fl i = 0; i >= angleMin; i -= speed) {
+			servoRotate(servo, i);
+			HAL_delay(10);
+		}
+		for (fl i = angleMin; i <= angleMax; i += speed) {
+			servoRotate(servo, i);
+			HAL_delay(10);
+		}
+	} else {
+		for (fl i = 0; i <= angleMax; i += speed) {
+			servoRotate(servo, i);
+			HAL_delay(10);
+		}
+		for (fl i = angleMax; i >= angleMin; i -= speed) {
+			servoRotate(servo, i);
+			HAL_delay(10);
+		}
+	}
+	servoRotate(servo, 0);
+	return;
+}
 
 // глобальные структуры
 stateSensors_raw_t 	stateSensors_raw;
@@ -121,47 +151,27 @@ int main(int argc, char* argv[])
 	vTaskStartScheduler();
 	*/
 
-	//Включение тактирования портов
-	__GPIOA_CLK_ENABLE();
-	__GPIOB_CLK_ENABLE();
-	__GPIOC_CLK_ENABLE();
-	__GPIOD_CLK_ENABLE();
-	__TIM1_CLK_ENABLE();
-	 //__AFIO_CLK_ENABLE();
-
-	//Настройки пина для ШИМ таймера 1 на канале 1
-	GPIO_InitTypeDef gpiob;
-	gpiob.Alternate = GPIO_AF1_TIM1;
-	gpiob.Mode = GPIO_MODE_AF_PP;
-	gpiob.Pin = GPIO_PIN_13;
-	gpiob.Pull = GPIO_NOPULL;
-	gpiob.Speed = GPIO_SPEED_FREQ_HIGH;
-	HAL_GPIO_Init(GPIOB, &gpiob);
-
-	TIM_HandleTypeDef htimServo;
-	TIM_OC_InitTypeDef timCH1;
-	timerSEPWMStart(&htimServo, &timCH1);
-
-	//Настройки пина для мигания лампочкой
-	GPIO_InitTypeDef gpioc;
-	gpioc.Mode = GPIO_MODE_OUTPUT_PP;
-	gpioc.Pin = GPIO_PIN_12;
-	gpioc.Pull = GPIO_NOPULL;
-	gpioc.Speed = GPIO_SPEED_FREQ_HIGH;
-	HAL_GPIO_Init(GPIOC, &gpioc);
-	uint32_t pulse = 1000;
+	//Инициализация сервоприводов
+	allServosInit();
+	uint32_t pulse = 0;
+	int i = 0;
 	while(1)
 	{
-		timerSEPWMChangePulse(&htimServo, &timCH1, pulse);
+		//_timerPWMChangePulse(&htimServo, TIM_CHANNEL_1, 5200);
+		//trace_printf("pulse = %d\n", pulse);
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, GPIO_PIN_SET);
-		HAL_Delay(1);
-		trace_printf("Hallo, UNIKS?\n");
-		trace_printf("%d\n", HAL_TIMEx_HallSensor_GetState(&htimServo));
+		HAL_Delay(100);
+
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, GPIO_PIN_RESET);
-		HAL_Delay(1);
-		//pulse += 10;
-		//i %= inf;
-	}
+		HAL_Delay(100);
+		for (pulse = 2500; pulse < 7000; pulse += 100)
+		{
+			_timerPWMChangePulse(&htimServo, TIM_CHANNEL_1, pulse);
+			trace_printf("pulse = %d\n", pulse);
+			HAL_Delay(100);
+		}
+		//write tasks on wednesday
+    }
 
 }
 

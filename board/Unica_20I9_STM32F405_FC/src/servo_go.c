@@ -19,14 +19,12 @@ TIM_HandleTypeDef htimServo;
 
 const fl pulseMin = 3000;
 const fl pulseMax = 6000;
-const fl angleMin = -60;
-const fl angleMax = 60;
-const fl k1;
-const fl b1;
-const fl k2;
-const fl b2;
-const fl k3;
-const fl b3;
+const fl k1 = 37.8250591;
+const fl b1 = 3500;
+const fl k2 = 37.8250591;
+const fl b2 = 3500;
+const fl k3 = 37.8250591;
+const fl b3 = 3500;
 
 
 void _timerPWMInit(TIM_HandleTypeDef *htim) {
@@ -42,7 +40,7 @@ void _timerPWMInit(TIM_HandleTypeDef *htim) {
 void _timerPWMChanelInit(TIM_HandleTypeDef *htim, u32 Channel) {
 	TIM_OC_InitTypeDef timOC;
 	timOC.OCMode = TIM_OCMODE_PWM1;
-	timOC.Pulse = 400;
+	timOC.Pulse = 4000;
 	timOC.OCPolarity = TIM_OCPOLARITY_HIGH;
 	timOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
 	timOC.OCFastMode = TIM_OCFAST_ENABLE;
@@ -65,6 +63,7 @@ void _timerPWMChangePulse(TIM_HandleTypeDef *htim, u32 Channel, u32 pulse) {
 	HAL_TIM_PWM_ConfigChannel(htim, &timOC, Channel);
 
 	HAL_TIMEx_PWMN_Start(htim, Channel);
+	trace_printf("pulse = %d\n", pulse);
 }
 
 void allServosInit() {

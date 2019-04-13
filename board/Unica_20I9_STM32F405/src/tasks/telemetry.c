@@ -98,8 +98,9 @@ taskEXIT_CRITICAL();
 	uint8_t buffer[100];
 	uint8_t error = 0;
 	len = mavlink_msg_to_send_buffer(buffer, &msg);
-	if (RF)
+//	if (RF)
 		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 0);
+		HAL_USART_Transmit(&usart_dbg, buffer, len, 20);
 
 	if (SD){
 		taskENTER_CRITICAL();
@@ -132,8 +133,9 @@ taskEXIT_CRITICAL();
 	uint8_t buffer[100];
 	uint8_t error = 0;
 	len = mavlink_msg_to_send_buffer(buffer, &msg);
-	if (RF)
+//	if (RF)
 		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 0);
+		HAL_USART_Transmit(&usart_dbg, buffer, len, 20);
 
 	trace_printf("len isc msg\t%d\n", len);
 
@@ -166,8 +168,9 @@ taskEXIT_CRITICAL();
 	uint8_t buffer[100];
 	uint8_t error = 0;
 	len = mavlink_msg_to_send_buffer(buffer, &msg);
-	if (RF)
+//	if (RF)
 		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 0);
+		HAL_USART_Transmit(&usart_dbg, buffer, len, 20);
 
 	trace_printf("len sensors msg\t%d\n", len);
 
@@ -313,21 +316,25 @@ void IO_RF_Init(){
 }
 
 void led(){
-	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
-	vTaskDelay(20);
-	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
+	if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_12))
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
+	else
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
+//
+//	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
+//	vTaskDelay(20);
+//	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
 }
 
 
 bool check_TX_DR(int status){
 	if ((status & (1 << TX_DS)) != 0){
-//		trace_printf("send_mess\n");
 		led();
 		return 1;
 	}
 	return 0;
 }
-
+uint8_t buffer[32];
 
 //TODO; Сделать обработку ошибок при отправке данных в очередь
 
@@ -336,34 +343,43 @@ void IO_RF_task() {
 	uint8_t error = 0;
 	for (;;) {
 
-//			taskENTER_CRITICAL();
-		mavlink_msg_sensors_send();
-		nRF24L01_read_status(&spi_nRF24L01, &_status);
-//			taskEXIT_CRITICAL();
+//		mavlink_msg_sensors_send();
+//		nRF24L01_read_status(&spi_nRF24L01, &_status);
 
-		check_TX_DR(_status);
-//			nRF24L01_clear_status(&spi_nRF24L01, true, true, true);
+//		check_TX_DR(_status);
 
-//			taskENTER_CRITICAL();
 		error = mavlink_msg_imu_isc_send();
-		HAL_USART_Transmit(&usart_dbg, &error, 1, 10);
-		error = 0xFF;
-		HAL_USART_Transmit(&usart_dbg, &error, 1, 10);
+//		HAL_USART_Transmit(&usart_dbg, &error, 1, 10);
+//		error = 0xFF;
+//		HAL_USART_Transmit(&usart_dbg, &error, 1, 10);
 		nRF24L01_read_status(&spi_nRF24L01, &_status);
-		check_TX_DR(_status);
-
-		error = mavlink_msg_imu_rsc_send();
-		trace_printf("error_rsc: %d\n", error);
-		nRF24L01_read_status(&spi_nRF24L01, &_status);
-//			taskEXIT_CRITICAL();
 
 		check_TX_DR(_status);
-		nRF24L01_clear_status(&spi_nRF24L01, true, true, true);
-
-		trace_printf("error    %d\n", __error);
-//			trace_printf("STATUS   %d\n", _status);
 
 		vTaskDelay(20/portTICK_RATE_MS);
+
+//		error = mavlink_msg_imu_rsc_send();
+//		trace_printf("error_rsc: %d\n", error);
+//		nRF24L01_read_status(&spi_nRF24L01, &_status);
+//
+//		check_TX_DR(_status);
+//
+//		nRF24L01_clear_status(&spi_nRF24L01, true, true, true);
+
+/*FIXME:
+		for (int i = 0; i < 32; i++){
+			memset(&buffer, i, 32);
+			nRF24L01_send(&spi_nRF24L01, buffer, 32, 0);
+			HAL_USART_Transmit(&usart_dbg, buffer, 32, 20);
+			vTaskDelay(30);
+
+		}
+*/
+
+		trace_printf("error    %d\n", __error);
+		vTaskDelay(2000000000/portTICK_RATE_MS);
+
+
 		//trace_printf();
 
 

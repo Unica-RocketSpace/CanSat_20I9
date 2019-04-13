@@ -178,7 +178,7 @@ taskEXIT_CRITICAL();
 USART_HandleTypeDef usart_ground;
 
 
-uint8_t buffer[100];
+uint8_t buffer[32];
 uint8_t _status;
 uint8_t __error;
 uint16_t len;
@@ -195,7 +195,6 @@ uint16_t state_zero_len;
 
 void get_lenght_msg(){
 	sensors_len = mavlink_msg_sensors();
-//	trace_printf("sensors_len\t%d\n",sensors_len);
 	BMP_len = mavlink_msg_BMP();
 	imu_isc_len = mavlink_msg_imu_isc();
 	imu_rsc_len = mavlink_msg_imu_rsc();
@@ -207,7 +206,7 @@ void get_lenght_msg(){
 
 uint16_t check_len_mav_packet(uint32_t ID){
 	//uint8_t ID = buffer[5];
-	trace_printf("ID\t%d\n", ID);
+//	trace_printf("ID\t%d\n", ID);
 	if (ID == MAVLINK_MSG_ID_BMP280) return BMP_len;
 	if (ID == MAVLINK_MSG_ID_GPS) return gps_len;
 	if (ID == MAVLINK_MSG_ID_IMU_isc) return imu_isc_len;
@@ -221,7 +220,16 @@ uint16_t check_len_mav_packet(uint32_t ID){
 void GROUND_Init(){
 
 	uint8_t error = 255;
-	uint8_t nRF24L01_initError = nRF24L01_init(&spi_nRF24L01);
+
+	uint8_t nRF24L01_initError = -1;
+
+	do {
+		nRF24L01_initError =  nRF24L01_init(&spi_nRF24L01);
+		trace_printf("init_error\t%d\n", nRF24L01_initError);
+//		led();
+	}
+	while (nRF24L01_initError != 0);
+
 	trace_printf("nRF init error  %d\n", nRF24L01_initError);
 	state_system.NRF_state = nRF24L01_initError;
 
@@ -231,7 +239,7 @@ void GROUND_Init(){
 
 		//	usart_dbg init
 		usart_ground.Instance = USART3;
-		usart_ground.Init.BaudRate = 256000;
+		usart_ground.Init.BaudRate = 115200;
 		usart_ground.Init.WordLength = UART_WORDLENGTH_8B;
 		usart_ground.Init.StopBits = UART_STOPBITS_1;
 		usart_ground.Init.Parity = UART_PARITY_NONE;
@@ -248,38 +256,61 @@ end:
 
 void GROUND_task() {
 
-//:FIXME Первый бит в пакете для uart - длина mavlink пакета!!!!
 
 	for (;;) {
-			read_error = nRF24L01_read(&spi_nRF24L01, buffer + 1, sizeof(buffer) - 1, &data);
+		uint32_t start_read = HAL_GetTick();
 
-//			for (int i = 0; i< 32; i++)
-//				trace_printf("%d\t", buffer[i]);
-
-			uint32_t ID = (uint32_t)buffer[8];
-			uint16_t len = check_len_mav_packet(ID);
-
-			trace_printf("len\t%d\n", len);
+		read_error = nRF24L01_read(&spi_nRF24L01, buffer, sizeof(buffer), &data);
 
 
+//		uint32_t ID = (uint32_t)buffer[7];
+//		uint16_t len_msg = check_len_mav_packet(ID);
+
+//		if (len_msg != 65534){
+//			uint8_t foo = (len_msg - 32) / 32;
+//			trace_printf("foo   %d\n", foo);
+//			for (int i = 0; i < foo; i++){
+//				read_error = nRF24L01_read(&spi_nRF24L01, buffer + (i+1)*32, (len_msg - 32*(i+1)),&data);
+//			}
+//		}
+
+//		if (data && (len_msg != 65534) && !read_error){
+//			nRF24L01_clear_status(&spi_nRF24L01, 1, 1, 1);
+		if (data) {
+			read_error = HAL_USART_Transmit(&usart_ground, buffer, sizeof(buffer), 10);
+			led();
+		}
+
+//		}
+			uint32_t end_read = HAL_GetTick();
+
+		trace_printf("task start:\t%d\tend read\t%d\ttask end\t%d\n", start_read, (tick_ - tickstart_), (end_read - start_read));
+		memset(buffer, 0, sizeof(buffer));
+
+//		vTaskDelay(5/portTICK_RATE_MS);
+
+
+
+
+
+//			read_error = nRF24L01_read(&spi_nRF24L01, buffer, sizeof(buffer), &data);
+//
+//			uint32_t ID = (uint32_t)buffer[7];
+//			uint16_t len = check_len_mav_packet(ID);
+//
+//			trace_printf("len\t%d\n", len);
+//
 //			nRF24L01_read_status(&spi_nRF24L01, &_status);
 //			trace_printf("RE\t%d\tSTAT\t%d\n---------------------------\n", read_error, _status);
-//			trace_printf("data\t%d\n", data);
-			if (data && (len != 65534)){
-				trace_printf("DR\t");
-				nRF24L01_clear_status(&spi_nRF24L01, 1, 1, 1);
-
-				buffer[0] = len;
-//				trace_printf("%d\t", buffer[0]);
-//				len = 0xFF;
-//				HAL_USART_Transmit(&usart_ground, (uint8_t*)(&len), 1, 10);
-//				HAL_USART_Transmit(&usart_ground, &read_error, 1, 10);
-				read_error = HAL_USART_Transmit(&usart_ground, buffer, len + 1, 10);
-
-				memset(buffer, 0, 100);
-
-				led();
-			}
+////			trace_printf("data\t%d\n", data);
+//			if (data /*&& (len != 65534)*/){
+//				trace_printf("DR\t");
+//				nRF24L01_clear_status(&spi_nRF24L01, 1, 1, 1);
+//				read_error = HAL_USART_Transmit(&usart_ground, buffer, len, 10);
+//				memset(buffer, 0, 100);
+//
+//				led();
+//			}
 		}
 
 //			vTaskDelay(5/portTICK_RATE_MS);

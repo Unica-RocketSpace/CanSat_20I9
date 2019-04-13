@@ -245,7 +245,7 @@ void bmp280_update() {
 		stateIMUSensors.pressure = pressure_f;
 		stateIMUSensors.temp = temp_f;
 		stateIMUSensors.height = height;
-	//	trace_printf("pressure\t%f temp\t%f height\t%f\n------------------------------------------------\n", pressure_f, temp_f, height);
+		trace_printf("pressure\t%f temp\t%f height\t%f\n------------------------------------------------\n", pressure_f, temp_f, height);
 	taskEXIT_CRITICAL();
 	}
 
@@ -350,7 +350,7 @@ void SENSORS_task() {
 
 	//	usart_dbg init
 	usart_dbg.Instance = USART3;
-	usart_dbg.Init.BaudRate = 256000;
+	usart_dbg.Init.BaudRate = 115200;
 	usart_dbg.Init.WordLength = UART_WORDLENGTH_8B;
 	usart_dbg.Init.StopBits = UART_STOPBITS_1;
 	usart_dbg.Init.Parity = UART_PARITY_NONE;
@@ -400,7 +400,7 @@ void SENSORS_task() {
 		xTaskNotifyGive(handleControl);
 		xTaskNotifyGive(handleRF);
 */
-		vTaskDelay(10/portTICK_RATE_MS);
+		vTaskDelay(20/portTICK_RATE_MS);
 
 	}
 }

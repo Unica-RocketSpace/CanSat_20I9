@@ -30,12 +30,14 @@
 
 
 #define SD 		0
-#define RF		1
+#define RF		1	//Влияет на отправку телеметрии
 #define IMU		1
 #define IMU_BMP	1
 #define BMP		0
 #define GPS		0
 #define GROUND	0
+
+#define SERVO	1
 
 
 
@@ -155,6 +157,22 @@ typedef enum {
 } error;
 
 
+//FIXME: DELETE
+typedef enum {
+	servo_left		= 0,
+	servo_right		= 1,
+	servo_keel		= 2
+} servo_id_t;
+
+
+typedef struct {
+	const servo_id_t id;
+	float speed;
+	float start_angle, finish_angle;
+	const xTaskHandle handle;
+} servo_task_param_t;
+
+
 
 /*##################################################*/
 /*################### ПЕРЕМЕННЫЕ ###################*/
@@ -168,6 +186,8 @@ extern I2C_HandleTypeDef 	i2c_mpu9255;
 //////// Имена тасков и очередей ////////
 extern TaskHandle_t 		handleControl;
 extern TaskHandle_t			handleRF;
+extern TaskHandle_t			handleLeft, handleRight, handleKeel;
+
 
 extern QueueHandle_t		handleInternalCmdQueue;
 
@@ -189,8 +209,9 @@ extern stateSensors_t		stateIMUSensors_prev;
 extern stateSensors_t		stateSensors_prev;
 extern state_system_t		state_system_prev;
 
-
-
+//FIXME: DELETE
+extern TIM_HandleTypeDef htimServo;
+extern 	servo_task_param_t servo_param_left, servo_param_right, servo_param_keel;
 
 
 #endif /* STATE_H_ */

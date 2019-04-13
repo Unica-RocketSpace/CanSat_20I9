@@ -26,6 +26,10 @@
 
 SPI_HandleTypeDef	spi_nRF24L01;
 
+uint32_t tickstart_;
+uint32_t tick_;
+
+
 static void _cs_enable(){
 //	nRF24L01_CS_PORT &= ~nRF24L01_CS_PIN;
 //	HAL_GPIO_WritePin(nRF24L01_CS_PORT, nRF24L01_CS_PIN, RESET);
@@ -111,11 +115,11 @@ uint8_t nRF24L01_init (SPI_HandleTypeDef* hspi){
 		error = 10;
 		goto end;
 	}
+//	trace_printf("this");
 
 	value = (1 << ERX_P5)|
 			(1 << ERX_P4)|
 			(1 << ERX_P3)|
-			(1 << ERX_P2)|
 			(1 << ERX_P1)|
 			(1 << ERX_P0);
 	PROCESS_ERROR(nRF24L01_write_register(hspi, nRF24L01_EN_RXADDR_ADDR, value));
@@ -125,6 +129,7 @@ uint8_t nRF24L01_init (SPI_HandleTypeDef* hspi){
 		error = 10;
 		goto end;
 	}
+//	trace_printf("this");
 
 	value = (0b11 << AW);
 	PROCESS_ERROR(nRF24L01_write_register(hspi, nRF24L01_SETUP_AW_ADDR, value));
@@ -246,20 +251,21 @@ uint8_t nRF24L01_read (SPI_HandleTypeDef* hspi, uint8_t * read_buffer, size_t bu
 
 	_ce_up();
 
-	uint32_t tickstart = HAL_GetTick();
-	uint32_t tick = tickstart;
+	tickstart_ = HAL_GetTick();
+
+	tick_ = tickstart_;
 	for (;;) {
 		PROCESS_ERROR(nRF24L01_read_status(&spi_nRF24L01, &status));
 		bool finished = (status) & (1 << RX_DR);
 		if (finished)
 			break;
 
-		tick = HAL_GetTick();
-		if (tick - tickstart >= 100)
+		tick_ = HAL_GetTick();
+		if (tick_ - tickstart_ >= 5)
 			break;
 	}
 
-	//trace_printf("status %d\n", status);
+
 	uint8_t read_command = nRF24L01_READ_RX_FIFO;
 	if (status & (1 << RX_DR))
 	{
@@ -307,7 +313,7 @@ uint8_t nRF24L01_write (SPI_HandleTypeDef* hspi, void * write_buffer, size_t buf
 			break;
 
 		tick = HAL_GetTick();
-		if (tick - tickstart >= 2)
+		if (tick - tickstart >= 5)
 			return -2;
 	}
 	_ce_down();

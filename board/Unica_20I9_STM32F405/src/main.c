@@ -26,6 +26,7 @@
 #include "MPU9255.h"
 #include "UNICS_bmp280.h"
 #include "nRF24L01.h"
+#include "servo.h"
 
 // ----- Timing definitions -------------------------------------------------
 
@@ -65,6 +66,11 @@ TaskHandle_t		handleRF;
 
 QueueHandle_t		handleInternalCmdQueue;
 
+//servo
+servo_task_param_t servo_param_left, servo_param_right, servo_param_keel;
+TaskHandle_t handleGoLeft, handleGoRight, handleGoKeel;
+
+
 
 //	параметры IO_RF_task
 #define IO_RF_TASK_STACK_SIZE (50*configMINIMAL_STACK_SIZE)
@@ -98,6 +104,13 @@ static StaticTask_t	_groundTaskObj;
 static StackType_t	_ledTaskStack[LED_TASK_STACK_SIZE];
 static StaticTask_t	_ledfTaskObj;
 
+
+//FIXME: DELETE
+//	параметры SERVO_task
+#define SERVO_TASK_STACK_SIZE (10*configMINIMAL_STACK_SIZE)
+static StackType_t	_servoTaskStack[SERVO_TASK_STACK_SIZE];
+static StaticTask_t	_servoTaskObj;
+//
 
 #define INTERNAL_QUEUE_LENGHT  sizeof( uint8_t )
 #define INTERNAL_QUEUE_ITEM_SIZE  5
@@ -207,11 +220,14 @@ int main(int argc, char* argv[])
 	memset(&state_system, 			0x00, sizeof(state_system));
 	memset(&state_master,			0x00, sizeof(state_master));
 	memset(&state_zero, 	 		0x00, sizeof(state_zero));
+	memset(&stateIMU_isc_prev, 		0x00, sizeof(stateIMU_isc_prev));
+	memset(&stateIMUSensors_prev,	0x00, sizeof(stateIMUSensors_prev));
+	memset(&stateSensors_prev,		0x00, sizeof(stateSensors_prev));
+	memset(&state_system_prev, 		0x00, sizeof(state_system_prev));
 
-	memset(&stateIMU_isc_prev, 			0x00, sizeof(stateIMU_isc_prev));
-	memset(&stateIMUSensors_prev,		0x00, sizeof(stateIMUSensors_prev));
-	memset(&stateSensors_prev,			0x00, sizeof(stateSensors_prev));
-	memset(&state_system_prev, 			0x00, sizeof(state_system_prev));
+	memset(&servo_param_keel,	0x00, sizeof(servo_param_keel));
+	memset(&servo_param_left,	0x00, sizeof(servo_param_left));
+	memset(&servo_param_right,	0x00, sizeof(servo_param_right));
 
 	state_system.BMP_state 	= 255;
 	state_system.GPS_state 	= 255;
@@ -221,21 +237,29 @@ int main(int argc, char* argv[])
 	state_system.SD_state 	= 255;
 
 
+
 	if (BMP || IMU_BMP || IMU)
-		xTaskCreateStatic(SENSORS_task, 	"SENSORS", 		IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack, 	&_IMUTaskObj);
+		xTaskCreateStatic(SENSORS_task, 	"SENSORS", 		IMU_TASK_STACK_SIZE, 	NULL, 2, _IMUTaskStack, 	&_IMUTaskObj);
 
 	if (RF)
-		handleRF = xTaskCreateStatic(IO_RF_task, 	"IO_RF", 	IO_RF_TASK_STACK_SIZE,	NULL, 1, _iorfTaskStack, 	&_iorfTaskObj);
+		handleRF = xTaskCreateStatic(IO_RF_task, 	"IO_RF", 	IO_RF_TASK_STACK_SIZE,	NULL, 2, _iorfTaskStack, 	&_iorfTaskObj);
 
 	if (GROUND)
-		xTaskCreateStatic(GROUND_task, 	"GROUND", 	GROUND_TASK_STACK_SIZE,	NULL, 1, _groundTaskStack, 	&_groundTaskObj);
+		xTaskCreateStatic(GROUND_task, 	"GROUND", 	GROUND_TASK_STACK_SIZE,	NULL, 2, _groundTaskStack, 	&_groundTaskObj);
+
+	if (SERVO){
+		xTaskCreateStatic(SHEDULE_SERVO_task, "SERVO", SERVO_TASK_STACK_SIZE, NULL, 2, _servoTaskStack, &_servoTaskObj);
+		servo_param_left.handle = xTaskCreateStatic(speedRot, "goleft", SERVO_TASK_STACK_SIZE, *servo_param_left, 1, _servoTaskStack, &_servoTaskObj);
+		servo_param_right.handle = xTaskCreateStatic(speedRot, "goright", SERVO_TASK_STACK_SIZE, *servo_param_right, 1, _servoTaskStack, &_servoTaskObj);
+		servo_param_keel.handle = xTaskCreateStatic(speedRot, "gokeel", SERVO_TASK_STACK_SIZE, *servo_param_keel, 1, _servoTaskStack, &_servoTaskObj);
+	}
 
 //	xTaskCreateStatic(LED_task, "LED", LED_TASK_STACK_SIZE, NULL, 1, _ledTaskStack, &_ledfTaskObj);
 
 //	handleControl = xTaskCreateStatic(CONTROL_task, "CONTROL", CONTROL_TASK_STACK_SIZE, NULL, 2, _CONTROLTaskStack, &_CONTROLTaskObj);
 
-	if (GPS)
-		xTaskCreateStatic(GPS_task, 	"GPS", 		GPS_TASK_STACK_SIZE, 	NULL, 2, _gpsTaskStack, 	&_gpsTaskObj);
+//	if (GPS)
+//		xTaskCreateStatic(GPS_task, 	"GPS", 		GPS_TASK_STACK_SIZE, 	NULL, 2, _gpsTaskStack, 	&_gpsTaskObj);
 
 
 
@@ -253,12 +277,14 @@ int main(int argc, char* argv[])
 	__GPIOG_CLK_ENABLE();
 	__GPIOH_CLK_ENABLE();
 
+	Init_led();
+
 	if (IMU || BMP || IMU_BMP) IMU_Init();
 	if (RF) IO_RF_Init();
 	if (GROUND) GROUND_Init();
 	if (GPS) GPS_Init();
+	if (SERVO) allServosInit();
 
-	Init_led();
 
 	HAL_InitTick(15);
 

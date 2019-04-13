@@ -48,6 +48,10 @@
 //#define nRF24L01_CE_DDR  DDRB
 #define nRF24L01_CE_PIN  GPIO_PIN_8
 
+extern uint32_t tickstart_;
+extern uint32_t tick_;
+
+
 typedef enum {
 	nRF24L01_CONFIG_ADDR			= 0x00,
 	nRF24L01_EN_AA_ADDR				= 0x01,

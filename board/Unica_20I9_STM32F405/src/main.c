@@ -248,7 +248,7 @@ int main(int argc, char* argv[])
 		xTaskCreateStatic(GROUND_task, 	"GROUND", 	GROUND_TASK_STACK_SIZE,	NULL, 2, _groundTaskStack, 	&_groundTaskObj);
 
 	if (SERVO){
-		xTaskCreateStatic(SHEDULE_SERVO_task, "SERVO", SERVO_TASK_STACK_SIZE, NULL, 2, _servoTaskStack, &_servoTaskObj);
+		xTaskCreateStatic(SCHEDULE_SERVO_task, "SERVO", SERVO_TASK_STACK_SIZE, NULL, 2, _servoTaskStack, &_servoTaskObj);
 		servo_param_left.handle = xTaskCreateStatic(speedRot, "goleft", SERVO_TASK_STACK_SIZE, *servo_param_left, 1, _servoTaskStack, &_servoTaskObj);
 		servo_param_right.handle = xTaskCreateStatic(speedRot, "goright", SERVO_TASK_STACK_SIZE, *servo_param_right, 1, _servoTaskStack, &_servoTaskObj);
 		servo_param_keel.handle = xTaskCreateStatic(speedRot, "gokeel", SERVO_TASK_STACK_SIZE, *servo_param_keel, 1, _servoTaskStack, &_servoTaskObj);

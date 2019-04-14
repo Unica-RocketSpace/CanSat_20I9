@@ -24,16 +24,16 @@ void allServosInit();
 void servoRotate(servo_id_t servo_id, float angle_deg);
 void speedRot(fl speed, servo_id_t servo, fl alpha_start, fl alpha_finish);
 
-void SHEDULE_SERVO_task();
+void SCHEDULE_SERVO_task();
 
 //обновляет данные в структуре servo_task_param_t
 void update_struct(servo_task_param_t * str, float speed, float start_angle, float finish_angle);
 
 //запускает серво таски
-void resume_servos(bool left=1, bool right=1, bool keel=1);
+void resume_servos(bool left, bool right, bool keel);
 
-//переводит положение серв в 0
-void to_zero(bool right, bool left, bool keel);
+//переводит положение серв в angle
+void to_angle(bool right, bool left, bool keel, float speed, float angle_right, float angle_left, float angle_keel);
 
 
 #endif /* SERVO_H_ */

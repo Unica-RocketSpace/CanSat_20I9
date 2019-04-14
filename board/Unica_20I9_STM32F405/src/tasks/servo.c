@@ -53,12 +53,12 @@ void speedRot(servo_task_param_t * str) {
 		if (str->finish_angle > str->start_angle) {
 			for (fl i = str->start_angle; i <= str->finish_angle; i += str->speed) {
 				servoRotate(str->id, i);
-				HAL_Delay(10);
+				vTaskDelay(10);
 			}
 		} else {
 			for (fl i = str->start_angle; i >= str.finish_angle; i -= str.speed) {
 				servoRotate(str.id, i);
-				HAL_Delay(10);
+				vTaskDelay(10);
 			}
 		}
 		vTaskSuspend(str->handle);
@@ -183,25 +183,25 @@ void resume_servos(bool left=1, bool right=1, bool keel=1){
 }
 
 
-void to_zero(bool right, bool left, bool keel){
+void to_angle(bool right, bool left, bool keel, float speed, float angle_right=0, float angle_left=0, float angle_keel=0){
 	if (right)
-		update_struct(&servo_param_right, fast_speed, servo_param_right.finish_angle, 0);
+		update_struct(&servo_param_right, speed, servo_param_right.finish_angle, angle_right);
 	if (left)
-		update_struct(&servo_param_left, fast_speed, servo_param_left.finish_angle, 0);
+		update_struct(&servo_param_left, speed, servo_param_left.finish_angle, angle_left);
 	if (keel)
-		update_struct(&servo_param_keel, fast_speed, servo_param_keel.finish_angle, 0);
+		update_struct(&servo_param_keel, speed, servo_param_keel.finish_angle, angle_keel);
 
 }
 
 
 
 
-void SHEDULE_SERVO_task(){
+void SCHEDULE_SERVO_task(){
 
 	vTaskSuspend(servo_param_keel.handle);
 	vTaskSuspend(servo_param_left.handle);
 	vTaskSuspend(servo_param_right.handle);
-	HAL_Delay(1000);
+	vTaskDelay(1000);
 
 	trace_printf("Hi!\n");
 
@@ -213,7 +213,7 @@ void SHEDULE_SERVO_task(){
 		servoRotate(servo_keel, 0);
 
 
-		HAL_Delay(10000);
+		vTaskDelay(10000);
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, GPIO_PIN_RESET);
 		//начало техасской резни
 
@@ -230,7 +230,7 @@ void SHEDULE_SERVO_task(){
 		vTaskDelay(10000);
 
 
-		//пщворот правой сервы
+		//поворот правой сервы
 		update_struct(&servo_param_right, fast_speed, 0, angleMax);
 		vTaskResume(servo_param_right.handle);
 		vTaskDelay(10000);
@@ -255,76 +255,99 @@ void SHEDULE_SERVO_task(){
 
 
 		//to -9
-		update_struct(&servo_param_left, fast_speed, 0, -9);
-		update_struct(&servo_param_right, fast_speed, 0, -9);
+		to_angle(1, 1, 0, fast_speed, -9, -9);
 		resume_servos(1, 1, 0);
 		vTaskDelay(10000);
 
-		//крен
-		update_struct(&servo_param_left, speed, -9, 21);
-		update_struct(&servo_param_right, speed, -9, -39);
+		//крен го
+		to_angle(1, 1, 0, speed, 21, -39);
 		resume_servos(1, 1, 0);
 		vTaskDelay(10000);
 
-		update_struct(&servo_param_left, speed, -9, -39);
-		update_struct(&servo_param_right, speed, -9, 21);
+		to_angle(1, 1, 0, speed, -39, 21);
 		resume_servos(1, 1, 0);
-		HAL_Delay(10000);
+		vTaskDelay(10000);
 
+		//to 0
+		to_angle(1, 1, 0, fast_speed, 0, 0);
 
-		//0 to min, min to max, max to 0
-		update_struct(&servo_param_left, fast_speed, 0, angleMin);
-		update_struct(&servo_param_right, fast_speed, 0, angleMin);
+		//0 to min
+		to_angle(1, 1, 0, fast_speed, angleMin, angleMin);
 		resume_servos(1, 1, 0);
-		HAL_Delay(10000);
+		vTaskDelay(10000);
 
-		update_struct(&servo_param_left, speed, angleMin, angleMax);
-		update_struct(&servo_param_right, speed, angleMin, angleMax);
+		//min to max
+		to_angle(1, 1, 0, speed, angleMax, angleMax);
 		resume_servos(1, 1, 0);
-		HAL_Delay(10000);
+		vTaskDelay(10000);
 
-		update_struct(&servo_param_left, fast_speed, angleMax, 0);
-		update_struct(&servo_param_right, fast_speed, angleMax, 0);
+		//max to 0
+		to_angle(1, 1, 0, fast_speed, 0, 0);
 		resume_servos(1, 1, 0);
-		HAL_Delay(10000);
+		vTaskDelay(10000);
 
 
 		//to -9
-		update_struct(&servo_param_left, fast_speed, 0, -9);
-		update_struct(&servo_param_right, fast_speed, 0, -9);
+		to_angle(1, 1, 0, fast_speed, -9, -9);
 		resume_servos(1, 1, 0);
 		vTaskDelay(10000);
 
 		//all
-		update_struct(&servo_param_left, speed, -9, 21);
-		update_struct(&servo_param_right, speed, -9, -39);
-		update_struct(&servo_param_keel, speed, 0, -30);
+		to_angle(1, 1, 1, speed, 21, -39, -30);
 		resume_servos(1, 1, 1);
 		vTaskDelay(10000);
 
-		update_struct(&servo_param_left, speed, -9, -39);
-		update_struct(&servo_param_right, speed, -9, 21);
-		update_struct(&servo_param_keel, speed, 0, -30);
+
+		//to -9
+		to_angle(1, 1, 1, fast_speed, -9, -9, 0);
 		resume_servos(1, 1, 1);
-		HAL_Delay(10000);
+		vTaskDelay(10000);
+
+		//all
+		to_angle(1, 1, 1, speed, -39, 21, -30);
+		resume_servos(1, 1, 1);
+		vTaskDelay(10000);
+
+
+		//to -9
+		to_angle(1, 1, 0, fast_speed, -9, -9);
+		resume_servos(1, 1, 0);
+		vTaskDelay(10000);
+
+		//all
+		to_angle(1, 1, 1, speed, 21, -39, 30);
+		resume_servos(1, 1, 1);
+		vTaskDelay(10000);
+
+
+		//to -9
+		to_angle(1, 1, 1, fast_speed, -9, -9, 0);
+		resume_servos(1, 1, 1);
+		vTaskDelay(10000);
+
+		//all
+		to_angle(1, 1, 1, speed, -39, 21, 30);
+		resume_servos(1, 1, 1);
+		vTaskDelay(10000);
+
 /*
 		update_struct(&servo_param_left, fast_speed, 0, angleMax);
 		update_struct(&servo_param_right, fast_speed, 0, angleMin);
 		update_struct(&servo_param_keel, fast_speed, 0, angleKeelMax);
 		resume_servos();
-		HAL_Delay(10000);
+		vTaskDelay(10000);
 
 		update_struct(&servo_param_left, speed, angleMax, angleMin);
 		update_struct(&servo_param_right, speed, angleMin, angleMax);
 		update_struct(&servo_param_keel, speed, angleKeelMax, angleKeelMin);
 		resume_servos();
-		HAL_Delay(10000);
+		vTaskDelay(10000);
 
 		update_struct(&servo_param_left, fast_speed, angleMin, 0);
 		update_struct(&servo_param_right, fast_speed, angleMax, 0);
 		update_struct(&servo_param_keel, fast_speed, angleKeelMin, 0);
 		resume_servos();
-		HAL_Delay(10000);
+		vTaskDelay(10000);
 
 
 
@@ -332,19 +355,19 @@ void SHEDULE_SERVO_task(){
 		update_struct(&servo_param_right, fast_speed, 0, angleMax);
 		update_struct(&servo_param_keel, fast_speed, 0, angleKeelMin);
 		resume_servos();
-		HAL_Delay(10000);
+		vTaskDelay(10000);
 
 		update_struct(&servo_param_left, speed, angleMin, angleMax);
 		update_struct(&servo_param_right, speed, angleMax, angleMin);
 		update_struct(&servo_param_keel, speed, angleKeelMin, angleKeelMax);
 		resume_servos();
-		HAL_Delay(10000);
+		vTaskDelay(10000);
 
 		update_struct(&servo_param_left, fast_speed, angleMax, 0);
 		update_struct(&servo_param_right, fast_speed, angleMin, 0);
 		update_struct(&servo_param_keel, fast_speed, angleKeelMax, 0);
 		resume_servos();
-		HAL_Delay(10000);
+		vTaskDelay(10000);
 
 
 
@@ -355,17 +378,17 @@ void SHEDULE_SERVO_task(){
 		update_struct(&servo_param_left, fast_speed, 0, angleMax);
 		update_struct(&servo_param_right, fast_speed, 0, angleMax);
 		resume_servos(1, 1, 0);
-		HAL_Delay(10000);
+		vTaskDelay(10000);
 
 		update_struct(&servo_param_left, speed, angleMin, angleMin);
 		update_struct(&servo_param_right, speed, angleMin, angleMin);
 		resume_servos(1, 1, 0);
-		HAL_Delay(10000);
+		vTaskDelay(10000);
 
 		update_struct(&servo_param_left, fast_speed, angleMin, 0);
 		update_struct(&servo_param_right, fast_speed, angleMin, 0);
 		resume_servos(1, 1, 0);
-		HAL_Delay(10000);
+		vTaskDelay(10000);
 */
 	}
 }

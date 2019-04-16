@@ -30,9 +30,9 @@
 
 
 #define SD 		0
-#define RF		1	//Влияет на отправку телеметрии
-#define IMU		1
-#define IMU_BMP	1
+#define RF		0	//Влияет на отправку телеметрии
+#define IMU		0
+#define IMU_BMP	0
 #define BMP		0
 #define GPS		0
 #define GROUND	0
@@ -166,10 +166,11 @@ typedef enum {
 
 
 typedef struct {
-	const servo_id_t id;
+	servo_id_t id;
 	float speed;
-	float start_angle, finish_angle;
-	const xTaskHandle handle;
+	float start_angle;
+	float finish_angle;
+	xTaskHandle handle;
 } servo_task_param_t;
 
 

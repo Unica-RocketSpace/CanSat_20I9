@@ -68,7 +68,9 @@ QueueHandle_t		handleInternalCmdQueue;
 
 //servo
 servo_task_param_t servo_param_left, servo_param_right, servo_param_keel;
-TaskHandle_t handleGoLeft, handleGoRight, handleGoKeel;
+TaskHandle_t handleLeft, handleRight, handleKeel;
+
+
 
 
 
@@ -110,6 +112,16 @@ static StaticTask_t	_ledfTaskObj;
 #define SERVO_TASK_STACK_SIZE (10*configMINIMAL_STACK_SIZE)
 static StackType_t	_servoTaskStack[SERVO_TASK_STACK_SIZE];
 static StaticTask_t	_servoTaskObj;
+
+
+static StackType_t	_servoTaskStackLeft[SERVO_TASK_STACK_SIZE];
+static StaticTask_t	_servoTaskObjLeft;
+
+static StackType_t	_servoTaskStackRight[SERVO_TASK_STACK_SIZE];
+static StaticTask_t	_servoTaskObjRight;
+
+static StackType_t	_servoTaskStackKeel[SERVO_TASK_STACK_SIZE];
+static StaticTask_t	_servoTaskObjKeel;
 //
 
 #define INTERNAL_QUEUE_LENGHT  sizeof( uint8_t )
@@ -238,7 +250,7 @@ int main(int argc, char* argv[])
 
 
 
-	if (BMP || IMU_BMP || IMU)
+	/*if (BMP || IMU_BMP || IMU)
 		xTaskCreateStatic(SENSORS_task, 	"SENSORS", 		IMU_TASK_STACK_SIZE, 	NULL, 2, _IMUTaskStack, 	&_IMUTaskObj);
 
 	if (RF)
@@ -246,12 +258,20 @@ int main(int argc, char* argv[])
 
 	if (GROUND)
 		xTaskCreateStatic(GROUND_task, 	"GROUND", 	GROUND_TASK_STACK_SIZE,	NULL, 2, _groundTaskStack, 	&_groundTaskObj);
-
+*/
 	if (SERVO){
 		xTaskCreateStatic(SCHEDULE_SERVO_task, "SERVO", SERVO_TASK_STACK_SIZE, NULL, 2, _servoTaskStack, &_servoTaskObj);
-		servo_param_left.handle = xTaskCreateStatic(speedRot, "goleft", SERVO_TASK_STACK_SIZE, *servo_param_left, 1, _servoTaskStack, &_servoTaskObj);
-		servo_param_right.handle = xTaskCreateStatic(speedRot, "goright", SERVO_TASK_STACK_SIZE, *servo_param_right, 1, _servoTaskStack, &_servoTaskObj);
-		servo_param_keel.handle = xTaskCreateStatic(speedRot, "gokeel", SERVO_TASK_STACK_SIZE, *servo_param_keel, 1, _servoTaskStack, &_servoTaskObj);
+		handleLeft = xTaskCreateStatic(speedRot, "left", SERVO_TASK_STACK_SIZE, &servo_param_left, 1, _servoTaskStackLeft, &_servoTaskObjLeft);
+		handleRight = xTaskCreateStatic(speedRot, "right", SERVO_TASK_STACK_SIZE, &servo_param_right, 1, _servoTaskStackRight, &_servoTaskObjRight);
+		handleKeel = xTaskCreateStatic(speedRot, "keel", SERVO_TASK_STACK_SIZE, &servo_param_keel, 1, _servoTaskStackKeel, &_servoTaskObjKeel);
+
+		servo_param_left.handle = handleLeft;
+		servo_param_right.handle = handleRight;
+		servo_param_keel.handle = handleKeel;
+
+		servo_param_left.id = 0;
+		servo_param_right.id = 1;
+		servo_param_keel.id = 2;
 	}
 
 //	xTaskCreateStatic(LED_task, "LED", LED_TASK_STACK_SIZE, NULL, 1, _ledTaskStack, &_ledfTaskObj);

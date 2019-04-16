@@ -22,7 +22,7 @@ void _timerPWMChanelInit(TIM_HandleTypeDef *htim, uint32_t Channel);
 void _timerPWMChangePulse(TIM_HandleTypeDef *htim, uint32_t Channel, uint32_t pulse);
 void allServosInit();
 void servoRotate(servo_id_t servo_id, float angle_deg);
-void speedRot(fl speed, servo_id_t servo, fl alpha_start, fl alpha_finish);
+void speedRot(servo_task_param_t * str);
 
 void SCHEDULE_SERVO_task();
 

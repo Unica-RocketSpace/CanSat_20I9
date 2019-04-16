@@ -56,20 +56,20 @@ void speedRot(servo_task_param_t * str) {
 				vTaskDelay(10);
 			}
 		} else {
-			for (fl i = str->start_angle; i >= str.finish_angle; i -= str.speed) {
-				servoRotate(str.id, i);
+			for (fl i = str->start_angle; i >= str->finish_angle; i -= str->speed) {
+				servoRotate(str->id, i);
 				vTaskDelay(10);
 			}
 		}
 		vTaskSuspend(str->handle);
 	}
 
-	return;
 }
 
 void _timerPWMInit(TIM_HandleTypeDef *htim) {
 	htim->Instance = TIM1;
 	htim->Init.Prescaler = 52;
+	htim->Channel = 1;
 	htim->Init.CounterMode = TIM_COUNTERMODE_UP;
 	htim->Init.Period = 63400;
 	htim->Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -173,7 +173,7 @@ void update_struct(servo_task_param_t * str, float speed, float start_angle, flo
 
 }
 
-void resume_servos(bool left=1, bool right=1, bool keel=1){
+void resume_servos(bool left, bool right, bool keel){
 	if (keel)
 		vTaskResume(servo_param_keel.handle);
 	if (right)
@@ -183,7 +183,7 @@ void resume_servos(bool left=1, bool right=1, bool keel=1){
 }
 
 
-void to_angle(bool right, bool left, bool keel, float speed, float angle_right=0, float angle_left=0, float angle_keel=0){
+void to_angle(bool right, bool left, bool keel, float speed, float angle_right, float angle_left, float angle_keel){
 	if (right)
 		update_struct(&servo_param_right, speed, servo_param_right.finish_angle, angle_right);
 	if (left)
@@ -198,9 +198,9 @@ void to_angle(bool right, bool left, bool keel, float speed, float angle_right=0
 
 void SCHEDULE_SERVO_task(){
 
-	vTaskSuspend(servo_param_keel.handle);
-	vTaskSuspend(servo_param_left.handle);
-	vTaskSuspend(servo_param_right.handle);
+	vTaskSuspend(handleLeft);
+	vTaskSuspend(handleRight);
+	vTaskSuspend(handleKeel);
 	vTaskDelay(1000);
 
 	trace_printf("Hi!\n");
@@ -255,40 +255,42 @@ void SCHEDULE_SERVO_task(){
 
 
 		//to -9
-		to_angle(1, 1, 0, fast_speed, -9, -9);
+		to_angle(1, 1, 0, fast_speed, -9, -9, 0);
 		resume_servos(1, 1, 0);
 		vTaskDelay(10000);
 
 		//крен го
-		to_angle(1, 1, 0, speed, 21, -39);
+		to_angle(1, 1, 0, speed, 21, -39, 0);
 		resume_servos(1, 1, 0);
 		vTaskDelay(10000);
 
-		to_angle(1, 1, 0, speed, -39, 21);
+		to_angle(1, 1, 0, speed, -39, 21, 0);
 		resume_servos(1, 1, 0);
 		vTaskDelay(10000);
 
 		//to 0
-		to_angle(1, 1, 0, fast_speed, 0, 0);
+		to_angle(1, 1, 0, fast_speed, 0, 0, 0);
+		resume_servos(1, 1, 0);
+		vTaskDelay(10000);
 
 		//0 to min
-		to_angle(1, 1, 0, fast_speed, angleMin, angleMin);
+		to_angle(1, 1, 0, fast_speed, angleMin, angleMin, 0);
 		resume_servos(1, 1, 0);
 		vTaskDelay(10000);
 
 		//min to max
-		to_angle(1, 1, 0, speed, angleMax, angleMax);
+		to_angle(1, 1, 0, speed, angleMax, angleMax, 0);
 		resume_servos(1, 1, 0);
 		vTaskDelay(10000);
 
 		//max to 0
-		to_angle(1, 1, 0, fast_speed, 0, 0);
+		to_angle(1, 1, 0, fast_speed, 0, 0, 0);
 		resume_servos(1, 1, 0);
 		vTaskDelay(10000);
 
 
 		//to -9
-		to_angle(1, 1, 0, fast_speed, -9, -9);
+		to_angle(1, 1, 0, fast_speed, -9, -9, 0);
 		resume_servos(1, 1, 0);
 		vTaskDelay(10000);
 
@@ -310,7 +312,7 @@ void SCHEDULE_SERVO_task(){
 
 
 		//to -9
-		to_angle(1, 1, 0, fast_speed, -9, -9);
+		to_angle(1, 1, 0, fast_speed, -9, -9, 0);
 		resume_servos(1, 1, 0);
 		vTaskDelay(10000);
 

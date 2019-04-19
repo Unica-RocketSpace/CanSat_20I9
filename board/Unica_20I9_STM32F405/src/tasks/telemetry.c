@@ -290,6 +290,30 @@ static uint8_t mavlink_msg_get_command(){
 }
 
 static uint8_t mavlink_msg_servo(){
+	mavlink_servo_t msg_servo;
+	msg_servo.time = (float)HAL_GetTick() / 1000;
+	taskENTER_CRITICAL();
+	msg_servo.angle_left = stateServo.angle_left;
+	msg_servo.angle_right = stateServo.angle_right;
+	msg_servo.angle_keel = stateServo.angle_keel;
+	taskEXIT_CRITICAL();
+
+	mavlink_message_t msg;
+	uint16_t len = mavlink_msg_state_zero_encode(UNISAT_ID, UNISAT_NoComp, &msg, &msg_servo);
+	uint8_t buffer[100];
+	uint8_t error = 0;
+	len = mavlink_msg_to_send_buffer(buffer, &msg);
+	if (RF)
+		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 0);
+
+	if (SD){
+		taskENTER_CRITICAL();
+		state_system.SD_state = stream_file.res;
+		taskEXIT_CRITICAL();
+		dump(&stream_file, buffer, len);
+	}
+
+	return error;
 
 }
 
@@ -347,26 +371,27 @@ void IO_RF_task() {
 
 		mavlink_msg_sensors_send();
 		nRF24L01_read_status(&spi_nRF24L01, &_status);
-
 		check_TX_DR(_status);
 		vTaskDelay(10);
 		error = mavlink_msg_imu_isc_send();
 
 		trace_printf("error isc: %d\n", (int)error);
 		nRF24L01_read_status(&spi_nRF24L01, &_status);
-
 		check_TX_DR(_status);
-
 		vTaskDelay(20/portTICK_RATE_MS);
 		error = 0;
 
 		error = mavlink_msg_imu_rsc_send();
 		trace_printf("error_rsc: %d\n", (int)error);
 		nRF24L01_read_status(&spi_nRF24L01, &_status);
+		check_TX_DR(_status);
+		nRF24L01_clear_status(&spi_nRF24L01, true, true, true);
 
+		vTaskDelay(10);
+		mavlink_msg_servo();
+		nRF24L01_read_status(&spi_nRF24L01, &_status);
 		check_TX_DR(_status);
 
-		nRF24L01_clear_status(&spi_nRF24L01, true, true, true);
 
 /*FIXME:
 		for (int i = 0; i < 32; i++){

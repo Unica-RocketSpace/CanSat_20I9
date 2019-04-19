@@ -85,5 +85,13 @@
             <description>Msg to send commands from GSC to UNISAT</description>
             <field type="uint8_t" name="cmd"> </field>
         </message>
+
+        <message id="158" name="servo">
+            <description>Msg to send servo angles</description>
+            <field type="float" name="time">current time</field>
+            <field type="float" name="angle_left"> </field>
+			<field type="float" name="angle_right"> </field>
+			<field type="float" name="angle_keel"> </field>
+        </message>
     </messages>
 </mavlink>

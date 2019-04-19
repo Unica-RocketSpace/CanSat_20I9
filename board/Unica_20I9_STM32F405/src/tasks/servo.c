@@ -149,14 +149,26 @@ void servoRotate(servo_id_t servo_id, fl angle_deg) {
 	//trace_printf("angle_deg = %d\t pulse1 = %lf\n pulse = %d\n", (uint16_t)angle_deg, pulse1, pulse);
 	switch (servo_id) {
 		case servo_left:
+			taskENTER_CRITICAL();
+			stateServo.angle_left = angle_deg;
+			taskEXIT_CRITICAL();
+
 			pulse = (u32)round(k1 * angle_deg + b1);
 			_timerPWMChangePulse(&htimServo, TIM_CHANNEL_1, pulse);
 			break;
 		case servo_right:
+			taskENTER_CRITICAL();
+			stateServo.angle_right = angle_deg;
+			taskEXIT_CRITICAL();
+
 			pulse = (u32)round(k2 * angle_deg + b2);
 			_timerPWMChangePulse(&htimServo, TIM_CHANNEL_2, pulse);
 			break;
 		case servo_keel:
+			taskENTER_CRITICAL();
+			stateServo.angle_keel = angle_deg;
+			taskEXIT_CRITICAL();
+
 			pulse = (u32)round(k3 * angle_deg + b3);
 			_timerPWMChangePulse(&htimServo, TIM_CHANNEL_3, pulse);
 			break;

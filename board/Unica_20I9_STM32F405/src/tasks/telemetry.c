@@ -98,9 +98,9 @@ taskEXIT_CRITICAL();
 	uint8_t buffer[100];
 	uint8_t error = 0;
 	len = mavlink_msg_to_send_buffer(buffer, &msg);
-//	if (RF)
+	if (RF)
 		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 0);
-		HAL_USART_Transmit(&usart_dbg, buffer, len, 20);
+//		HAL_USART_Transmit(&usart_dbg, buffer, len, 20);
 
 	if (SD){
 		taskENTER_CRITICAL();
@@ -133,11 +133,9 @@ taskEXIT_CRITICAL();
 	uint8_t buffer[100];
 	uint8_t error = 0;
 	len = mavlink_msg_to_send_buffer(buffer, &msg);
-//	if (RF)
+	if (RF)
 		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 0);
-		HAL_USART_Transmit(&usart_dbg, buffer, len, 20);
 
-	trace_printf("len isc msg\t%d\n", len);
 
 	if (SD){
 		taskENTER_CRITICAL();
@@ -291,6 +289,10 @@ static uint8_t mavlink_msg_get_command(){
 	return -1;
 }
 
+static uint8_t mavlink_msg_servo(){
+
+}
+
 
 uint8_t _status;
 bool data = 0;
@@ -343,28 +345,28 @@ void IO_RF_task() {
 	uint8_t error = 0;
 	for (;;) {
 
-//		mavlink_msg_sensors_send();
-//		nRF24L01_read_status(&spi_nRF24L01, &_status);
+		mavlink_msg_sensors_send();
+		nRF24L01_read_status(&spi_nRF24L01, &_status);
 
-//		check_TX_DR(_status);
-
+		check_TX_DR(_status);
+		vTaskDelay(10);
 		error = mavlink_msg_imu_isc_send();
-//		HAL_USART_Transmit(&usart_dbg, &error, 1, 10);
-//		error = 0xFF;
-//		HAL_USART_Transmit(&usart_dbg, &error, 1, 10);
+
+		trace_printf("error isc: %d\n", (int)error);
 		nRF24L01_read_status(&spi_nRF24L01, &_status);
 
 		check_TX_DR(_status);
 
 		vTaskDelay(20/portTICK_RATE_MS);
+		error = 0;
 
-//		error = mavlink_msg_imu_rsc_send();
-//		trace_printf("error_rsc: %d\n", error);
-//		nRF24L01_read_status(&spi_nRF24L01, &_status);
-//
-//		check_TX_DR(_status);
-//
-//		nRF24L01_clear_status(&spi_nRF24L01, true, true, true);
+		error = mavlink_msg_imu_rsc_send();
+		trace_printf("error_rsc: %d\n", (int)error);
+		nRF24L01_read_status(&spi_nRF24L01, &_status);
+
+		check_TX_DR(_status);
+
+		nRF24L01_clear_status(&spi_nRF24L01, true, true, true);
 
 /*FIXME:
 		for (int i = 0; i < 32; i++){
@@ -376,8 +378,8 @@ void IO_RF_task() {
 		}
 */
 
-		trace_printf("error    %d\n", __error);
-		vTaskDelay(2000000000/portTICK_RATE_MS);
+//		trace_printf("error    %d\n", __error);
+		vTaskDelay(20/portTICK_RATE_MS);
 
 
 		//trace_printf();

@@ -313,7 +313,7 @@ uint8_t nRF24L01_write (SPI_HandleTypeDef* hspi, void * write_buffer, size_t buf
 			break;
 
 		tick = HAL_GetTick();
-		if (tick - tickstart >= 5)
+		if (tick - tickstart >= 100)
 			return -2;
 	}
 	_ce_down();
@@ -480,6 +480,7 @@ uint8_t nRF24L01_send(SPI_HandleTypeDef* hspi, uint8_t* write_buffer, uint16_t b
 	taskEXIT_CRITICAL();
 
 		carret += portion;
+		vTaskDelay(1);
 
 //		uint32_t tickstart = HAL_GetTick();
 //		uint32_t tick = tickstart;

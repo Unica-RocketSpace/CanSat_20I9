@@ -69,8 +69,7 @@ QueueHandle_t		handleInternalCmdQueue;
 //servo
 servo_task_param_t servo_param_left, servo_param_right, servo_param_keel;
 TaskHandle_t handleLeft, handleRight, handleKeel;
-
-
+state_servo_t		stateServo;
 
 
 
@@ -240,6 +239,7 @@ int main(int argc, char* argv[])
 	memset(&servo_param_keel,	0x00, sizeof(servo_param_keel));
 	memset(&servo_param_left,	0x00, sizeof(servo_param_left));
 	memset(&servo_param_right,	0x00, sizeof(servo_param_right));
+	memset(&stateServo,		0x00, sizeof(stateServo));
 
 	state_system.BMP_state 	= 255;
 	state_system.GPS_state 	= 255;
@@ -250,7 +250,7 @@ int main(int argc, char* argv[])
 
 
 
-	/*if (BMP || IMU_BMP || IMU)
+	if (BMP || IMU_BMP || IMU)
 		xTaskCreateStatic(SENSORS_task, 	"SENSORS", 		IMU_TASK_STACK_SIZE, 	NULL, 2, _IMUTaskStack, 	&_IMUTaskObj);
 
 	if (RF)
@@ -258,7 +258,7 @@ int main(int argc, char* argv[])
 
 	if (GROUND)
 		xTaskCreateStatic(GROUND_task, 	"GROUND", 	GROUND_TASK_STACK_SIZE,	NULL, 2, _groundTaskStack, 	&_groundTaskObj);
-*/
+
 	if (SERVO){
 		xTaskCreateStatic(SCHEDULE_SERVO_task, "SERVO", SERVO_TASK_STACK_SIZE, NULL, 2, _servoTaskStack, &_servoTaskObj);
 		handleLeft = xTaskCreateStatic(speedRot, "left", SERVO_TASK_STACK_SIZE, &servo_param_left, 1, _servoTaskStackLeft, &_servoTaskObjLeft);
@@ -274,18 +274,18 @@ int main(int argc, char* argv[])
 		servo_param_keel.id = 2;
 	}
 
-//	xTaskCreateStatic(LED_task, "LED", LED_TASK_STACK_SIZE, NULL, 1, _ledTaskStack, &_ledfTaskObj);
+	xTaskCreateStatic(LED_task, "LED", LED_TASK_STACK_SIZE, NULL, 1, _ledTaskStack, &_ledfTaskObj);
 
-//	handleControl = xTaskCreateStatic(CONTROL_task, "CONTROL", CONTROL_TASK_STACK_SIZE, NULL, 2, _CONTROLTaskStack, &_CONTROLTaskObj);
+	handleControl = xTaskCreateStatic(CONTROL_task, "CONTROL", CONTROL_TASK_STACK_SIZE, NULL, 2, _CONTROLTaskStack, &_CONTROLTaskObj);
 
-//	if (GPS)
-//		xTaskCreateStatic(GPS_task, 	"GPS", 		GPS_TASK_STACK_SIZE, 	NULL, 2, _gpsTaskStack, 	&_gpsTaskObj);
+	if (GPS)
+		xTaskCreateStatic(GPS_task, 	"GPS", 		GPS_TASK_STACK_SIZE, 	NULL, 2, _gpsTaskStack, 	&_gpsTaskObj);
 
 
 
-//	handleInternalCmdQueue = xQueueCreateStatic(INTERNAL_QUEUE_LENGHT, INTERNAL_QUEUE_ITEM_SIZE, internal_queue_storage_area, &internal_queue_static);
+	handleInternalCmdQueue = xQueueCreateStatic(INTERNAL_QUEUE_LENGHT, INTERNAL_QUEUE_ITEM_SIZE, internal_queue_storage_area, &internal_queue_static);
 
-//	xTaskCreateStatic(CALIBRATION_task, "CALIBRATION", CALIBRATION_TASK_STACK_SIZE, NULL, 1, _CALIBRATIONTaskStack, &_CALIBRATIONTaskObj);
+	xTaskCreateStatic(CALIBRATION_task, "CALIBRATION", CALIBRATION_TASK_STACK_SIZE, NULL, 1, _CALIBRATIONTaskStack, &_CALIBRATIONTaskObj);
 
 
 	__GPIOA_CLK_ENABLE();

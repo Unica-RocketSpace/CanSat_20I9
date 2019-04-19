@@ -30,14 +30,14 @@
 
 
 #define SD 		0
-#define RF		0	//Влияет на отправку телеметрии
-#define IMU		0
-#define IMU_BMP	0
+#define RF		1	//Влияет на отправку телеметрии
+#define IMU		1
+#define IMU_BMP	1
 #define BMP		0
 #define GPS		0
 #define GROUND	0
 
-#define SERVO	1
+#define SERVO	0
 
 
 
@@ -173,6 +173,12 @@ typedef struct {
 	xTaskHandle handle;
 } servo_task_param_t;
 
+typedef struct {
+	float angle_left;
+	float angle_right;
+	float angle_keel;
+} state_servo_t;
+
 
 
 /*##################################################*/
@@ -213,6 +219,6 @@ extern state_system_t		state_system_prev;
 //FIXME: DELETE
 extern TIM_HandleTypeDef htimServo;
 extern 	servo_task_param_t servo_param_left, servo_param_right, servo_param_keel;
-
+extern state_servo_t		stateServo;
 
 #endif /* STATE_H_ */

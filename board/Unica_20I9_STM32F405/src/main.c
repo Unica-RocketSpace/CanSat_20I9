@@ -112,7 +112,6 @@ static StaticTask_t	_ledfTaskObj;
 static StackType_t	_servoTaskStack[SERVO_TASK_STACK_SIZE];
 static StaticTask_t	_servoTaskObj;
 
-
 static StackType_t	_servoTaskStackLeft[SERVO_TASK_STACK_SIZE];
 static StaticTask_t	_servoTaskObjLeft;
 
@@ -202,14 +201,13 @@ void Init_led(){
 
 
 void LED_task(){
-
 	for(;;){
 		taskENTER_CRITICAL();
-		if ((state_system.BMP_state == 0) & (state_system.GPS_state == 0) & (state_system.IMU_BMP_state == 0) & (state_system.MPU_state == 0) & (state_system.SD_state == 0)){
-			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
-			//volatile int x = 0;
-			vTaskDelay(10);
-			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
+		if ((state_system.BMP_state == 0) & (state_system.IMU_BMP_state == 0) & (state_system.MPU_state == 0)){
+			if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_12))
+				HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
+			else
+				HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
 		}
 		taskEXIT_CRITICAL();
 	}
@@ -274,18 +272,19 @@ int main(int argc, char* argv[])
 		servo_param_keel.id = 2;
 	}
 
-	xTaskCreateStatic(LED_task, "LED", LED_TASK_STACK_SIZE, NULL, 1, _ledTaskStack, &_ledfTaskObj);
+	if (LED)
+		xTaskCreateStatic(LED_task, "LED", LED_TASK_STACK_SIZE, NULL, 1, _ledTaskStack, &_ledfTaskObj);
 
-	handleControl = xTaskCreateStatic(CONTROL_task, "CONTROL", CONTROL_TASK_STACK_SIZE, NULL, 2, _CONTROLTaskStack, &_CONTROLTaskObj);
+//	handleControl = xTaskCreateStatic(CONTROL_task, "CONTROL", CONTROL_TASK_STACK_SIZE, NULL, 2, _CONTROLTaskStack, &_CONTROLTaskObj);
 
 	if (GPS)
 		xTaskCreateStatic(GPS_task, 	"GPS", 		GPS_TASK_STACK_SIZE, 	NULL, 2, _gpsTaskStack, 	&_gpsTaskObj);
 
 
 
-	handleInternalCmdQueue = xQueueCreateStatic(INTERNAL_QUEUE_LENGHT, INTERNAL_QUEUE_ITEM_SIZE, internal_queue_storage_area, &internal_queue_static);
+//	handleInternalCmdQueue = xQueueCreateStatic(INTERNAL_QUEUE_LENGHT, INTERNAL_QUEUE_ITEM_SIZE, internal_queue_storage_area, &internal_queue_static);
 
-	xTaskCreateStatic(CALIBRATION_task, "CALIBRATION", CALIBRATION_TASK_STACK_SIZE, NULL, 1, _CALIBRATIONTaskStack, &_CALIBRATIONTaskObj);
+//	xTaskCreateStatic(CALIBRATION_task, "CALIBRATION", CALIBRATION_TASK_STACK_SIZE, NULL, 1, _CALIBRATIONTaskStack, &_CALIBRATIONTaskObj);
 
 
 	__GPIOA_CLK_ENABLE();
@@ -304,7 +303,6 @@ int main(int argc, char* argv[])
 	if (GROUND) GROUND_Init();
 	if (GPS) GPS_Init();
 	if (SERVO) allServosInit();
-
 
 	HAL_InitTick(15);
 

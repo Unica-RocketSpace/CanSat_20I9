@@ -40,6 +40,7 @@ uint8_t UNISAT_SENSORS = 0x03;
 uint8_t UNISAT_GPS = 0x04;
 uint8_t UNISAT_RPI = 0x05;
 uint8_t UNISAT_CAM = 0x06;
+uint8_t UNISAT_SERVO = 0x07;
 
 static dump_channel_state_t stream_file;
 
@@ -94,7 +95,7 @@ taskENTER_CRITICAL();
 taskEXIT_CRITICAL();
 
 	mavlink_message_t msg;
-	uint16_t len = mavlink_msg_imu_rsc_encode(UNISAT_GPS, UNISAT_IMU, &msg, &msg_imu_rsc);
+	uint16_t len = mavlink_msg_imu_rsc_encode(UNISAT_ID, UNISAT_IMU, &msg, &msg_imu_rsc);
 	uint8_t buffer[100];
 	uint8_t error = 0;
 	len = mavlink_msg_to_send_buffer(buffer, &msg);
@@ -194,7 +195,7 @@ taskENTER_CRITICAL();
 taskEXIT_CRITICAL();
 
 	mavlink_message_t msg;
-	uint16_t len = mavlink_msg_sensors_encode(UNISAT_ID, UNISAT_SENSORS, &msg, &msg_BMP);
+	uint16_t len = mavlink_msg_bmp280_encode(UNISAT_ID, UNISAT_SENSORS, &msg, &msg_BMP);
 	uint8_t buffer[100];
 	uint8_t error = 0;
 	len = mavlink_msg_to_send_buffer(buffer, &msg);
@@ -299,7 +300,7 @@ static uint8_t mavlink_msg_servo(){
 	taskEXIT_CRITICAL();
 
 	mavlink_message_t msg;
-	uint16_t len = mavlink_msg_state_zero_encode(UNISAT_ID, UNISAT_NoComp, &msg, &msg_servo);
+	uint16_t len = mavlink_msg_servo_encode(UNISAT_ID, UNISAT_SERVO, &msg, &msg_servo);
 	uint8_t buffer[100];
 	uint8_t error = 0;
 	len = mavlink_msg_to_send_buffer(buffer, &msg);
@@ -370,38 +371,31 @@ void IO_RF_task() {
 	for (;;) {
 
 		mavlink_msg_sensors_send();
-		nRF24L01_read_status(&spi_nRF24L01, &_status);
-		check_TX_DR(_status);
+//		nRF24L01_read_status(&spi_nRF24L01, &_status);
+//		check_TX_DR(_status);
 		vTaskDelay(10);
-		error = mavlink_msg_imu_isc_send();
 
+		error = mavlink_msg_imu_isc_send();
 		trace_printf("error isc: %d\n", (int)error);
-		nRF24L01_read_status(&spi_nRF24L01, &_status);
-		check_TX_DR(_status);
+//		nRF24L01_read_status(&spi_nRF24L01, &_status);
+//		check_TX_DR(_status);
 		vTaskDelay(20/portTICK_RATE_MS);
 		error = 0;
 
 		error = mavlink_msg_imu_rsc_send();
 		trace_printf("error_rsc: %d\n", (int)error);
-		nRF24L01_read_status(&spi_nRF24L01, &_status);
-		check_TX_DR(_status);
-		nRF24L01_clear_status(&spi_nRF24L01, true, true, true);
-
+//		nRF24L01_read_status(&spi_nRF24L01, &_status);
+//		check_TX_DR(_status);
+//		nRF24L01_clear_status(&spi_nRF24L01, true, true, true);
 		vTaskDelay(10);
+
 		mavlink_msg_servo();
-		nRF24L01_read_status(&spi_nRF24L01, &_status);
-		check_TX_DR(_status);
+//		nRF24L01_read_status(&spi_nRF24L01, &_status);
+//		check_TX_DR(_status);
+		vTaskDelay(10);
 
+		mavlink_msg_BMP_send();
 
-/*FIXME:
-		for (int i = 0; i < 32; i++){
-			memset(&buffer, i, 32);
-			nRF24L01_send(&spi_nRF24L01, buffer, 32, 0);
-			HAL_USART_Transmit(&usart_dbg, buffer, 32, 20);
-			vTaskDelay(30);
-
-		}
-*/
 
 //		trace_printf("error    %d\n", __error);
 		vTaskDelay(20/portTICK_RATE_MS);

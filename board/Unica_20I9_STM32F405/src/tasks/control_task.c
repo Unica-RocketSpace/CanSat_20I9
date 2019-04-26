@@ -15,9 +15,7 @@
 #include "state.h"
 
 
-#define HEIGHT_TO_DEPLOY_PARACHUTE 270
-#define ALL_BUTTONS_WORKED 255
-#define DELTA_HEIGHT 0.2
+
 
 int8_t global_command;
 uint8_t global_stage = 0;
@@ -36,14 +34,20 @@ void CONTROL_task() {
 		trace_printf("CONTROL_task");
 
 		taskENTER_CRITICAL();
-		global_stage = state_system.globalStage;
-		global_command = state_system.globalCommand;
+//		global_stage = state_system.globalStage;
+//		global_command = state_system.globalCommand;
 		height = stateIMUSensors.height;
-		buttons = state_system.buttons;
+//		buttons = state_system.buttons;
 		taskEXIT_CRITICAL();
 
+		//FIXME:			?
+		if (height >= HEIGHT_TO_DEPLOY_PARACHUTE){
+			HAL_GPIO_WritePin(DEPLOY_PARACHUTE_PORT, DEPLOY_PARACHUTE_PIN, GPIO_PIN_SET);
+			vTaskDelay(3000/portTICK_RATE_MS);
+			HAL_GPIO_WritePin(DEPLOY_PARACHUTE_PORT, DEPLOY_PARACHUTE_PIN, GPIO_PIN_RESET);
+		}
 
-
+/*
 		if (global_command != -1){
 			if (global_command == 0){
 				taskENTER_CRITICAL();
@@ -82,15 +86,15 @@ void CONTROL_task() {
 			}
 		}
 
-
-
+*/
+/*
 		if (global_stage == 0){
 			xQueueSendToBack(handleInternalCmdQueue, &command, 0);
 
 		}
 		if (global_stage == 1){
 			//проверка на затемнение фотосенсора
-//			if (/* фотосенсор затемнился*/){
+//			if (фотосенсор затемнился){
 //				vTaskDelay(1000);
 //				task_ENTER_CRITICAL();
 //				state_system.globalStage = 2;
@@ -127,19 +131,19 @@ void CONTROL_task() {
 			//unhook_parachute
 			//тук-тук к мастеру
 
-			//Определяем неизменность высоты
-//			if (){
-//				task_ENTER_CRITICAL();
-//				state_system.globalStage = 6;
-//				task_EXIT_CRITICAL();
-//				global_stage = 6;
-//			}
+			Определяем неизменность высоты
+			if (){
+				task_ENTER_CRITICAL();
+				state_system.globalStage = 6;
+				task_EXIT_CRITICAL();
+				global_stage = 6;
+			}
 		}
 		if (global_stage == 6){
 			//Переходим в режим ожидания
 
 		}
-
+*/
 
 	}
 

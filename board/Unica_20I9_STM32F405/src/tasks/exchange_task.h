@@ -30,7 +30,18 @@
 
 extern uint8_t dma_usartBuffer[100];
 
-void initExUsartDma();
+//инициализация uart для приема/передачи команд
+void init_exchange_command_uart();
+
+//инициализация uart для приема/передачи данных
+void init_exchange_data_uart();
+
+/*
+ * Функция для разбора команд
+ * uplink_command - команда которую надо разобрать
+ */
+void parse_command(uint8_t uplink_command);
+
 
 void EXCHANGE_task();
 

@@ -20,7 +20,7 @@ void IMU_Init();
  */
 void SENSORS_task();
 
-
+uint8_t init_hi2c(I2C_HandleTypeDef* hi2c);
 
 
 #endif /* SENSORS_TASK_H_ */

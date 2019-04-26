@@ -15,8 +15,14 @@
 
 #include "state.h"
 
+
+static UART_HandleTypeDef uartExchangeData;
+static UART_HandleTypeDef uartExchangeCommand;
+static DMA_HandleTypeDef dmaExchangeData;
+
+
 uint8_t internal_cmd;
-portBASE_TYPE internal_queue_status;
+portBASE_TYPE internal_queue_status, answer_queue;
 
 uint8_t uplink_command;
 
@@ -123,8 +129,9 @@ void initExUsartDma() {
 	}
 }*/
 
-static UART_HandleTypeDef uartExchangeData;
-void initAll(){
+
+
+void init_exchange_data_uart(){
 
 	uartExchangeData.Instance = USART1;
 	uartExchangeData.Init.BaudRate = 9600;
@@ -138,18 +145,37 @@ void initAll(){
 	HAL_UART_Init(&uartExchangeData);
 }
 
+void init_exchange_command_uart(){
+	uartExchangeData.Instance = USART2;
+	uartExchangeData.Init.BaudRate = 9600;
+	uartExchangeData.Init.WordLength = UART_WORDLENGTH_8B;
+	uartExchangeData.Init.StopBits = UART_STOPBITS_1;
+	uartExchangeData.Init.Parity = UART_PARITY_NONE;
+	uartExchangeData.Init.Mode = UART_MODE_TX_RX;
+	uartExchangeData.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+	uartExchangeData.Init.OverSampling = UART_OVERSAMPLING_16;
 
-
-void ReciveCommand(UART_HandleTypeDef *uart, uint8_t * command){
-	HAL_UART_Receive(uart, command, sizeof(command), 0);
+	HAL_UART_Init(&uartExchangeCommand);
 }
 
-// FIXME: stateToSend - state_master_t, а должен быть uint8_t
-/*void TransmitData(UART_HandleTypeDef *uart, state_master_t * stateToSend){
-	HAL_UART_Transmit(uart, stateToSend, sizeof(stateToSend), 0);
-}*/
 
-void ParseCommand(uint8_t uplink_command){
+//FIXME: возможно не нужна
+/*
+void recive_command(UART_HandleTypeDef *uart, uint8_t * command){
+	HAL_UART_Receive(uart, command, sizeof(command), 0);
+}
+*/
+
+// FIXME: stateToSend - state_master_t, а должен быть uint8_t
+/*
+void TransmitData(UART_HandleTypeDef *uart, state_master_t * stateToSend){
+	uint8_t buffer[100];
+
+	HAL_UART_Transmit(uart, stateToSend, sizeof(stateToSend), 0);
+}
+*/
+
+void parse_command(uint8_t uplink_command){
 	if (uplink_command == COMMAND_DATA){
 		taskENTER_CRITICAL();
 		for (int i = 0; i < 3; i++){
@@ -157,16 +183,38 @@ void ParseCommand(uint8_t uplink_command){
 			state_master.velosities[i] = stateIMU_isc.velocities[i];
 			state_master.quaternion[i] = stateIMU_isc.quaternion[i];
 		}
-		state_master.quaternion[4] = stateIMU_isc.quaternion[4];
-
+		state_master.quaternion[3] = stateIMU_isc.quaternion[3];
 		taskEXIT_CRITICAL();
 		//copy_data for FC
 	}
 	else if (uplink_command == COMMAND_OK){
-		//write master state register
+		taskENTER_CRITICAL();
+		state_system.master_state = 1;
+		taskEXIT_CRITICAL();
+	}
+}
+
+
+
+void EXCHANGE_task(){
+
+	for(;;){
+		//Проверка очереди на наличие в ней элементов
+		internal_queue_status = xQueueReceive(handleInternalCmdQueue, &internal_cmd, portMAX_DELAY);
+		//Данные пришли
+		if (internal_queue_status == pdPASS){
+			parse_command(uplink_command);
+			 //отправка данных на FC
+		}
 	}
 
+		answer_queue = xQueueReceive(handleInternalCmdQueue, &internal_cmd, 100);
+		if (answer_queue == pdPASS){
+			if (internal_cmd == COMMAND_OK)
+				taskENTER_CRITICAL();
 
+		}
+		//записать ответ в sensors_data
 }
 
 

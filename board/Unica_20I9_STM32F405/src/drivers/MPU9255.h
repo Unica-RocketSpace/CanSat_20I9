@@ -190,8 +190,7 @@ void mpu9255_recalcCompass(const int16_t* raw_compassData, float* compassData);
  * 	Параметры:
  *		i2c	- хэндл инициализируемой шины
  */
-int mpu9255_init(I2C_HandleTypeDef* hi2c);		//инициализация mpu9255
-
+uint8_t mpu9255_init();		//инициализация mpu9255
 
 
 #endif /* MPU9255_H_ */

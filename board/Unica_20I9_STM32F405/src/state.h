@@ -30,16 +30,24 @@
 
 
 #define SD 		0
-#define RF		1	//Влияет на отправку телеметрии
-#define IMU		1
+#define RF		0	//Влияет на отправку телеметрии
+#define IMU		0
 #define IMU_BMP	1
 #define BMP		1
 #define GPS		0
 #define GROUND	0
 
-#define LED		1
+#define LED		0
 
-#define SERVO	1
+#define SERVO	0
+
+
+#define HEIGHT_TO_DEPLOY_PARACHUTE 	270
+#define DEPLOY_PARACHUTE_PORT		GPIOC
+#define DEPLOY_PARACHUTE_PIN		GPIO_PIN_6
+#define DELTA_HEIGHT 				10
+#define ALL_BUTTONS_WORKED 			255
+
 
 
 
@@ -188,6 +196,10 @@ typedef struct {
 /*##################################################*/
 
 extern USART_HandleTypeDef	usart_dbg;
+//extern UART_HandleTypeDef uartExchangeData;
+//extern UART_HandleTypeDef uartExchangeCommand;
+//extern DMA_HandleTypeDef dmaExchangeData;
+
 extern SPI_HandleTypeDef	spi_nRF24L01;
 extern I2C_HandleTypeDef 	i2c_mpu9255;
 

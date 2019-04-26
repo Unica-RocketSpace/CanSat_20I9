@@ -27,6 +27,9 @@
 #define BETA_3	0.25
 
 
+#define BMP_DELTA_PRESSURE		200
+#define	IMU_BMP_DELTA_PRESSURE	-2600
+
 uint8_t zero_state = 1;
 uint8_t get_shifts = 1;
 uint8_t my_stage = -1;
@@ -234,6 +237,8 @@ void bmp280_update() {
 		rscs_bmp280_read(IMUbmp280, &pressure, &temp);
 		rscs_bmp280_calculate(bmp280_calibration_values, pressure, temp, &pressure_f, &temp_f);
 
+		pressure_f += IMU_BMP_DELTA_PRESSURE;	//
+
 	taskENTER_CRITICAL();
 		float zero_pressure = state_zero.zero_pressure;
 	taskEXIT_CRITICAL();
@@ -255,12 +260,15 @@ void bmp280_update() {
 		rscs_bmp280_read(bmp280, &pressure, &temp);
 		rscs_bmp280_calculate(bmp280_calibration_values, pressure, temp, &pressure_f, &temp_f);
 
+		pressure_f += BMP_DELTA_PRESSURE;
+
 	taskENTER_CRITICAL();
 		stateSensors_raw.pressure = pressure;
 		stateSensors_raw.temp = temp;
 		stateSensors.pressure = pressure_f;
 		stateSensors.temp = temp_f;
 	taskEXIT_CRITICAL();
+	trace_printf("pressure\t%f temp\t%f height\t%f\n------------------------------------------------\n", pressure_f, temp_f, height);
 	}
 }
 
@@ -290,8 +298,34 @@ taskENTER_CRITICAL();
 taskEXIT_CRITICAL();
 }
 
+uint8_t init_hi2c(I2C_HandleTypeDef* hi2c){
+
+	int error = 0;
+
+	hi2c->Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+	hi2c->Init.ClockSpeed = 400000;
+	hi2c->Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+	hi2c->Init.DutyCycle = I2C_DUTYCYCLE_2;
+	hi2c->Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+	hi2c->Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+
+	//	TODO: УСТАНОВИТЬ РЕАЛЬНЫЙ АДРЕС
+	hi2c->Init.OwnAddress1 = 0x00;
+	//	hi2c->Init.OwnAddress2 = GYRO_AND_ACCEL;
+
+	hi2c->Instance = I2C1;
+	hi2c->Mode = HAL_I2C_MODE_MASTER;
+
+	PROCESS_ERROR(HAL_I2C_Init(hi2c));
+end:
+	return error;
+}
+
 
 void IMU_Init() {
+
+	init_hi2c(&i2c_mpu9255);
+
 	if (IMU){
 		//---ИНИЦИАЛИЗАЦИЯ MPU9255---//
 		uint8_t mpu9255_initError = mpu9255_init(&i2c_mpu9255);
@@ -315,7 +349,7 @@ void IMU_Init() {
 		bmp280_calibration_values = rscs_bmp280_get_calibration_values(IMUbmp280);
 
 		state_system.IMU_BMP_state = IMUbmp280_initError;
-		trace_printf("bmpInitError   %d\n", IMUbmp280_initError);
+		trace_printf("ImuBmpInitError   %d\n", IMUbmp280_initError);
 	}
 
 	if (BMP){
@@ -332,6 +366,7 @@ void IMU_Init() {
 		bmp280_calibration_values = rscs_bmp280_get_calibration_values(bmp280);
 
 		state_system.BMP_state = bmp280_initError;
+		trace_printf("bmpInitError\t%d\n", bmp280_initError);
 	}
 }
 
@@ -349,6 +384,7 @@ void zero_data(){
 void SENSORS_task() {
 
 	//	usart_dbg init
+/*
 	usart_dbg.Instance = USART3;
 	usart_dbg.Init.BaudRate = 115200;
 	usart_dbg.Init.WordLength = UART_WORDLENGTH_8B;
@@ -357,6 +393,7 @@ void SENSORS_task() {
 	usart_dbg.Init.Mode = UART_MODE_TX_RX;
 
 	HAL_USART_Init(&usart_dbg);
+*/
 
 	for (;;) {
 

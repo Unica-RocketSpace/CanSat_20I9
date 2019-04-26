@@ -30,12 +30,12 @@ TIM_HandleTypeDef htimServo;
 
 const fl pulseMin = 3000;
 const fl pulseMax = 6000;
-const fl k1 = 37.8250591;
-const fl b1 = 3500;
-const fl k2 = 37.8250591;
-const fl b2 = 3500;
-const fl k3 = 37.8250591;
-const fl b3 = 3500;
+const fl k1 = 37.91469;
+const fl b1 = 4445;
+const fl k2 = 38.24384;
+const fl b2 = 5000;
+const fl k3 = 40.0;
+const fl b3 = 5720;
 
 const fl speed = 0.1;
 const fl fast_speed = 1;
@@ -236,10 +236,10 @@ void SCHEDULE_SERVO_task(){
 		vTaskDelay(10000);
 		update_struct(&servo_param_left, speed, angleMax, angleMin);
 		vTaskResume(servo_param_left.handle);
-		vTaskDelay(1000);
+		vTaskDelay(10000);
 		update_struct(&servo_param_left, fast_speed, angleMin, 0);
 		vTaskResume(servo_param_left.handle);
-		vTaskDelay(10000);
+		vTaskDelay(1000);
 
 
 		//поворот правой сервы
@@ -248,10 +248,10 @@ void SCHEDULE_SERVO_task(){
 		vTaskDelay(10000);
 		update_struct(&servo_param_right, speed, angleMax, angleMin);
 		vTaskResume(servo_param_right.handle);
-		vTaskDelay(1000);
+		vTaskDelay(10000);
 		update_struct(&servo_param_right, fast_speed, angleMin, 0);
 		vTaskResume(servo_param_right.handle);
-		vTaskDelay(10000);
+		vTaskDelay(1000);
 
 
 		//поворот киля
@@ -260,10 +260,10 @@ void SCHEDULE_SERVO_task(){
 		vTaskDelay(10000);
 		update_struct(&servo_param_keel, speed, angleKeelMax, angleKeelMin);
 		vTaskResume(servo_param_keel.handle);
-		vTaskDelay(1000);
+		vTaskDelay(10000);
 		update_struct(&servo_param_keel, fast_speed, angleKeelMin, 0);
 		vTaskResume(servo_param_keel.handle);
-		vTaskDelay(10000);
+		vTaskDelay(1000);
 
 
 		//to -9
@@ -324,8 +324,8 @@ void SCHEDULE_SERVO_task(){
 
 
 		//to -9
-		to_angle(1, 1, 0, fast_speed, -9, -9, 0);
-		resume_servos(1, 1, 0);
+		to_angle(1, 1, 1, fast_speed, -9, -9, 0);
+		resume_servos(1, 1, 1);
 		vTaskDelay(10000);
 
 		//all

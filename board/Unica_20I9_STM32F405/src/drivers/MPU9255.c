@@ -134,13 +134,13 @@ void mpu9255_recalcAccel(const int16_t * raw_accelData, float * accelData)
 	_accelData[1] =   (float)(raw_accelData[2]) * MPU9255_ACCEL_SCALE_FACTOR * 2;//* pow(2, ACCEL_RANGE);
 	_accelData[2] =   (float)(raw_accelData[1]) * MPU9255_ACCEL_SCALE_FACTOR * 2;//* pow(2, ACCEL_RANGE);
 
-//	float offset_vector[3] = {X_ACCEL_OFFSET, Y_ACCEL_OFFSET, Z_ACCEL_OFFSET};
-//	float transform_matrix[3][3] =	{{XX_ACCEL_TRANSFORM_MATIX, XY_ACCEL_TRANSFORM_MATIX, XZ_ACCEL_TRANSFORM_MATIX},
-//									 {XY_ACCEL_TRANSFORM_MATIX, YY_ACCEL_TRANSFORM_MATIX, YZ_ACCEL_TRANSFORM_MATIX},
-//									 {XZ_ACCEL_TRANSFORM_MATIX, YZ_ACCEL_TRANSFORM_MATIX, ZZ_ACCEL_TRANSFORM_MATIX}};
-//
-//	iauPmp(_accelData, offset_vector, accelData);
-//	iauRxp(transform_matrix, accelData, accelData);
+	float offset_vector[3] = {X_ACCEL_OFFSET, Y_ACCEL_OFFSET, Z_ACCEL_OFFSET};
+	float transform_matrix[3][3] =	{{XX_ACCEL_TRANSFORM_MATIX, XY_ACCEL_TRANSFORM_MATIX, XZ_ACCEL_TRANSFORM_MATIX},
+									 {XY_ACCEL_TRANSFORM_MATIX, YY_ACCEL_TRANSFORM_MATIX, YZ_ACCEL_TRANSFORM_MATIX},
+									 {XZ_ACCEL_TRANSFORM_MATIX, YZ_ACCEL_TRANSFORM_MATIX, ZZ_ACCEL_TRANSFORM_MATIX}};
+
+	iauPmp(_accelData, offset_vector, accelData);
+	iauRxp(transform_matrix, accelData, accelData);
 
 	for (int i = 0; i < 3; i++) {
 		accelData[i] = _accelData[i];
@@ -156,14 +156,14 @@ void mpu9255_recalcGyro(const int16_t * raw_gyroData, float * gyroData)
 
 void mpu9255_recalcCompass(const int16_t * raw_compassData, float * compassData)
 {
-//	float raw_data[3] = {(float)raw_compassData[0], (float)raw_compassData[1], (float)raw_compassData[2]};
-//	float offset_vector[3] = {X_COMPAS_OFFSET, Y_COMPAS_OFFSET, Z_COMPAS_OFFSET};
-//	float transform_matrix[3][3] =	{	{XX_COMPAS_TRANSFORM_MATIX, XY_COMPAS_TRANSFORM_MATIX, XZ_COMPAS_TRANSFORM_MATIX},
-//										{XY_COMPAS_TRANSFORM_MATIX, YY_COMPAS_TRANSFORM_MATIX, YZ_COMPAS_TRANSFORM_MATIX},
-//										{XZ_COMPAS_TRANSFORM_MATIX, YZ_COMPAS_TRANSFORM_MATIX, ZZ_COMPAS_TRANSFORM_MATIX}};
-//
-//	iauPmp(raw_data, offset_vector, compassData);
-//	iauRxp(transform_matrix, compassData, compassData);
+	float raw_data[3] = {(float)raw_compassData[0], (float)raw_compassData[1], (float)raw_compassData[2]};
+	float offset_vector[3] = {X_COMPAS_OFFSET, Y_COMPAS_OFFSET, Z_COMPAS_OFFSET};
+	float transform_matrix[3][3] =	{	{XX_COMPAS_TRANSFORM_MATIX, XY_COMPAS_TRANSFORM_MATIX, XZ_COMPAS_TRANSFORM_MATIX},
+										{XY_COMPAS_TRANSFORM_MATIX, YY_COMPAS_TRANSFORM_MATIX, YZ_COMPAS_TRANSFORM_MATIX},
+										{XZ_COMPAS_TRANSFORM_MATIX, YZ_COMPAS_TRANSFORM_MATIX, ZZ_COMPAS_TRANSFORM_MATIX}};
+
+	iauPmp(raw_data, offset_vector, compassData);
+	iauRxp(transform_matrix, compassData, compassData);
 
 	compassData[0] = - (float)raw_compassData[1];
 	compassData[1] =   (float)raw_compassData[2];

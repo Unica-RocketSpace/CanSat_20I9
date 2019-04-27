@@ -30,8 +30,8 @@ TIM_HandleTypeDef htimServo;
 
 const fl pulseMin = 3000;
 const fl pulseMax = 6000;
-const fl k1 = 37.91469;
-const fl b1 = 4445;
+const fl k1 = -36.69725;
+const fl b1 = 5070;
 const fl k2 = 38.24384;
 const fl b2 = 5000;
 const fl k3 = 40.0;
@@ -41,8 +41,8 @@ const fl speed = 0.1;
 const fl fast_speed = 1;
 
 //some constants
-const fl angleMin = -30;
-const fl angleMax = 60;
+const fl angleMin = -45;
+const fl angleMax = 45;
 const fl angleKeelMax = 45;
 const fl angleKeelMin = -45;
 

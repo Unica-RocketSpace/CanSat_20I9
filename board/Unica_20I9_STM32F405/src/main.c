@@ -258,10 +258,10 @@ int main(int argc, char* argv[])
 		xTaskCreateStatic(GROUND_task, 	"GROUND", 	GROUND_TASK_STACK_SIZE,	NULL, 2, _groundTaskStack, 	&_groundTaskObj);
 
 	if (SERVO){
-		xTaskCreateStatic(SCHEDULE_SERVO_task, "SERVO", SERVO_TASK_STACK_SIZE, NULL, 2, _servoTaskStack, &_servoTaskObj);
-		handleLeft = xTaskCreateStatic(speedRot, "left", SERVO_TASK_STACK_SIZE, &servo_param_left, 1, _servoTaskStackLeft, &_servoTaskObjLeft);
-		handleRight = xTaskCreateStatic(speedRot, "right", SERVO_TASK_STACK_SIZE, &servo_param_right, 1, _servoTaskStackRight, &_servoTaskObjRight);
-		handleKeel = xTaskCreateStatic(speedRot, "keel", SERVO_TASK_STACK_SIZE, &servo_param_keel, 1, _servoTaskStackKeel, &_servoTaskObjKeel);
+		xTaskCreateStatic(SCHEDULE_SERVO_task, "SERVO", SERVO_TASK_STACK_SIZE, NULL, 3, _servoTaskStack, &_servoTaskObj);
+		handleLeft = xTaskCreateStatic(speedRot, "left", SERVO_TASK_STACK_SIZE, &servo_param_left, 2, _servoTaskStackLeft, &_servoTaskObjLeft);
+		handleRight = xTaskCreateStatic(speedRot, "right", SERVO_TASK_STACK_SIZE, &servo_param_right, 2, _servoTaskStackRight, &_servoTaskObjRight);
+		handleKeel = xTaskCreateStatic(speedRot, "keel", SERVO_TASK_STACK_SIZE, &servo_param_keel, 2, _servoTaskStackKeel, &_servoTaskObjKeel);
 
 		servo_param_left.handle = handleLeft;
 		servo_param_right.handle = handleRight;
@@ -275,7 +275,8 @@ int main(int argc, char* argv[])
 	if (LED)
 		xTaskCreateStatic(LED_task, "LED", LED_TASK_STACK_SIZE, NULL, 1, _ledTaskStack, &_ledfTaskObj);
 
-//	handleControl = xTaskCreateStatic(CONTROL_task, "CONTROL", CONTROL_TASK_STACK_SIZE, NULL, 2, _CONTROLTaskStack, &_CONTROLTaskObj);
+	if (CONTROL)
+	handleControl = xTaskCreateStatic(CONTROL_task, "CONTROL", CONTROL_TASK_STACK_SIZE, NULL, 2, _CONTROLTaskStack, &_CONTROLTaskObj);
 
 	if (GPS)
 		xTaskCreateStatic(GPS_task, 	"GPS", 		GPS_TASK_STACK_SIZE, 	NULL, 2, _gpsTaskStack, 	&_gpsTaskObj);

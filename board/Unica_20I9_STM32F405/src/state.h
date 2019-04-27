@@ -32,14 +32,16 @@
 #define SD 		0
 #define RF		1	//Влияет на отправку телеметрии
 #define IMU		1
-#define IMU_BMP	0
-#define BMP		0
+#define IMU_BMP	1
+#define BMP		1
 #define GPS		0
+#define LED		1
+#define CONTROL	0
+
 #define GROUND	0
 
-#define LED		0
 
-#define SERVO	0
+#define SERVO	1
 
 
 #define HEIGHT_TO_DEPLOY_PARACHUTE 	270

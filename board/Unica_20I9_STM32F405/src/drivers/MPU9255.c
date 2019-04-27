@@ -149,9 +149,20 @@ void mpu9255_recalcAccel(const int16_t * raw_accelData, float * accelData)
 
 void mpu9255_recalcGyro(const int16_t * raw_gyroData, float * gyroData)
 {
-	gyroData[0] = - (float)(raw_gyroData[0]) * MPU9255_GYRO_SCALE_FACTOR * pow(2, GYRO_RANGE);
-	gyroData[1] = 	(float)(raw_gyroData[2]) * MPU9255_GYRO_SCALE_FACTOR * pow(2, GYRO_RANGE);
-	gyroData[2] = 	(float)(raw_gyroData[1]) * MPU9255_GYRO_SCALE_FACTOR * pow(2, GYRO_RANGE);
+	float _gyroData[3] = {0, 0, 0};
+
+	_gyroData[0] = - (float)(raw_gyroData[0]) * MPU9255_GYRO_SCALE_FACTOR * pow(2, GYRO_RANGE);
+	_gyroData[1] = 	(float)(raw_gyroData[2]) * MPU9255_GYRO_SCALE_FACTOR * pow(2, GYRO_RANGE);
+	_gyroData[2] = 	(float)(raw_gyroData[1]) * MPU9255_GYRO_SCALE_FACTOR * pow(2, GYRO_RANGE);
+
+	float offset_vector[3] = {X_GYRO_OFFSET, Y_GYRO_OFFSET, Z_GYRO_OFFSET};
+
+		iauPmp(_gyroData, offset_vector, gyroData);
+
+		for (int i = 0; i < 3; i++) {
+			gyroData[i] = _gyroData[i];
+		}
+
 }
 
 void mpu9255_recalcCompass(const int16_t * raw_compassData, float * compassData)

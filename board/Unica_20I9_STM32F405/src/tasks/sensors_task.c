@@ -30,11 +30,6 @@
 #define BMP_DELTA_PRESSURE		200
 #define	IMU_BMP_DELTA_PRESSURE	-2600
 
-uint8_t zero_state = 1;
-uint8_t get_shifts = 1;
-uint8_t my_stage = -1;
-uint8_t command = -1;
-
 I2C_HandleTypeDef 	i2c_mpu9255;
 USART_HandleTypeDef usart_dbg;
 
@@ -149,10 +144,10 @@ static int IMU_updateDataAll() {
 	taskEXIT_CRITICAL();
 
 	//	if (state_system.globalStage <=2)
-	//		MadgwickAHRSupdateIMU(quaternion, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], dt, 0.033);
+//			MadgwickAHRSupdateIMU(quaternion, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], dt, 0.033);
 	//	if (state_system.globalStage >= 3)
 
-			MadgwickAHRSupdate(quaternion, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], compass[0], compass[1], compass[2], dt, 1.0);
+			MadgwickAHRSupdate(quaternion, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], compass[0], compass[1], compass[2], dt, 0.3);
 
 		//	копируем кватернион в глобальную структуру
 	taskENTER_CRITICAL();
@@ -381,6 +376,11 @@ void zero_data(){
 }
 
 
+uint8_t zero_state = 1;
+uint8_t get_shifts = 1;
+uint8_t my_stage_sensor = -1;
+uint8_t test_packet = 1;
+
 void SENSORS_task() {
 
 	//	usart_dbg init
@@ -395,48 +395,48 @@ void SENSORS_task() {
 	HAL_USART_Init(&usart_dbg);
 */
 
+	taskENTER_CRITICAL();
+	my_stage_sensor = state_system.globalStage = 0;
+	taskEXIT_CRITICAL();
+
+
 	for (;;) {
 
-/*
+
 		taskENTER_CRITICAL();
-		my_stage = state_system.globalStage;
-		command = state_system.globalCommand;
+		my_stage_sensor = state_system.globalStage;
 		taskEXIT_CRITICAL();
 
-		if (command != -1){
-			if (command == 0){
-				my_stage = 0;
-				get_shifts = 1;
-			}
-			if (command == 2){
-				my_stage = 2;
-				zero_state = 1;
-			}
-		}
+		switch (my_stage_sensor){
+			case 1:
+					get_staticShifts();
 
+					bmp280_update();
+					IMU_updateDataAll();
+					_IMUtask_updateData();
+				break;
 
-		if (my_stage == 0){
-			if (get_shifts){
-				get_staticShifts();
-				get_shifts = 0;
-			}
-		}
-		if (state_system.globalStage == 2){
-			if (zero_state){
+			case 2:
+				bmp280_update();
+				IMU_updateDataAll();
+				_IMUtask_updateData();
+
 				zero_data();
-				zero_state = 0;
-			}
+				break;
+
+			default:
+				bmp280_update();
+				IMU_updateDataAll();
+				_IMUtask_updateData();
+
+
 		}
-*/
 
-		bmp280_update();
-		IMU_updateDataAll();
-		_IMUtask_updateData();
 
-/*
+
 		xTaskNotifyGive(handleControl);
 		xTaskNotifyGive(handleRF);
-*/
+
 		vTaskDelay(20/portTICK_RATE_MS);
 
 	}

@@ -35,14 +35,14 @@ const fl b1 = 5070;
 const fl k2 = 38.24384;
 const fl b2 = 5000;
 const fl k3 = 40.0;
-const fl b3 = 5720;
+const fl b3 = 5820;
 
 const fl speed = 0.1;
 const fl fast_speed = 1;
 
 //some constants
-const fl angleMin = -45;
-const fl angleMax = 45;
+const fl angleMin = -20;
+const fl angleMax = 10;
 const fl angleKeelMax = 45;
 const fl angleKeelMin = -45;
 
@@ -140,9 +140,12 @@ void allServosInit() {
 	_timerPWMInit(&htimServo);
 
 	//Инициализация каналов CH1, CH2 и CH3
-	_timerPWMChanelInit(&htimServo, TIM_CHANNEL_1);
-	_timerPWMChanelInit(&htimServo, TIM_CHANNEL_2);
-	_timerPWMChanelInit(&htimServo, TIM_CHANNEL_3);
+	_timerPWMChangePulse(&htimServo, TIM_CHANNEL_1, b1);
+	_timerPWMChangePulse(&htimServo, TIM_CHANNEL_1, b2);
+	_timerPWMChangePulse(&htimServo, TIM_CHANNEL_1, b3);
+//	_timerPWMChanelInit(&htimServo, TIM_CHANNEL_1);
+//	_timerPWMChanelInit(&htimServo, TIM_CHANNEL_2);
+//	_timerPWMChanelInit(&htimServo, TIM_CHANNEL_3);
 }
 void servoRotate(servo_id_t servo_id, fl angle_deg) {
 	u32 pulse;
@@ -231,7 +234,7 @@ void SCHEDULE_SERVO_task(){
 
 
 		//поворот левой сервы
-		update_struct(&servo_param_left, fast_speed, 0, angleMax);
+/*		update_struct(&servo_param_left, fast_speed, 0, angleMax);
 		vTaskResume(servo_param_left.handle);
 		vTaskDelay(10000);
 		update_struct(&servo_param_left, speed, angleMax, angleMin);
@@ -284,23 +287,23 @@ void SCHEDULE_SERVO_task(){
 		to_angle(1, 1, 0, fast_speed, 0, 0, 0);
 		resume_servos(1, 1, 0);
 		vTaskDelay(10000);
-
+*/
 		//0 to min
 		to_angle(1, 1, 0, fast_speed, angleMin, angleMin, 0);
 		resume_servos(1, 1, 0);
 		vTaskDelay(10000);
 
 		//min to max
-		to_angle(1, 1, 0, speed, angleMax, angleMax, 0);
+		to_angle(1, 1, 0, 0.05, angleMax, angleMax, 0);
 		resume_servos(1, 1, 0);
-		vTaskDelay(10000);
+		vTaskDelay(30000);
 
 		//max to 0
 		to_angle(1, 1, 0, fast_speed, 0, 0, 0);
 		resume_servos(1, 1, 0);
 		vTaskDelay(10000);
 
-
+/*
 		//to -9
 		to_angle(1, 1, 0, fast_speed, -9, -9, 0);
 		resume_servos(1, 1, 0);
@@ -343,7 +346,7 @@ void SCHEDULE_SERVO_task(){
 		to_angle(1, 1, 1, speed, -39, 21, 30);
 		resume_servos(1, 1, 1);
 		vTaskDelay(10000);
-
+*/
 /*
 		update_struct(&servo_param_left, fast_speed, 0, angleMax);
 		update_struct(&servo_param_right, fast_speed, 0, angleMin);

@@ -34,14 +34,14 @@
 #define IMU		1
 #define IMU_BMP	1
 #define BMP		1
-#define GPS		0
+#define GPS		1
 #define LED		1
-#define CONTROL	0
+#define CONTROL	1
 
 #define GROUND	0
 
 
-#define SERVO	1
+#define SERVO	0
 
 
 #define HEIGHT_TO_DEPLOY_PARACHUTE 	270

@@ -29,9 +29,6 @@
 #include "stm32f4xx_hal_uart.h"
 
 
-int8_t msg_state = 1;
-int8_t msg_state_zero = 1;
-int8_t command;
 
 uint8_t UNISAT_ID = 0x01;
 uint8_t UNISAT_NoComp = 0xFF;
@@ -186,8 +183,9 @@ taskEXIT_CRITICAL();
 
 static uint8_t mavlink_msg_BMP_send() {
 
-	mavlink_sensors_t msg_BMP;
+	mavlink_bmp280_t msg_BMP;
 	msg_BMP.time = (float)HAL_GetTick() / 1000;
+//	trace_printf("%f\n",msg_BMP.time);
 taskENTER_CRITICAL();
 	msg_BMP.temp = stateSensors.temp;
 	msg_BMP.pressure = stateSensors.pressure;
@@ -218,9 +216,11 @@ static uint8_t mavlink_msg_gps_send() {
 	mavlink_gps_t msg_gps;
 	msg_gps.time = (float)HAL_GetTick() / 1000;
 taskENTER_CRITICAL();
-	for (int i = 0; i < 3; i++){
+	for (int i = 0; i < 2; i++){
 		msg_gps.coordinates[i] = stateGPS.coordinates[i];
 	}
+	msg_gps.speed = stateGPS.speed;
+	msg_gps.course = stateGPS.course;
 taskEXIT_CRITICAL();
 
 	mavlink_message_t msg;
@@ -283,7 +283,7 @@ static uint8_t mavlink_msg_get_command(){
 		nRF24L01_read(&spi_nRF24L01, buffer, 32, &isData);
 
 		if (isData){
-				return (int)buffer[0];
+			return (int)buffer[0];
 		}
 	}
 
@@ -365,91 +365,77 @@ uint8_t buffer[32];
 
 //TODO; Сделать обработку ошибок при отправке данных в очередь
 
+int8_t msg_state = 1;
+int8_t msg_state_zero = 1;
+uint8_t my_stage_telem = 0;
+int8_t command = 0;
+
+
 void IO_RF_task() {
 
-	uint8_t error = 0;
 	for (;;) {
 
-		mavlink_msg_sensors_send();
-//		nRF24L01_read_status(&spi_nRF24L01, &_status);
-//		check_TX_DR(_status);
-		vTaskDelay(10);
-
-		error = mavlink_msg_imu_isc_send();
-		trace_printf("error isc: %d\n", (int)error);
-//		nRF24L01_read_status(&spi_nRF24L01, &_status);
-//		check_TX_DR(_status);
-		vTaskDelay(20/portTICK_RATE_MS);
-		error = 0;
-
-		error = mavlink_msg_imu_rsc_send();
-		trace_printf("error_rsc: %d\n", (int)error);
-//		nRF24L01_read_status(&spi_nRF24L01, &_status);
-//		check_TX_DR(_status);
-//		nRF24L01_clear_status(&spi_nRF24L01, true, true, true);
-		vTaskDelay(10);
-
-		mavlink_msg_servo();
-//		nRF24L01_read_status(&spi_nRF24L01, &_status);
-//		check_TX_DR(_status);
-		vTaskDelay(10);
-
-		mavlink_msg_BMP_send();
-
-
-//		trace_printf("error    %d\n", __error);
-		vTaskDelay(20/portTICK_RATE_MS);
-
-
-		//trace_printf();
-
-
-	/*	ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-
-
-		vTaskDelay(20/portTICK_RATE_MS);
-
-//		if (FLAG_IMU_ISC_DATA)
-			mavlink_msg_imu_isc_send();
-
-//		if (FLAG_IMU_RSC_DATA)
-			mavlink_msg_imu_rsc_send();
-
-//		if (FLAG_SENSORS_DATA)
-			mavlink_msg_sensors_send();
-
-//		if (FLAG_BMP_DATA)
-			mavlink_msg_BMP_send();
-
-//		if (FLAG_GPS_DATA)
-			mavlink_msg_gps_send();
-
-		mavlink_msg_state_send();
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+		trace_printf("RF_task");
 
 
 		taskENTER_CRITICAL();
-		command = state_system.globalCommand = mavlink_msg_get_command();
-
-		if (command != -1)
-			xQueueSendToBack(handleInternalCmdQueue, &command, 0);
+//		command = state_system.globalCommand = mavlink_msg_get_command();
+//		if (command != -1)
+//			xQueueSendToBack(handleInternalCmdQueue, &command, 0);
 		taskEXIT_CRITICAL();
 
-//		// Этап 0. Подтверждение инициализации отправкой пакета состояния и ожидание ответа от НС
-		if (command == 0) {
-			if (msg_state){
-				mavlink_msg_state_send();
-				msg_state = 0;
-			}
-		}
-//
-//		// Этап 2. Определение начального состояния и полет в ракете
-		if (command == 2) {
-			if (msg_state_zero){
+		switch (command){
+			// Этап 0. Подтверждение инициализации отправкой пакета состояния и ожидание ответа от НС
+			case 0:
+				for (int i = 0; i < 20; i++){
+					mavlink_msg_state_send();
+					mavlink_msg_BMP_send();
+					mavlink_msg_sensors_send();
+					mavlink_msg_gps_send();
+					mavlink_msg_imu_isc_send();
+					mavlink_msg_imu_rsc_send();
+				}
+
+				do command = mavlink_msg_get_command();
+				while (command == -1);
+				taskENTER_CRITICAL();
+				state_system.globalStage = command;
+				state_system.globalCommand = command;
+				taskEXIT_CRITICAL();
+				break;
+
+
+			case 1:
+				do mavlink_msg_get_command();
+				while (command == -1);
+				taskENTER_CRITICAL();
+				state_system.globalCommand = command;
+				state_system.globalStage = command;
+				taskEXIT_CRITICAL();
+				break;
+
+			// Этап 2. Определение начального состояния и полет в ракете
+			//Todo: посмотреть реализован ли прием zero_state на наземке
+			case 2:
 				mavlink_msg_state_zero_send();
-				msg_state_zero = 0;
-			}
-		}*/
-//
+				do mavlink_msg_get_command();
+				while (command == -1);
+				taskENTER_CRITICAL();
+				state_system.globalCommand = command;
+				state_system.globalStage = command;
+				taskEXIT_CRITICAL();
+				break;
+
+			default:
+				mavlink_msg_state_send();
+				mavlink_msg_BMP_send();
+				mavlink_msg_sensors_send();
+				mavlink_msg_gps_send();
+				mavlink_msg_imu_isc_send();
+				mavlink_msg_imu_rsc_send();
+
+		}
 	}
 }
 

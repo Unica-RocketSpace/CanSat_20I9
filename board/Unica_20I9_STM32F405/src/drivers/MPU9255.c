@@ -40,25 +40,10 @@ end:
 }
 
 
-int mpu9255_init(I2C_HandleTypeDef* hi2c)
-{
-	int error = 0;
+uint8_t mpu9255_init(){
 
-	hi2c->Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-	hi2c->Init.ClockSpeed = 400000;
-	hi2c->Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-	hi2c->Init.DutyCycle = I2C_DUTYCYCLE_2;
-	hi2c->Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-	hi2c->Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+	uint8_t error = 0;
 
-	//	TODO: УСТАНОВИТЬ РЕАЛЬНЫЙ АДРЕС
-	hi2c->Init.OwnAddress1 = 0x00;
-//	hi2c->Init.OwnAddress2 = GYRO_AND_ACCEL;
-
-	hi2c->Instance = I2C1;
-	hi2c->Mode = HAL_I2C_MODE_MASTER;
-
-	PROCESS_ERROR(HAL_I2C_Init(hi2c));
 	HAL_Delay(400);
 
 	PROCESS_ERROR(mpu9255_writeRegister(GYRO_AND_ACCEL,	107,	0b10000000));	//RESET
@@ -149,13 +134,13 @@ void mpu9255_recalcAccel(const int16_t * raw_accelData, float * accelData)
 	_accelData[1] =   (float)(raw_accelData[2]) * MPU9255_ACCEL_SCALE_FACTOR * 2;//* pow(2, ACCEL_RANGE);
 	_accelData[2] =   (float)(raw_accelData[1]) * MPU9255_ACCEL_SCALE_FACTOR * 2;//* pow(2, ACCEL_RANGE);
 
-//	float offset_vector[3] = {X_ACCEL_OFFSET, Y_ACCEL_OFFSET, Z_ACCEL_OFFSET};
-//	float transform_matrix[3][3] =	{{XX_ACCEL_TRANSFORM_MATIX, XY_ACCEL_TRANSFORM_MATIX, XZ_ACCEL_TRANSFORM_MATIX},
-//									 {XY_ACCEL_TRANSFORM_MATIX, YY_ACCEL_TRANSFORM_MATIX, YZ_ACCEL_TRANSFORM_MATIX},
-//									 {XZ_ACCEL_TRANSFORM_MATIX, YZ_ACCEL_TRANSFORM_MATIX, ZZ_ACCEL_TRANSFORM_MATIX}};
-//
-//	iauPmp(_accelData, offset_vector, accelData);
-//	iauRxp(transform_matrix, accelData, accelData);
+	float offset_vector[3] = {X_ACCEL_OFFSET, Y_ACCEL_OFFSET, Z_ACCEL_OFFSET};
+	float transform_matrix[3][3] =	{{XX_ACCEL_TRANSFORM_MATIX, XY_ACCEL_TRANSFORM_MATIX, XZ_ACCEL_TRANSFORM_MATIX},
+									 {XY_ACCEL_TRANSFORM_MATIX, YY_ACCEL_TRANSFORM_MATIX, YZ_ACCEL_TRANSFORM_MATIX},
+									 {XZ_ACCEL_TRANSFORM_MATIX, YZ_ACCEL_TRANSFORM_MATIX, ZZ_ACCEL_TRANSFORM_MATIX}};
+
+	iauPmp(_accelData, offset_vector, accelData);
+	iauRxp(transform_matrix, accelData, accelData);
 
 	for (int i = 0; i < 3; i++) {
 		accelData[i] = _accelData[i];
@@ -164,21 +149,32 @@ void mpu9255_recalcAccel(const int16_t * raw_accelData, float * accelData)
 
 void mpu9255_recalcGyro(const int16_t * raw_gyroData, float * gyroData)
 {
-	gyroData[0] = - (float)(raw_gyroData[0]) * MPU9255_GYRO_SCALE_FACTOR * pow(2, GYRO_RANGE);
-	gyroData[1] = 	(float)(raw_gyroData[2]) * MPU9255_GYRO_SCALE_FACTOR * pow(2, GYRO_RANGE);
-	gyroData[2] = 	(float)(raw_gyroData[1]) * MPU9255_GYRO_SCALE_FACTOR * pow(2, GYRO_RANGE);
+	float _gyroData[3] = {0, 0, 0};
+
+	_gyroData[0] = - (float)(raw_gyroData[0]) * MPU9255_GYRO_SCALE_FACTOR * pow(2, GYRO_RANGE);
+	_gyroData[1] = 	(float)(raw_gyroData[2]) * MPU9255_GYRO_SCALE_FACTOR * pow(2, GYRO_RANGE);
+	_gyroData[2] = 	(float)(raw_gyroData[1]) * MPU9255_GYRO_SCALE_FACTOR * pow(2, GYRO_RANGE);
+
+	float offset_vector[3] = {X_GYRO_OFFSET, Y_GYRO_OFFSET, Z_GYRO_OFFSET};
+
+		iauPmp(_gyroData, offset_vector, gyroData);
+
+		for (int i = 0; i < 3; i++) {
+			gyroData[i] = _gyroData[i];
+		}
+
 }
 
 void mpu9255_recalcCompass(const int16_t * raw_compassData, float * compassData)
 {
-//	float raw_data[3] = {(float)raw_compassData[0], (float)raw_compassData[1], (float)raw_compassData[2]};
-//	float offset_vector[3] = {X_COMPAS_OFFSET, Y_COMPAS_OFFSET, Z_COMPAS_OFFSET};
-//	float transform_matrix[3][3] =	{	{XX_COMPAS_TRANSFORM_MATIX, XY_COMPAS_TRANSFORM_MATIX, XZ_COMPAS_TRANSFORM_MATIX},
-//										{XY_COMPAS_TRANSFORM_MATIX, YY_COMPAS_TRANSFORM_MATIX, YZ_COMPAS_TRANSFORM_MATIX},
-//										{XZ_COMPAS_TRANSFORM_MATIX, YZ_COMPAS_TRANSFORM_MATIX, ZZ_COMPAS_TRANSFORM_MATIX}};
-//
-//	iauPmp(raw_data, offset_vector, compassData);
-//	iauRxp(transform_matrix, compassData, compassData);
+	float raw_data[3] = {(float)raw_compassData[0], (float)raw_compassData[1], (float)raw_compassData[2]};
+	float offset_vector[3] = {X_COMPAS_OFFSET, Y_COMPAS_OFFSET, Z_COMPAS_OFFSET};
+	float transform_matrix[3][3] =	{	{XX_COMPAS_TRANSFORM_MATIX, XY_COMPAS_TRANSFORM_MATIX, XZ_COMPAS_TRANSFORM_MATIX},
+										{XY_COMPAS_TRANSFORM_MATIX, YY_COMPAS_TRANSFORM_MATIX, YZ_COMPAS_TRANSFORM_MATIX},
+										{XZ_COMPAS_TRANSFORM_MATIX, YZ_COMPAS_TRANSFORM_MATIX, ZZ_COMPAS_TRANSFORM_MATIX}};
+
+	iauPmp(raw_data, offset_vector, compassData);
+	iauRxp(transform_matrix, compassData, compassData);
 
 	compassData[0] = - (float)raw_compassData[1];
 	compassData[1] =   (float)raw_compassData[2];

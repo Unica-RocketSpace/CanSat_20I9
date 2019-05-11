@@ -16,6 +16,7 @@
 #include <tasks/control_task.h>
 #include <tasks/sensors_task.h>
 #include <tasks/telemetry.h>
+#include <tasks/ground.h>
 #include "task.h"
 #include "mavlink/UNISAT/mavlink.h"
 
@@ -25,6 +26,7 @@
 #include "MPU9255.h"
 #include "UNICS_bmp280.h"
 #include "nRF24L01.h"
+#include "servo.h"
 
 // ----- Timing definitions -------------------------------------------------
 
@@ -51,6 +53,7 @@ stateIMU_isc_t 		stateIMU_isc;
 stateSensors_t 		stateIMUSensors;
 stateBMPSensors_t	stateSensors;
 state_system_t 		state_system;
+state_master_t		state_master;
 state_zero_t		state_zero;
 
 stateIMU_isc_t		stateIMU_isc_prev;
@@ -63,12 +66,17 @@ TaskHandle_t		handleRF;
 
 QueueHandle_t		handleInternalCmdQueue;
 
+//servo
+servo_task_param_t servo_param_left, servo_param_right, servo_param_keel;
+TaskHandle_t handleLeft, handleRight, handleKeel;
+state_servo_t		stateServo;
+
+
 
 //	параметры IO_RF_task
 #define IO_RF_TASK_STACK_SIZE (50*configMINIMAL_STACK_SIZE)
 static StackType_t	_iorfTaskStack[IO_RF_TASK_STACK_SIZE];
 static StaticTask_t	_iorfTaskObj;
-
 
 //	параметры GPS_task
 #define GPS_TASK_STACK_SIZE (80*configMINIMAL_STACK_SIZE)
@@ -84,11 +92,35 @@ static StaticTask_t	_IMUTaskObj;
 static StackType_t _CONTROLTaskStack[CONTROL_TASK_STACK_SIZE];
 static StaticTask_t _CONTROLTaskObj;
 
-
 #define CALIBRATION_TASK_STACK_SIZE (20*configMINIMAL_STACK_SIZE)
 static StackType_t	_CALIBRATIONTaskStack[CALIBRATION_TASK_STACK_SIZE];
 static StaticTask_t	_CALIBRATIONTaskObj;
 
+//	параметры GROUND_task
+#define GROUND_TASK_STACK_SIZE (50*configMINIMAL_STACK_SIZE)
+static StackType_t	_groundTaskStack[GROUND_TASK_STACK_SIZE];
+static StaticTask_t	_groundTaskObj;
+
+#define LED_TASK_STACK_SIZE (10*configMINIMAL_STACK_SIZE)
+static StackType_t	_ledTaskStack[LED_TASK_STACK_SIZE];
+static StaticTask_t	_ledfTaskObj;
+
+
+//FIXME: DELETE
+//	параметры SERVO_task
+#define SERVO_TASK_STACK_SIZE (10*configMINIMAL_STACK_SIZE)
+static StackType_t	_servoTaskStack[SERVO_TASK_STACK_SIZE];
+static StaticTask_t	_servoTaskObj;
+
+static StackType_t	_servoTaskStackLeft[SERVO_TASK_STACK_SIZE];
+static StaticTask_t	_servoTaskObjLeft;
+
+static StackType_t	_servoTaskStackRight[SERVO_TASK_STACK_SIZE];
+static StaticTask_t	_servoTaskObjRight;
+
+static StackType_t	_servoTaskStackKeel[SERVO_TASK_STACK_SIZE];
+static StaticTask_t	_servoTaskObjKeel;
+//
 
 #define INTERNAL_QUEUE_LENGHT  sizeof( uint8_t )
 #define INTERNAL_QUEUE_ITEM_SIZE  5
@@ -157,6 +189,32 @@ void CALIBRATION_task() {
 
 }
 
+void Init_led(){
+	GPIO_InitTypeDef gpioc;
+	gpioc.Mode = GPIO_MODE_OUTPUT_PP;
+	gpioc.Pin = GPIO_PIN_12;
+	gpioc.Pull = GPIO_NOPULL;
+	gpioc.Speed = GPIO_SPEED_HIGH;
+	HAL_GPIO_Init(GPIOC, &gpioc);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
+}
+
+
+void LED_task(){
+	for(;;){
+		taskENTER_CRITICAL();
+		if ((state_system.BMP_state == 0) & (state_system.IMU_BMP_state == 0) & (state_system.MPU_state == 0)){
+			if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_12))
+				HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
+			else
+				HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
+		}
+		taskEXIT_CRITICAL();
+	}
+}
+
+
+
 
 int main(int argc, char* argv[])
 {
@@ -169,12 +227,17 @@ int main(int argc, char* argv[])
 	memset(&stateIMUSensors, 		0x00, sizeof(stateIMUSensors));
 	memset(&stateSensors,			0x00, sizeof(stateSensors));
 	memset(&state_system, 			0x00, sizeof(state_system));
-	memset(&state_zero, 			0x00, sizeof(state_zero));
+	memset(&state_master,			0x00, sizeof(state_master));
+	memset(&state_zero, 	 		0x00, sizeof(state_zero));
+	memset(&stateIMU_isc_prev, 		0x00, sizeof(stateIMU_isc_prev));
+	memset(&stateIMUSensors_prev,	0x00, sizeof(stateIMUSensors_prev));
+	memset(&stateSensors_prev,		0x00, sizeof(stateSensors_prev));
+	memset(&state_system_prev, 		0x00, sizeof(state_system_prev));
 
-	memset(&stateIMU_isc_prev, 			0x00, sizeof(stateIMU_isc_prev));
-	memset(&stateIMUSensors_prev,		0x00, sizeof(stateIMUSensors_prev));
-	memset(&stateSensors_prev,			0x00, sizeof(stateSensors_prev));
-	memset(&state_system_prev, 			0x00, sizeof(state_system_prev));
+	memset(&servo_param_keel,	0x00, sizeof(servo_param_keel));
+	memset(&servo_param_left,	0x00, sizeof(servo_param_left));
+	memset(&servo_param_right,	0x00, sizeof(servo_param_right));
+	memset(&stateServo,		0x00, sizeof(stateServo));
 
 	state_system.BMP_state 	= 255;
 	state_system.GPS_state 	= 255;
@@ -183,23 +246,64 @@ int main(int argc, char* argv[])
 	state_system.NRF_state 	= 255;
 	state_system.SD_state 	= 255;
 
-	xTaskCreateStatic(SENSORS_task, 	"SENSORS", 		IMU_TASK_STACK_SIZE, 	NULL, 2, _IMUTaskStack, 	&_IMUTaskObj);
 
-	handleRF = xTaskCreateStatic(IO_RF_task, 	"IO_RF", 	IO_RF_TASK_STACK_SIZE,	NULL, 1, _iorfTaskStack, 	&_iorfTaskObj);
 
+	if (BMP || IMU_BMP || IMU)
+		xTaskCreateStatic(SENSORS_task, 	"SENSORS", 		IMU_TASK_STACK_SIZE, 	NULL, 2, _IMUTaskStack, 	&_IMUTaskObj);
+
+	if (RF)
+		handleRF = xTaskCreateStatic(IO_RF_task, 	"IO_RF", 	IO_RF_TASK_STACK_SIZE,	NULL, 2, _iorfTaskStack, 	&_iorfTaskObj);
+
+	if (GROUND)
+		xTaskCreateStatic(GROUND_task, 	"GROUND", 	GROUND_TASK_STACK_SIZE,	NULL, 2, _groundTaskStack, 	&_groundTaskObj);
+
+	if (SERVO){
+		xTaskCreateStatic(SCHEDULE_SERVO_task, "SERVO", SERVO_TASK_STACK_SIZE, NULL, 3, _servoTaskStack, &_servoTaskObj);
+		handleLeft = xTaskCreateStatic(speedRot, "left", SERVO_TASK_STACK_SIZE, &servo_param_left, 2, _servoTaskStackLeft, &_servoTaskObjLeft);
+		handleRight = xTaskCreateStatic(speedRot, "right", SERVO_TASK_STACK_SIZE, &servo_param_right, 2, _servoTaskStackRight, &_servoTaskObjRight);
+		handleKeel = xTaskCreateStatic(speedRot, "keel", SERVO_TASK_STACK_SIZE, &servo_param_keel, 2, _servoTaskStackKeel, &_servoTaskObjKeel);
+
+		servo_param_left.handle = handleLeft;
+		servo_param_right.handle = handleRight;
+		servo_param_keel.handle = handleKeel;
+
+		servo_param_left.id = 0;
+		servo_param_right.id = 1;
+		servo_param_keel.id = 2;
+	}
+
+	if (LED)
+		xTaskCreateStatic(LED_task, "LED", LED_TASK_STACK_SIZE, NULL, 1, _ledTaskStack, &_ledfTaskObj);
+
+	if (CONTROL)
 	handleControl = xTaskCreateStatic(CONTROL_task, "CONTROL", CONTROL_TASK_STACK_SIZE, NULL, 2, _CONTROLTaskStack, &_CONTROLTaskObj);
 
-	xTaskCreateStatic(GPS_task, 	"GPS", 		GPS_TASK_STACK_SIZE, 	NULL, 2, _gpsTaskStack, 	&_gpsTaskObj);
+	if (GPS)
+		xTaskCreateStatic(GPS_task, 	"GPS", 		GPS_TASK_STACK_SIZE, 	NULL, 2, _gpsTaskStack, 	&_gpsTaskObj);
 
 
 
-	handleInternalCmdQueue = xQueueCreateStatic(INTERNAL_QUEUE_LENGHT, INTERNAL_QUEUE_ITEM_SIZE, internal_queue_storage_area, &internal_queue_static);
+//	handleInternalCmdQueue = xQueueCreateStatic(INTERNAL_QUEUE_LENGHT, INTERNAL_QUEUE_ITEM_SIZE, internal_queue_storage_area, &internal_queue_static);
 
 //	xTaskCreateStatic(CALIBRATION_task, "CALIBRATION", CALIBRATION_TASK_STACK_SIZE, NULL, 1, _CALIBRATIONTaskStack, &_CALIBRATIONTaskObj);
 
-	IMU_Init();
-	IO_RF_Init();
-	GPS_Init();
+
+	__GPIOA_CLK_ENABLE();
+	__GPIOB_CLK_ENABLE();
+	__GPIOC_CLK_ENABLE();
+	__GPIOD_CLK_ENABLE();
+	__GPIOE_CLK_ENABLE();
+	__GPIOF_CLK_ENABLE();
+	__GPIOG_CLK_ENABLE();
+	__GPIOH_CLK_ENABLE();
+
+	Init_led();
+
+	if (IMU || BMP || IMU_BMP) IMU_Init();
+	if (RF) IO_RF_Init();
+	if (GROUND) GROUND_Init();
+	if (GPS) GPS_Init();
+	if (SERVO) allServosInit();
 
 	HAL_InitTick(15);
 

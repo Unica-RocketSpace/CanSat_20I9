@@ -29,6 +29,30 @@
 #include "drivers/UNICS_bmp280.h"
 
 
+#define SD 		0
+#define RF		1	//Влияет на отправку телеметрии
+#define IMU		1
+#define IMU_BMP	1
+#define BMP		1
+#define GPS		1
+#define LED		1
+#define CONTROL	1
+
+#define GROUND	0
+
+
+#define SERVO	0
+
+
+#define HEIGHT_TO_DEPLOY_PARACHUTE 	270
+#define DEPLOY_PARACHUTE_PORT		GPIOC
+#define DEPLOY_PARACHUTE_PIN		GPIO_PIN_6
+#define DELTA_HEIGHT 				10
+#define ALL_BUTTONS_WORKED 			255
+
+
+
+
 // if error set value and go to end
 #define PROCESS_ERROR(x) if (0 != (error = (x))) { goto end; }
 
@@ -51,6 +75,9 @@ typedef struct {
 typedef struct {
 	//GPS data
 	float coordinates[3];
+	float speed;
+	float course;
+	float time;
 } stateGPS_t;
 
 
@@ -117,6 +144,13 @@ typedef struct {
 	float time;				//	current time
 } state_system_t;
 
+typedef struct {
+	float coordinates[3];
+	float quaternion[4];
+	float velosities[3];
+
+} state_master_t;
+
 
 typedef struct {
 	//	zero params; this fields should be filled when device started it`s work
@@ -135,13 +169,39 @@ typedef enum {
 } error;
 
 
+//FIXME: DELETE
+typedef enum {
+	servo_left		= 0,
+	servo_right		= 1,
+	servo_keel		= 2
+} servo_id_t;
+
+
+typedef struct {
+	servo_id_t id;
+	float speed;
+	float start_angle;
+	float finish_angle;
+	xTaskHandle handle;
+} servo_task_param_t;
+
+typedef struct {
+	float angle_left;
+	float angle_right;
+	float angle_keel;
+} state_servo_t;
+
+
 
 /*##################################################*/
 /*################### ПЕРЕМЕННЫЕ ###################*/
 /*##################################################*/
 
-extern USART_HandleTypeDef  usart_HC05;
 extern USART_HandleTypeDef	usart_dbg;
+//extern UART_HandleTypeDef uartExchangeData;
+//extern UART_HandleTypeDef uartExchangeCommand;
+//extern DMA_HandleTypeDef dmaExchangeData;
+
 extern SPI_HandleTypeDef	spi_nRF24L01;
 extern I2C_HandleTypeDef 	i2c_mpu9255;
 
@@ -149,6 +209,8 @@ extern I2C_HandleTypeDef 	i2c_mpu9255;
 //////// Имена тасков и очередей ////////
 extern TaskHandle_t 		handleControl;
 extern TaskHandle_t			handleRF;
+extern TaskHandle_t			handleLeft, handleRight, handleKeel;
+
 
 extern QueueHandle_t		handleInternalCmdQueue;
 
@@ -162,6 +224,7 @@ extern stateIMU_isc_t 		stateIMU_isc;
 extern stateSensors_t 		stateIMUSensors;
 extern stateBMPSensors_t	stateSensors;
 extern state_system_t 		state_system;
+extern state_master_t		state_master;
 extern state_zero_t			state_zero;
 
 extern stateIMU_isc_t		stateIMU_isc_prev;
@@ -169,8 +232,9 @@ extern stateSensors_t		stateIMUSensors_prev;
 extern stateSensors_t		stateSensors_prev;
 extern state_system_t		state_system_prev;
 
-
-
-
+//FIXME: DELETE
+extern TIM_HandleTypeDef htimServo;
+extern 	servo_task_param_t servo_param_left, servo_param_right, servo_param_keel;
+extern state_servo_t		stateServo;
 
 #endif /* STATE_H_ */

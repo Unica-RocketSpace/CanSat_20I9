@@ -21,6 +21,7 @@
 #define nRF24L01_READ_RX_FIFO			0b01100001
 #define nRF24L01_FLUSH_TX_FIFO			0b11100001
 #define nRF24L01_FLUSH_RX_FIFO			0b11100010
+#define nRF24L01_NOP					0b11111111
 
 #define nRF24L01_RX_ADDR_P0		{0xe7, 0xe7, 0xe7, 0xe7, 0xe7}	//Адрес получателя 0
 #define nRF24L01_RX_ADDR_P1		0x0000000000	//Адрес получателя 1
@@ -46,6 +47,10 @@
 #define nRF24L01_CE_PORT GPIOA
 //#define nRF24L01_CE_DDR  DDRB
 #define nRF24L01_CE_PIN  GPIO_PIN_8
+
+extern uint32_t tickstart_;
+extern uint32_t tick_;
+
 
 typedef enum {
 	nRF24L01_CONFIG_ADDR			= 0x00,

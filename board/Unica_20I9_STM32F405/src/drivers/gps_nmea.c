@@ -150,7 +150,7 @@ void GPS_task()	{
 			continue;
 		}
 */
-
+		trace_printf("G");
 
 		float _lon = minmea_tocoord(&frame.longitude);
 		float _lat = minmea_tocoord(&frame.latitude);
@@ -164,9 +164,6 @@ void GPS_task()	{
 		stateGPS.speed = _speed;
 		stateGPS.course = _course;
 		stateGPS.time = _time;
-		taskEXIT_CRITICAL();
-
-//		FLAG_GPS_DATA = 1;
 		taskEXIT_CRITICAL();
 
 	end:

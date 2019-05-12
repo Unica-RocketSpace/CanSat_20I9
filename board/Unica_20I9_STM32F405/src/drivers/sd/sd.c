@@ -225,6 +225,7 @@ uint8_t sd_init(SPI_HandleTypeDef* hspi)
 
 end:
 	sd_cs(false);
+	trace_printf("sd error %d\n", error);
 	return error;
 }
 

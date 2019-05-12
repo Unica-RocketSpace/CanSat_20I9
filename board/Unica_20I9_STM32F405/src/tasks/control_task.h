@@ -13,4 +13,6 @@
 
 void CONTROL_task();
 
+extern GPIO_InitTypeDef d;
+
 #endif /* CONTROL_TASK_H_ */

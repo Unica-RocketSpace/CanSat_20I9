@@ -66,7 +66,7 @@ taskEXIT_CRITICAL();
 	uint8_t error = 0;
 	len = mavlink_msg_to_send_buffer(buffer, &msg);
 	if (RF)
-		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 0);
+		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 1);
 
 	if (SD){
 		taskENTER_CRITICAL();
@@ -97,7 +97,7 @@ taskEXIT_CRITICAL();
 	uint8_t error = 0;
 	len = mavlink_msg_to_send_buffer(buffer, &msg);
 	if (RF)
-		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 0);
+		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 1);
 //		HAL_USART_Transmit(&usart_dbg, buffer, len, 20);
 
 	if (SD){
@@ -132,7 +132,7 @@ taskEXIT_CRITICAL();
 	uint8_t error = 0;
 	len = mavlink_msg_to_send_buffer(buffer, &msg);
 	if (RF)
-		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 0);
+		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 1);
 
 
 	if (SD){
@@ -165,10 +165,8 @@ taskEXIT_CRITICAL();
 	uint8_t error = 0;
 	len = mavlink_msg_to_send_buffer(buffer, &msg);
 //	if (RF)
-		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 0);
+		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 1);
 		HAL_USART_Transmit(&usart_dbg, buffer, len, 20);
-
-	trace_printf("len sensors msg\t%d\n", len);
 
 	if (SD){
 		taskENTER_CRITICAL();
@@ -198,7 +196,7 @@ taskEXIT_CRITICAL();
 	uint8_t error = 0;
 	len = mavlink_msg_to_send_buffer(buffer, &msg);
 	if (RF)
-		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 0);
+		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 1);
 
 	if (SD){
 		taskENTER_CRITICAL();
@@ -229,7 +227,7 @@ taskEXIT_CRITICAL();
 	uint8_t error = 0;
 	len = mavlink_msg_to_send_buffer(buffer, &msg);
 	if (RF)
-		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 0);
+		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 1);
 
 	if (SD){
 		taskENTER_CRITICAL();
@@ -262,7 +260,7 @@ taskEXIT_CRITICAL();
 	uint8_t error = 0;
 	len = mavlink_msg_to_send_buffer(buffer, &msg);
 	if (RF)
-		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 0);
+		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 1);
 
 	if (SD){
 		taskENTER_CRITICAL();
@@ -338,8 +336,16 @@ void IO_RF_Init(){
 	}
 
 	HAL_Delay(200);
-
 	trace_printf("%d\n", error);
+
+	if (SD){
+		stream_file.res = 1;
+		//	запуск SD
+		stream_file.file_opened = false;
+		dump_init(&stream_file);
+		state_system.SD_state = (uint8_t)stream_file.res;
+		HAL_Delay(200);
+	}
 }
 
 void led(){
@@ -347,10 +353,7 @@ void led(){
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
 	else
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
-//
-//	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
-//	vTaskDelay(20);
-//	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
+
 }
 
 
@@ -369,6 +372,7 @@ int8_t msg_state = 1;
 int8_t msg_state_zero = 1;
 uint8_t my_stage_telem = 0;
 int8_t command = 0;
+uint8_t Timeout = 10 / portTICK_RATE_MS;
 
 
 void IO_RF_task() {
@@ -376,64 +380,97 @@ void IO_RF_task() {
 	for (;;) {
 
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-		trace_printf("RF_task");
 
 
-		taskENTER_CRITICAL();
+		led();
+
+//		taskENTER_CRITICAL();
 //		command = state_system.globalCommand = mavlink_msg_get_command();
 //		if (command != -1)
 //			xQueueSendToBack(handleInternalCmdQueue, &command, 0);
-		taskEXIT_CRITICAL();
+//		taskEXIT_CRITICAL();
 
 		switch (command){
 			// Этап 0. Подтверждение инициализации отправкой пакета состояния и ожидание ответа от НС
 			case 0:
-				for (int i = 0; i < 20; i++){
+				do {
 					mavlink_msg_state_send();
+					trace_printf("T");
+					vTaskDelay(Timeout);
 					mavlink_msg_BMP_send();
+					trace_printf("T");
+					vTaskDelay(Timeout);
 					mavlink_msg_sensors_send();
+					trace_printf("T");
+					vTaskDelay(Timeout);
 					mavlink_msg_gps_send();
+					trace_printf("T");
+					vTaskDelay(Timeout);
 					mavlink_msg_imu_isc_send();
+					trace_printf("T");
+					vTaskDelay(Timeout);
 					mavlink_msg_imu_rsc_send();
-				}
+					taskENTER_CRITICAL();
+					command = state_system.globalCommand;
+					state_system.globalStage = command;
+					taskEXIT_CRITICAL();
+				} while (command != 1);
 
-				do command = mavlink_msg_get_command();
-				while (command == -1);
-				taskENTER_CRITICAL();
-				state_system.globalStage = command;
-				state_system.globalCommand = command;
-				taskEXIT_CRITICAL();
+//				do command = mavlink_msg_get_command();
+//				while (command == -1);
+
 				break;
 
 
 			case 1:
-				do mavlink_msg_get_command();
-				while (command == -1);
-				taskENTER_CRITICAL();
-				state_system.globalCommand = command;
-				state_system.globalStage = command;
-				taskEXIT_CRITICAL();
+				do {
+					mavlink_msg_state_send();
+					vTaskDelay(Timeout);
+					mavlink_msg_BMP_send();
+					vTaskDelay(Timeout);
+					mavlink_msg_sensors_send();
+					vTaskDelay(Timeout);
+					mavlink_msg_gps_send();
+					vTaskDelay(Timeout);
+					mavlink_msg_imu_isc_send();
+					vTaskDelay(Timeout);
+					mavlink_msg_imu_rsc_send();
+					taskENTER_CRITICAL();
+					command = state_system.globalCommand;
+					state_system.globalStage = command;
+					taskEXIT_CRITICAL();
+				} while (command != 2);
+
 				break;
 
 			// Этап 2. Определение начального состояния и полет в ракете
 			//Todo: посмотреть реализован ли прием zero_state на наземке
 			case 2:
-				mavlink_msg_state_zero_send();
-				do mavlink_msg_get_command();
-				while (command == -1);
-				taskENTER_CRITICAL();
-				state_system.globalCommand = command;
-				state_system.globalStage = command;
-				taskEXIT_CRITICAL();
+				do {
+					mavlink_msg_state_send();
+					vTaskDelay(30);
+					mavlink_msg_state_zero_send();
+					vTaskDelay(30);
+					taskENTER_CRITICAL();
+					command = state_system.globalCommand;
+					state_system.globalStage = command;
+					taskEXIT_CRITICAL();
+				} while (command != 3);
 				break;
 
-			default:
+			case 3:
 				mavlink_msg_state_send();
+				vTaskDelay(Timeout);
 				mavlink_msg_BMP_send();
+				vTaskDelay(Timeout);
 				mavlink_msg_sensors_send();
+				vTaskDelay(Timeout);
 				mavlink_msg_gps_send();
+				vTaskDelay(Timeout);
 				mavlink_msg_imu_isc_send();
+				vTaskDelay(Timeout);
 				mavlink_msg_imu_rsc_send();
+				break;
 
 		}
 	}

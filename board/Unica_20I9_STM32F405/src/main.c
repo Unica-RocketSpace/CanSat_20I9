@@ -215,7 +215,6 @@ void LED_task(){
 
 
 
-
 int main(int argc, char* argv[])
 {
 	// Инициализация структур глобального состояния (в нашем случае просто заполняем их нулями)
@@ -249,10 +248,10 @@ int main(int argc, char* argv[])
 
 
 	if (BMP || IMU_BMP || IMU)
-		xTaskCreateStatic(SENSORS_task, 	"SENSORS", 		IMU_TASK_STACK_SIZE, 	NULL, 2, _IMUTaskStack, 	&_IMUTaskObj);
+		xTaskCreateStatic(SENSORS_task, 	"SENSORS", 		IMU_TASK_STACK_SIZE, 	NULL, 1, _IMUTaskStack, 	&_IMUTaskObj);
 
 	if (RF)
-		handleRF = xTaskCreateStatic(IO_RF_task, 	"IO_RF", 	IO_RF_TASK_STACK_SIZE,	NULL, 2, _iorfTaskStack, 	&_iorfTaskObj);
+		handleRF = xTaskCreateStatic(IO_RF_task, 	"IO_RF", 	IO_RF_TASK_STACK_SIZE,	NULL, 1, _iorfTaskStack, 	&_iorfTaskObj);
 
 	if (GROUND)
 		xTaskCreateStatic(GROUND_task, 	"GROUND", 	GROUND_TASK_STACK_SIZE,	NULL, 2, _groundTaskStack, 	&_groundTaskObj);
@@ -276,10 +275,10 @@ int main(int argc, char* argv[])
 		xTaskCreateStatic(LED_task, "LED", LED_TASK_STACK_SIZE, NULL, 1, _ledTaskStack, &_ledfTaskObj);
 
 	if (CONTROL)
-	handleControl = xTaskCreateStatic(CONTROL_task, "CONTROL", CONTROL_TASK_STACK_SIZE, NULL, 2, _CONTROLTaskStack, &_CONTROLTaskObj);
+		handleControl = xTaskCreateStatic(CONTROL_task, "CONTROL", CONTROL_TASK_STACK_SIZE, NULL, 2, _CONTROLTaskStack, &_CONTROLTaskObj);
 
 	if (GPS)
-		xTaskCreateStatic(GPS_task, 	"GPS", 		GPS_TASK_STACK_SIZE, 	NULL, 2, _gpsTaskStack, 	&_gpsTaskObj);
+		xTaskCreateStatic(GPS_task, 	"GPS", 		GPS_TASK_STACK_SIZE, 	NULL, 1, _gpsTaskStack, 	&_gpsTaskObj);
 
 
 
@@ -300,10 +299,11 @@ int main(int argc, char* argv[])
 	Init_led();
 
 	if (IMU || BMP || IMU_BMP) IMU_Init();
-	if (RF) IO_RF_Init();
+	if (RF || SD) IO_RF_Init();
 	if (GROUND) GROUND_Init();
 	if (GPS) GPS_Init();
 	if (SERVO) allServosInit();
+
 
 	HAL_InitTick(15);
 

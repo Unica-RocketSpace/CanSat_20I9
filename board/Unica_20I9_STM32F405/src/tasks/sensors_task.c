@@ -245,7 +245,7 @@ void bmp280_update() {
 		stateIMUSensors.pressure = pressure_f;
 		stateIMUSensors.temp = temp_f;
 		stateIMUSensors.height = height;
-		trace_printf("pressure\t%f temp\t%f height\t%f\n------------------------------------------------\n", pressure_f, temp_f, height);
+//		trace_printf("pressure\t%f temp\t%f height\t%f\n------------------------------------------------\n", pressure_f, temp_f, height);
 	taskEXIT_CRITICAL();
 	}
 
@@ -263,7 +263,7 @@ void bmp280_update() {
 		stateSensors.pressure = pressure_f;
 		stateSensors.temp = temp_f;
 	taskEXIT_CRITICAL();
-	trace_printf("pressure\t%f temp\t%f height\t%f\n------------------------------------------------\n", pressure_f, temp_f, height);
+//	trace_printf("pressure\t%f temp\t%f height\t%f\n------------------------------------------------\n", pressure_f, temp_f, height);
 	}
 }
 
@@ -293,6 +293,7 @@ taskENTER_CRITICAL();
 taskEXIT_CRITICAL();
 }
 
+/*
 uint8_t init_hi2c(I2C_HandleTypeDef* hi2c){
 
 	int error = 0;
@@ -315,11 +316,10 @@ uint8_t init_hi2c(I2C_HandleTypeDef* hi2c){
 end:
 	return error;
 }
-
+*/
 
 void IMU_Init() {
 
-	init_hi2c(&i2c_mpu9255);
 
 	if (IMU){
 		//---ИНИЦИАЛИЗАЦИЯ MPU9255---//
@@ -407,6 +407,8 @@ void SENSORS_task() {
 		my_stage_sensor = state_system.globalStage;
 		taskEXIT_CRITICAL();
 
+		trace_printf("S");
+
 		switch (my_stage_sensor){
 			case 1:
 					get_staticShifts();
@@ -432,10 +434,10 @@ void SENSORS_task() {
 
 		}
 
-
-
-		xTaskNotifyGive(handleControl);
-		xTaskNotifyGive(handleRF);
+		if (RF)
+			xTaskNotifyGive(handleRF);
+		if (CONTROL)
+			xTaskNotifyGive(handleControl);
 
 		vTaskDelay(20/portTICK_RATE_MS);
 

@@ -7,6 +7,8 @@
 #include <tasks/control_task.h>
 #include <stdint.h>
 #include <diag/Trace.h>
+#include <stm32f4xx_hal_gpio.h>
+#include "stm32f4xx_hal.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -14,7 +16,7 @@
 
 #include "state.h"
 
-
+GPIO_InitTypeDef engine_pin;
 
 
 int8_t global_command;
@@ -24,10 +26,39 @@ uint8_t buttons = 0;
 
 uint8_t command;
 
+
+void init_pins(){
+	engine_pin.Mode = GPIO_MODE_OUTPUT_PP;
+	engine_pin.Pin = ENGINE_PIN_GOL | ENGINE_PIN_GOR | ENGINE_PIN_KEEL | ENGINE_PIN_WL | ENGINE_PIN_WR | DEPLOY_PARACHUTE_PIN;
+	engine_pin.Pull = GPIO_NOPULL;
+	engine_pin.Speed = GPIO_SPEED_MEDIUM;
+	HAL_GPIO_Init(ENGINE_PORT, &engine_pin);
+
+	engine_pin.Mode = GPIO_MODE_OUTPUT_PP;
+	engine_pin.Pin = PHOTORES_PIN;
+	engine_pin.Pull = GPIO_NOPULL;
+	engine_pin.Speed = GPIO_SPEED_MEDIUM;
+	HAL_GPIO_Init(PHOTORES_PORT, &engine_pin);
+
+}
+
+
 void deploy_parachute(){
 	HAL_GPIO_WritePin(DEPLOY_PARACHUTE_PORT, DEPLOY_PARACHUTE_PIN, GPIO_PIN_SET);
 	vTaskDelay(3000/portTICK_RATE_MS);
 	HAL_GPIO_WritePin(DEPLOY_PARACHUTE_PORT, DEPLOY_PARACHUTE_PIN, GPIO_PIN_RESET);
+}
+
+void set_engines(){
+	HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_GOL, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_GOR, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_KEEL, GPIO_PIN_SET);
+}
+
+void reset_engines(){
+	HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_GOL, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_GOR, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_KEEL, GPIO_PIN_RESET);
 }
 
 
@@ -36,8 +67,9 @@ void CONTROL_task() {
 	for(;;){
 
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-		trace_printf("CONTROL_task");
+		trace_printf("C");
 
+		init_pins();
 		taskENTER_CRITICAL();
 		global_stage = state_system.globalStage;
 		global_command = state_system.globalCommand;
@@ -57,19 +89,24 @@ void CONTROL_task() {
 //		}
 
 		switch (global_stage){
+			case 0:
+				vTaskDelay(1000/portTICK_RATE_MS);
+				set_engines();
+				vTaskDelay(1000/portTICK_RATE_MS);
+				reset_engines();
+				break;
+
 			case 2:
-//				FIXME: инициализировать фотосенсор
+//				FIXME: инициализировать фотосенсор(а надо ли?)
 				break;
 
 			case 3:
-//				if (сработало прерывание от фотосенсора){
-//					taskENTER_CRITICAL();
-//					state_system.globalStage = 4;
-//					taskEXIT_CRITICAL();
-//				}
+				if (HAL_GPIO_ReadPin(PHOTORES_PORT, PHOTORES_PIN)){
+					taskENTER_CRITICAL();
+					state_system.globalStage = 4;
+					taskEXIT_CRITICAL();
+				}
 				break;
-
-
 
 			case 4:
 				if (height <= HEIGHT_TO_DEPLOY_PARACHUTE){
@@ -81,6 +118,9 @@ void CONTROL_task() {
 				break;
 
 			case 5:
+
+
+
 				//ждем прерывания от крыльев и стабилизаторов
 				if (buttons == ALL_BUTTONS_WORKED){
 					taskENTER_CRITICAL();
@@ -106,8 +146,10 @@ void CONTROL_task() {
 			case 7:
 				//Переходим в режим ожидания
 				break;
-
 		}
+
+		vTaskDelay(150 / portTICK_RATE_MS);
+
 	}
 }
 

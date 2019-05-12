@@ -27,6 +27,7 @@ if __name__ == "__main__":
     thread.new_sensors_record.connect(myapp.sens_msg)
     thread.new_gps_record.connect(myapp.gps_msg)
     thread.new_state_record.connect(myapp.state_msg)
+    thread.new_servo_record.connect(myapp.servo_msg)
     thread.start()
 
     myapp.new_send_command.connect(thread.post_msg)

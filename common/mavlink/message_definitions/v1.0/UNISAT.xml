@@ -90,8 +90,13 @@
             <description>Msg to send servo angles</description>
             <field type="float" name="time">current time</field>
             <field type="float" name="angle_left"> </field>
+<<<<<<< HEAD
+            <field type="float" name="angle_right"> </field>
+            <field type="float" name="angle_keel"> </field>
+=======
 			<field type="float" name="angle_right"> </field>
 			<field type="float" name="angle_keel"> </field>
+>>>>>>> 66d24401a00d653f9e262006b2ce7e687894958a
         </message>
     </messages>
 </mavlink>

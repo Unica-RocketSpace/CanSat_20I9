@@ -7,64 +7,166 @@ import numpy as np
 import pyqtgraph as pg
 from .gcs_ui import *
 
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import *
+from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtGui import QQuaternion
 
-from .mavlink import read_file
-
+from pyqtgraph import Transform3D
+import pyquaternion
 import pyqtgraph.opengl as gl
-
-from PyQt5.QtCore import QThread
-import logging
 import math
+
+from stl import mesh
+from itertools import chain
+
+from .mavlink import *
 
 from . import _log as _root_log
 
-
 _log = _root_log.getChild("main")
 
-# index = 0
-# print(way)
+# Запись данных в файлы
+FILE_WRITE = 1
+
+MESH_PATH = r'C:\Users\MI\PycharmProjects\CanSat_20I9\ground\unisat-gcs\src\unisat_gcs\server\theplane.stl'
+
+if FILE_WRITE:
 
 
-point = "."
-i = read_file.index(point)
-file_name = read_file[0:i]
+    file_name = "test"
+    expansion = ".txt"
 
-expansion = ".txt"
-
-
-file_bmp = file_name + "_bmp" + expansion
-file_imu_isc = file_name + "_imu_isc" + expansion
-file_imu_rsc = file_name + "_imu_rsc" + expansion
-file_sensors = file_name + "_sensors" + expansion
-file_gps = file_name + "_gps" + expansion
+    file_bmp = file_name + "_bmp" + expansion
+    file_imu_isc = file_name + "_imu_isc" + expansion
+    file_imu_rsc = file_name + "_imu_rsc" + expansion
+    file_sensors = file_name + "_imu_bmp" + expansion
+    file_gps = file_name + "_gps" + expansion
+    file_servo = file_name + "_servo" + expansion
 
 
-f = open(file_bmp, 'w')
-f.write("Time" + '\t' + "Pressure" + '\t' + "Temp" + '\n')
-f.close()
+    f = open(file_bmp, 'w')
+    f.write("Time" + '\t' + "Pressure" + '\t' + "Temp" + '\n')
+    f.close()
 
-f = open(file_sensors, 'w')
-f.write("Time" + '\t' + "Pressure" + '\t' + "Height" + '\t' + "Temp" + '\n')
-f.close()
+    f = open(file_sensors, 'w')
+    f.write("Time" + '\t' + "Pressure" + '\t' + "Height" + '\t' + "Temp" + '\n')
+    f.close()
 
-f = open(file_imu_isc, 'w')
-f.write("Time" + '\t' + "Accel" + '\t' + '\t' + '\t' + "Compass" + '\t' + '\t' + '\t' + "Quaternion" + '\n')
-f.close()
+    f = open(file_imu_isc, 'w')
+    f.write("Time" + '\t' + "Accel" + '\t' + '\t' + '\t' + "Compass" + '\t' + '\t' + '\t' + "Quaternion" + '\n')
+    f.close()
 
-f = open(file_imu_rsc, 'w')
-f.write("Time" + '\t' + "Accel" + '\t' + '\t' + '\t' + "Compass" + '\t' + '\t' + '\t' + "Gyro" + '\n')
-f.close()
+    f = open(file_imu_rsc, 'w')
+    f.write("Time" + '\t' + "Accel" + '\t' + '\t' + '\t' + "Compass" + '\t' + '\t' + '\t' + "Gyro" + '\n')
+    f.close()
 
-f = open(file_gps, 'w')
-f.write("Time" + '\t' + "x" + '\t' + '\t' + '\t' + "y" + '\t' + '\t' + '\t' + "z" + '\n')
-f.close()
+    f = open(file_gps, 'w')
+    f.write("Time" + '\t' + "x" + '\t' + '\t' + '\t' + "y" + '\t' + '\t' + '\t' + "z" + '\n')
+    f.close()
+
+    f = open(file_servo, 'w')
+    f.write("Time" + '\t' + "angle_left" + '\t' + '\t' + '\t' + "angle_right" + '\t' + '\t' + '\t' + "angle_keel" + '\n')
+    f.close()
 
 log_text = ''
 global_vars={'x': 0, 'y': 0}
 now_graf = None
 str_now_graf = None
+
+
+#
+class PlaneWidget(gl.GLViewWidget):
+    def __init__(self, mesh_path, *args, **kwargs):
+        super(PlaneWidget, self).__init__(*args, **kwargs)
+        self.setCameraPosition(distance=600)
+        self.setBackgroundColor([100, 100, 100, 0])
+        g = gl.GLGridItem()
+        g.scale(2, 2, 1)
+        # g.translate(0, 0, 0)
+        self.addItem(g)
+
+
+        isc_coord = gl.GLAxisItem()
+        isc_coord.setSize(100, 100, 100)
+        self.addItem(isc_coord)
+
+        self.plane_axis = gl.GLAxisItem()
+        self.plane_axis.setSize(x=50, y=50, z=50)
+        self.addItem(self.plane_axis)
+
+        verts = self._get_mesh_points(mesh_path)
+        faces = np.array([(i, i+1, i+2,) for i in range(0, len(verts), 3)])
+        colors = np.array([(0.0, 1.0, 0.0, 1.0,) for i in range(0, len(verts), 3)])
+        self.mesh = gl.GLMeshItem(vertexes=verts, faces=faces, faceColors=colors, smooth=False, shader='shaded')
+        self.addItem(self.mesh)
+        # self._update_mesh([0, 0, 1])
+
+
+    def on_new_records(self, records):
+        self._update_mesh(records)
+
+
+    def _get_mesh_points(self, mesh_path):
+        your_mesh = mesh.Mesh.from_file(mesh_path)
+        points = your_mesh.points
+
+        points = np.array(list(chain(*points)))
+        i = 0
+        nd_points = np.ndarray(shape=(len(points)//3, 3,) )
+        for i in range(0, len(points)//3):
+            nd_points[i] = points[i*3: (i+1)*3]
+
+        return nd_points
+
+    def _transform_object(self, target, move=True, rotate=True, scale=1 / 50):
+        target.resetTransform()
+        target.scale(scale, scale, scale)
+        if move: target.translate(0, 0, -3)
+        if rotate:
+            target.rotate(degrees(self.rotation.angle), self.rotation.axis[0], self.rotation.axis[1],
+                          self.rotation.axis[2])
+
+    def _update_rotation(self, record):
+        quat = pyquaternion.Quaternion(record)
+        self.rotation = quat
+        # self.acc.setCords(
+        #     *quat.rotate(record.acc))  # Поворачиваем ускорение не при отображении, а действительно меняя вектор
+        # record.mag = [axis * 40 for axis in record.mag]
+        # self.mag.setCords(*quat.rotate(record.mag))
+        self._transform_object(self.mesh)
+        self._transform_object(self.plane_axis, move=False)
+        # self._transform_object(self.acc, move=False, rotate=False, scale=10)  # Не поворачиваем ускорение, т.к. уже повернули его
+
+
+    # def _update_mesh(self, nadir_v):
+    #
+    #     # nadir_v_original = np.array([0, 0, 1], dtype='double')
+    #     # nadir_v_original /= np.linalg.norm(nadir_v_original)
+    #     # print(nadir_v_original)
+    #     #
+    #     # nadir_v = np.array(nadir_v, dtype='double')
+    #     # nadir_v /= np.linalg.norm(nadir_v)
+    #     #
+    #     # angle = np.dot(nadir_v_original, nadir_v)
+    #     # angle = acos(angle)
+    #     # angle = angle*180/np.pi
+    #     # axis = np.cross(nadir_v_original, nadir_v)
+    #
+    #     # print(axis, angle)
+    #
+    #
+    #     def do_things(target, move=True):
+    #         # target.resetTransform()
+    #         # target.scale(1/50, 1/50, 1/50)
+    #         # target.rotate(90, 1, 0, 0)
+    #         # target.rotate(180, 0, 0, 1)
+    #         # if move: target.translate(0, -3, 0)
+    #         # target.rotate(angle, axis[0], axis[1], axis[2])
+    #         target.setTransform(nadir_v)
+    #
+    #     do_things(self.mesh)
+    #     do_things(self.plane_axis, move=False)
+
+
 
 # Главный класс
 class MyWin(QtWidgets.QMainWindow):
@@ -74,6 +176,8 @@ class MyWin(QtWidgets.QMainWindow):
         QtWidgets.QWidget.__init__(self, parent)
         self.ui = Ui_MainWindow()
         # self.ui = Ground.Ui_MainWindow()
+        self.plane_widget = PlaneWidget(mesh_path=MESH_PATH, parent=self)
+
         self.ui.setupUi(self)
         self.setWindowTitle('Unica gcs')
 
@@ -147,6 +251,7 @@ class MyWin(QtWidgets.QMainWindow):
         self.buffer_imu_isc_msg = []
         self.buffer_imu_rsc_msg = []
         self.buffer_sensors_msg = []
+        self.buffer_servo_msg = []
 
         self.ui.glv_top = pg.GraphicsLayoutWidget(self.ui.centralwidget)
         self.ui.top.addWidget(self.ui.glv_top)
@@ -227,29 +332,30 @@ class MyWin(QtWidgets.QMainWindow):
         self.ui.dockwid = QtWidgets.QDockWidget()
         self.ui.grid_3D.addWidget(self.ui.dockwid)
 
-        self.ui.glwid = gl.GLViewWidget()
+        self.ui.glwid = self.plane_widget
         self.ui.dockwid.setWidget(self.ui.glwid)
-        self.gx = gl.GLGridItem()
-        self.gx.rotate(90, 0, 1, 0)
-        self.gx.translate(0, 10, 10)
-        self.ui.glwid.addItem(self.gx)
-        self.gy = gl.GLGridItem()
-        self.gy.rotate(90, 1, 0, 0)
-        self.gy.translate(10, 0, 10)
-        self.ui.glwid.addItem(self.gy)
-        self.gz = gl.GLGridItem()
-        self.gz.translate(10, 10, 0)
-        self.ui.glwid.addItem(self.gz)
-        self.plt = gl.GLLinePlotItem()
-        self.ui.glwid.addItem(self.plt)
+        # self.gx = gl.GLGridItem()
+        # self.gx.rotate(90, 0, 1, 0)
+        # self.gx.translate(0, 10, 10)
+        # self.ui.glwid.addItem(self.gx)
+        # self.gy = gl.GLGridItem()
+        # self.gy.rotate(90, 1, 0, 0)
+        # self.gy.translate(10, 0, 10)
+        # self.ui.glwid.addItem(self.gy)
+        # self.gz = gl.GLGridItem()
+        # self.gz.translate(10, 10, 0)
+        # self.ui.glwid.addItem(self.gz)
+        # self.plt = gl.GLLinePlotItem()
+        # self.ui.glwid.addItem(self.plt)
         self.isc_coord = gl.GLAxisItem()
         self.isc_coord.setSize(25, 25, 25)
-        self.rsc_coord = gl.GLAxisItem()
+        # self.rsc_coord = gl.GLAxisItem()
 
-        self.ui.glwid.addItem(self.isc_coord)
-        self.ui.glwid.addItem(self.rsc_coord)
+
+        # self.ui.glwid.addItem(self.isc_coord)
+        # self.ui.glwid.addItem(self.rsc_coord)
         self.ui.glwid.show()
-
+        # self.plane_widget.show()
 
         self.pl_graf_top1_x = self.sc_item_top1.plot()
         self.pl_graf_top2_x = self.sc_item_top2.plot()
@@ -637,32 +743,32 @@ class MyWin(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(list)
     def atm_msg(self, msgs):
-        i = 0
-
-
         for i in range(len(msgs)):
-            self.time_atm.append(msgs[i].time)
+
             self.pressure_atmega.append(msgs[i].pressure)
             self.temp_atmega.append(msgs[i].temp)
+            self.time_atm.append(msgs[i].time)
 
-            self.buffer_bmp_msg.append(  str(msgs[i].time) +'\t' + '\t' +
-                                    str(msgs[i].pressure) + '\t' + '\t' +
-                                    str(msgs[i].temp) + '\n')
+            if FILE_WRITE:
+                self.buffer_bmp_msg.append(  str(msgs[i].time) +'\t' + '\t' +
+                                        str(msgs[i].pressure) + '\t' + '\t' +
+                                        str(msgs[i].temp) + '\n')
 
 
             self.ui.textBrowser_2.append(
-                "ATmega {n: %ld, time : %0.3f, pressure : %0.3f, temp : %0.1f}"
+                "bmp {n: %ld, time : %0.3f, pressure : %0.3f, temp : %0.1f}"
                 %
                 (msgs[i].get_header().seq, msgs[i].time, msgs[i].pressure, msgs[i].temp)
             )
 
 
-        if len(self.buffer_bmp_msg) >= 9:
-            f = open(file_bmp, 'a')
-            for foo in range(len(self.buffer_bmp_msg)):
-                f.write(self.buffer_bmp_msg[foo])
-            self.buffer_bmp_msg = []
-            f.close()
+        if FILE_WRITE:
+            if len(self.buffer_bmp_msg) >= 10:
+                f = open(file_bmp, 'a')
+                for foo in range(len(self.buffer_bmp_msg)):
+                    f.write(self.buffer_bmp_msg[foo])
+                self.buffer_bmp_msg = []
+                f.close()
 
 
         if len(self.time_atm) > self.lenght:
@@ -697,8 +803,9 @@ class MyWin(QtWidgets.QMainWindow):
             self.av_y.append(msgs[i].gyro[1])
             self.av_z.append(msgs[i].gyro[2])
 
-            self.buffer_imu_rsc_msg.append(str(msgs[i].time) + '\t' + '\t' +
-                                        str(msgs[i].accel[0]) + ' ' + str(msgs[i].accel[1]) + str(msgs[i].accel[2]) + '\t' + '\t' +
+            if FILE_WRITE:
+                self.buffer_imu_rsc_msg.append(str(msgs[i].time) + '\t' + '\t' +
+                                        str(msgs[i].accel[0]) + ' ' + str(msgs[i].accel[1]) + ' ' + str(msgs[i].accel[2]) + '\t' + '\t' +
                                         str(msgs[i].compass[0]) + ' ' + str(msgs[i].compass[1]) + ' ' + str(msgs[i].compass[2]) + '\t' + '\t' +
                                         str(msgs[i].gyro[0]) + ' ' + str(msgs[i].gyro[1]) + ' ' + str(msgs[i].gyro[2]) + '\n')
 
@@ -709,12 +816,13 @@ class MyWin(QtWidgets.QMainWindow):
                     (msgs[i].get_header().seq, msgs[i].time, msgs[i].accel[0], msgs[i].accel[1], msgs[i].accel[2], msgs[i].gyro[0], msgs[i].gyro[1], msgs[i].gyro[2], msgs[i].compass[0], msgs[i].compass[1], msgs[i].compass[2])
                 )
 
-        if len(self.buffer_imu_rsc_msg) >= 9:
-            f = open(file_imu_rsc, 'a')
-            for foo in range(len(self.buffer_imu_rsc_msg)):
-                f.write(self.buffer_imu_rsc_msg[foo])
-            self.buffer_imu_rsc_msg = []
-            f.close()
+        if FILE_WRITE:
+            if len(self.buffer_imu_rsc_msg) >= 10:
+                f = open(file_imu_rsc, 'a')
+                for foo in range(len(self.buffer_imu_rsc_msg)):
+                    f.write(self.buffer_imu_rsc_msg[foo])
+                self.buffer_imu_rsc_msg = []
+                f.close()
 
 
         if len(self.time_RSC) > self.lenght:
@@ -756,15 +864,19 @@ class MyWin(QtWidgets.QMainWindow):
             self.vmf_y.append(msgs[i].compass[1])
             self.vmf_z.append(msgs[i].compass[2])
 
-            self.buffer_imu_isc_msg.append(str(msgs[i].time) + '\t' + '\t' +
+            if FILE_WRITE:
+                self.buffer_imu_isc_msg.append(str(msgs[i].time) + '\t' + '\t' +
                                         str(msgs[i].accel[0]) + ' ' + str(msgs[i].accel[1]) + str(msgs[i].accel[2]) + '\t' + '\t' +
                                         str(msgs[i].compass[0]) + ' ' + str(msgs[i].compass[1]) + ' ' + str(msgs[i].compass[2]) + '\t' + '\t' +
-                                        str(msgs[i].quaternion[0]) + ' ' + str(msgs[i].quaternion[1]) + ' ' + str(msgs[i].quaternion[2]) + '\n')
+                                        str(msgs[i].quaternion[0]) + ' ' + str(msgs[i].quaternion[1]) + ' ' + str(msgs[i].quaternion[2]) + ' ' + str(msgs[i].quaternion[3]) + '\n')
 
-            q_0 = msgs[i].quaternion[0]
-            teta = 2 * acos(q_0)
-            sin_teta = sqrt(1 - q_0*q_0)
-            self.rsc_coord.rotate(180*teta/math.pi, - msgs[i].quaternion[1] / sin_teta, - msgs[i].quaternion[2] / sin_teta, - msgs[i].quaternion[3] / sin_teta)
+
+            # tr = Transform3D()
+            quat = pyquaternion.Quaternion(msgs[i].quaternion)
+            # quat = QQuaternion(msgs[i].quaternion[0], msgs[i].quaternion[1], msgs[i].quaternion[2], msgs[i].quaternion[3])
+
+            # tr.rotate(quat)
+            self.plane_widget._update_rotation(quat)
 
             self.ui.textBrowser_2.append(
                 "IMU_ISC\t {n: %ld, time: %0.3f, A: [%0.4f, %0.4f, %0.4f] M: [%0.3f, %0.3f, %0.3f]}"
@@ -782,12 +894,13 @@ class MyWin(QtWidgets.QMainWindow):
             #     (msgs[i].get_header().seq, msgs[i].time, *msgs[i].velocities, *msgs[i].coordinates)
             # )
 
-        if len(self.buffer_imu_isc_msg) >= 9:
-            f = open(file_imu_isc, 'a')
-            for foo in range(len(self.buffer_imu_isc_msg)):
-                f.write(self.buffer_imu_isc_msg[foo])
-            self.buffer_imu_isc_msg = []
-            f.close()
+        if FILE_WRITE:
+            if len(self.buffer_imu_isc_msg) >= 10:
+                f = open(file_imu_isc, 'a')
+                for foo in range(len(self.buffer_imu_isc_msg)):
+                    f.write(self.buffer_imu_isc_msg[foo])
+                self.buffer_imu_isc_msg = []
+                f.close()
 
 
         if len(self.time_ISC) > self.lenght:
@@ -843,24 +956,26 @@ class MyWin(QtWidgets.QMainWindow):
 
             time = msgs[i].time
 
-            self.buffer_sensors_msg.append( str(time) + '\t' + '\t' +
+            if FILE_WRITE:
+                self.buffer_sensors_msg.append( str(time) + '\t' + '\t' +
                                             str(msgs[i].pressure) + '\t' + '\t' +
                                             str(msgs[i].temp) + '\t' + '\t' +
                                             str(msgs[i].height) + '\n')
 
 
             self.ui.textBrowser_2.append(
-                "SENSORS  {n: %ld, time: %0.3f, temp: %0.3f, pressure: %0.3f}"
+                "imu_bmp  {n: %ld, time: %0.3f, temp: %0.3f, pressure: %0.3f}"
                 %
                 (msgs[i].get_header().seq, msgs[i].time, msgs[i].temp, msgs[i].pressure)
             )
 
-        if len(self.buffer_sensors_msg) >= 10:
-            f = open(file_sensors, 'a')
-            for foo in range(len(self.buffer_sensors_msg)):
-                f.write(self.buffer_sensors_msg[foo])
-            self.buffer_sensors_msg = []
-            f.close()
+        if FILE_WRITE:
+            if len(self.buffer_sensors_msg) >= 10:
+                f = open(file_sensors, 'a')
+                for foo in range(len(self.buffer_sensors_msg)):
+                    f.write(self.buffer_sensors_msg[foo])
+                self.buffer_sensors_msg = []
+                f.close()
 
 
         if len(self.time_sens) > self.lenght:
@@ -881,7 +996,7 @@ class MyWin(QtWidgets.QMainWindow):
             self.x.append(msgs[i].coordinates[0])
             self.y.append(msgs[i].coordinates[1])
             speed = msgs[i].speed
-        #
+
             self.ui.textBrowser_2.append(
                 "GPS {n: %ld, time: %0.3f, coordinates: [%0.5f, %0.5f], speed: %0.3f}"
                 %
@@ -958,3 +1073,28 @@ class MyWin(QtWidgets.QMainWindow):
 
         if self.state_fly == 5:
             self.ui.end.setText(str('1'))
+
+
+    @QtCore.pyqtSlot(list)
+    def servo_msg(self, msgs):
+        for i in range(len(msgs)):
+            if FILE_WRITE:
+                self.buffer_servo_msg.append(str(msgs[i].time) + '\t' +
+                                            str(msgs[i].angle_left) + '\t' + '\t' +
+                                            str(msgs[i].angle_right) + '\t' + '\t' +
+                                            str(msgs[i].angle_keel) + '\n')
+
+
+            self.ui.textBrowser_2.append(
+                "SERVO  {n: %ld, angle left: %0.3f, angle_right: %0.3f, angle_keel: %0.3f}"
+                %
+                (msgs[i].get_header().seq, msgs[i].angle_left, msgs[i].angle_right, msgs[i].angle_keel)
+            )
+
+        if FILE_WRITE:
+            if len(self.buffer_servo_msg) >= 10:
+                f = open(file_servo, 'a')
+                for foo in range(len(self.buffer_servo_msg)):
+                    f.write(self.buffer_servo_msg[foo])
+                self.buffer_servo_msg = []
+                f.close()

@@ -11,6 +11,7 @@
 #include "state.h"
 #include <stdint.h>
 
+void init_pins();
 void CONTROL_task();
 
 extern GPIO_InitTypeDef d;

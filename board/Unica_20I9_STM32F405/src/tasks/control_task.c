@@ -22,8 +22,7 @@ GPIO_InitTypeDef engine_pin;
 int8_t global_command;
 uint8_t global_stage = 0;
 float height;
-uint8_t buttons = 0;
-
+uint8_t button;
 uint8_t command;
 
 
@@ -34,11 +33,26 @@ void init_pins(){
 	engine_pin.Speed = GPIO_SPEED_MEDIUM;
 	HAL_GPIO_Init(ENGINE_PORT, &engine_pin);
 
-	engine_pin.Mode = GPIO_MODE_OUTPUT_PP;
+	engine_pin.Mode = GPIO_MODE_INPUT;
 	engine_pin.Pin = PHOTORES_PIN;
 	engine_pin.Pull = GPIO_NOPULL;
 	engine_pin.Speed = GPIO_SPEED_MEDIUM;
 	HAL_GPIO_Init(PHOTORES_PORT, &engine_pin);
+
+	engine_pin.Mode = GPIO_MODE_OUTPUT_PP;
+	engine_pin.Pin = BUTTON_PIN_GOL | BUTTON_PIN_GOR;
+	engine_pin.Pull = GPIO_PULLUP;
+	engine_pin.Speed = GPIO_SPEED_MEDIUM;
+	HAL_GPIO_Init(BUTTON_PORT, &engine_pin);
+
+	engine_pin.Mode = GPIO_MODE_INPUT;
+	engine_pin.Pin = BUTTON_PIN_KEEL | BUTTON_PIN_WL | BUTTON_PIN_WR;
+	engine_pin.Pull = GPIO_PULLUP;
+	engine_pin.Speed = GPIO_SPEED_MEDIUM;
+	HAL_GPIO_Init(BUTTON_PORT_2, &engine_pin);
+
+//	S
+
 
 }
 
@@ -69,13 +83,14 @@ void CONTROL_task() {
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 		trace_printf("C");
 
-		init_pins();
 		taskENTER_CRITICAL();
 		global_stage = state_system.globalStage;
 		global_command = state_system.globalCommand;
 		height = stateIMUSensors.height;
-//		buttons = state_system.buttons;
+		button = state_system.buttons;
 		taskEXIT_CRITICAL();
+
+		trace_printf("stage %d\n", global_stage);
 
 
 
@@ -87,13 +102,12 @@ void CONTROL_task() {
 //		if (global_stage == 0){
 //			xQueueSendToBack(handleInternalCmdQueue, &command, 0);
 //		}
-
 		switch (global_stage){
 			case 0:
-				vTaskDelay(1000/portTICK_RATE_MS);
-				set_engines();
-				vTaskDelay(1000/portTICK_RATE_MS);
-				reset_engines();
+//				vTaskDelay(1000/portTICK_RATE_MS);
+//				set_engines();
+//				vTaskDelay(1000/portTICK_RATE_MS);
+//				reset_engines();
 				break;
 
 			case 2:
@@ -112,21 +126,70 @@ void CONTROL_task() {
 				if (height <= HEIGHT_TO_DEPLOY_PARACHUTE){
 					taskENTER_CRITICAL();
 					deploy_parachute();
-					state_system.globalStage = 4;
+					state_system.globalStage = 5;
 					taskEXIT_CRITICAL();
 				}
 				break;
 
 			case 5:
-
-
-
+				trace_printf("buttons %d\n", button);
+				switch (button){
 				//ждем прерывания от крыльев и стабилизаторов
-				if (buttons == ALL_BUTTONS_WORKED){
-					taskENTER_CRITICAL();
-					state_system.globalStage = 5;
-					taskEXIT_CRITICAL();
-					global_stage = 5;
+					/*case 4:
+						HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_WL, GPIO_PIN_SET);
+						if (!HAL_GPIO_ReadPin(BUTTON_PORT_2, BUTTON_PIN_WL)){
+							taskENTER_CRITICAL();
+							state_system.buttons = (++button);
+							taskEXIT_CRITICAL();
+							HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_WL, GPIO_PIN_RESET);
+						}
+						break;
+
+					case 5:
+						HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_WR, GPIO_PIN_SET);
+						if (!HAL_GPIO_ReadPin(BUTTON_PORT_2, BUTTON_PIN_WR)){
+							taskENTER_CRITICAL();
+							state_system.buttons = (++button);
+							taskEXIT_CRITICAL();
+							HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_WR, GPIO_PIN_RESET);
+						}
+						break;*/
+
+					case 0:
+						HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_GOL, GPIO_PIN_SET);
+						if (!HAL_GPIO_ReadPin(BUTTON_PORT, BUTTON_PIN_GOL)){
+							taskENTER_CRITICAL();
+							state_system.buttons = (++button);
+							taskEXIT_CRITICAL();
+							HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_GOL, GPIO_PIN_RESET);
+						}
+						break;
+
+					case 1:
+						HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_GOR, GPIO_PIN_SET);
+						if (!HAL_GPIO_ReadPin(BUTTON_PORT, BUTTON_PIN_GOR)){
+							taskENTER_CRITICAL();
+							state_system.buttons = (++button);
+							taskEXIT_CRITICAL();
+							HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_GOR, GPIO_PIN_RESET);
+						}
+						break;
+
+					case 2:
+						HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_KEEL, GPIO_PIN_SET);
+						if (!HAL_GPIO_ReadPin(BUTTON_PORT_2, BUTTON_PIN_KEEL)){
+							taskENTER_CRITICAL();
+							state_system.buttons = (++button);
+							taskEXIT_CRITICAL();
+							HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_KEEL, GPIO_PIN_RESET);
+						}
+						break;
+
+					case 3:
+						taskENTER_CRITICAL();
+						state_system.globalStage = 6;
+						taskEXIT_CRITICAL();
+						break;
 				}
 				break;
 

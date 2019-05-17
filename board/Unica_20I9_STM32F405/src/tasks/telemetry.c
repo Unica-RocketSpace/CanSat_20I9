@@ -384,13 +384,17 @@ void IO_RF_task() {
 
 		led();
 
+		taskENTER_CRITICAL();
+		my_stage_telem = state_system.globalStage;
+		taskEXIT_CRITICAL();
+
 //		taskENTER_CRITICAL();
 //		command = state_system.globalCommand = mavlink_msg_get_command();
 //		if (command != -1)
 //			xQueueSendToBack(handleInternalCmdQueue, &command, 0);
 //		taskEXIT_CRITICAL();
 
-		switch (command){
+		switch (my_stage_telem){
 			// Этап 0. Подтверждение инициализации отправкой пакета состояния и ожидание ответа от НС
 			case 0:
 				do {
@@ -458,7 +462,7 @@ void IO_RF_task() {
 				} while (command != 3);
 				break;
 
-			case 3:
+			default:
 				mavlink_msg_state_send();
 				vTaskDelay(Timeout);
 				mavlink_msg_BMP_send();

@@ -47,7 +47,7 @@
 #define DEPLOY_PARACHUTE_PORT		GPIOC
 #define DEPLOY_PARACHUTE_PIN		GPIO_PIN_6
 #define DELTA_HEIGHT 				10
-#define ALL_BUTTONS_WORKED 			255
+#define ALL_BUTTONS_WORKED 			5
 
 #define PHOTORES_PORT				GPIOA
 #define PHOTORES_PIN				GPIO_PIN_1
@@ -59,8 +59,13 @@
 #define ENGINE_PIN_WR				GPIO_PIN_5
 #define ENGINE_PIN_WL				GPIO_PIN_4
 
-
-
+#define BUTTON_PORT					GPIOB
+#define BUTTON_PIN_GOL				GPIO_PIN_13
+#define BUTTON_PIN_GOR				GPIO_PIN_14
+#define BUTTON_PORT_2				GPIOC
+#define BUTTON_PIN_KEEL				GPIO_PIN_7
+#define BUTTON_PIN_WR				GPIO_PIN_9
+#define BUTTON_PIN_WL				GPIO_PIN_8
 
 
 // if error set value and go to end

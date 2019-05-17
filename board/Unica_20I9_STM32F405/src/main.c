@@ -240,10 +240,11 @@ int main(int argc, char* argv[])
 
 	state_system.BMP_state 	= 255;
 	state_system.GPS_state 	= 255;
-	state_system.buttons 	= 255;
+	state_system.buttons 	= 0;
 	state_system.MPU_state 	= 255;
 	state_system.NRF_state 	= 255;
 	state_system.SD_state 	= 255;
+	state_system.globalStage = 5;
 
 
 
@@ -303,7 +304,7 @@ int main(int argc, char* argv[])
 	if (GROUND) GROUND_Init();
 	if (GPS) GPS_Init();
 	if (SERVO) allServosInit();
-
+	if (CONTROL) init_pins();
 
 	HAL_InitTick(15);
 

@@ -64,7 +64,7 @@ uint8_t nRF24L01_init (SPI_HandleTypeDef* hspi){
 	hspi->Init.CLKPolarity = SPI_POLARITY_LOW;
 	hspi->Init.CLKPhase = SPI_PHASE_1EDGE;
 	hspi->Init.NSS = SPI_NSS_SOFT;
-	hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
+	hspi->Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
 	hspi->Init.FirstBit = SPI_FIRSTBIT_MSB;
 	hspi->Init.TIMode = SPI_TIMODE_DISABLE;
 	hspi->Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -95,6 +95,7 @@ uint8_t nRF24L01_init (SPI_HandleTypeDef* hspi){
 
 	PROCESS_ERROR(nRF24L01_read_register(hspi, nRF24L01_CONFIG_ADDR, &_read_value))
 	trace_printf("readvalue %d\n", _read_value);
+	HAL_Delay(100);
 	PROCESS_ERROR(nRF24L01_write_register(hspi, nRF24L01_CONFIG_ADDR, value));
 	HAL_Delay(100);
 	PROCESS_ERROR(nRF24L01_read_register(hspi, nRF24L01_CONFIG_ADDR, &_read_value))

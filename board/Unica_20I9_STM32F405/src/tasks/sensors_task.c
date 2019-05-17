@@ -396,8 +396,10 @@ void SENSORS_task() {
 */
 
 	taskENTER_CRITICAL();
-	my_stage_sensor = state_system.globalStage = 0;
+	my_stage_sensor = state_system.globalStage;
 	taskEXIT_CRITICAL();
+
+	get_staticShifts();
 
 
 	for (;;) {
@@ -411,11 +413,9 @@ void SENSORS_task() {
 
 		switch (my_stage_sensor){
 			case 1:
-					get_staticShifts();
-
-					bmp280_update();
-					IMU_updateDataAll();
-					_IMUtask_updateData();
+				bmp280_update();
+				IMU_updateDataAll();
+				_IMUtask_updateData();
 				break;
 
 			case 2:

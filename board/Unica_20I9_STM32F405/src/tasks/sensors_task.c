@@ -10,6 +10,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <stm32f4xx_hal.h>
+#include <stm32f4xx_hal_i2c.h>
+
 #include <sofa.h>
 
 #include "FreeRTOS.h"
@@ -26,6 +29,7 @@
 #define BETA_2	0.3
 #define BETA_3	0.25
 
+#define SPEED_COEF		1.0				//FIXME: Посчитать
 
 #define BMP_DELTA_PRESSURE		200
 #define	IMU_BMP_DELTA_PRESSURE	-2600
@@ -262,8 +266,12 @@ void bmp280_update() {
 		stateSensors_raw.temp = temp;
 		stateSensors.pressure = pressure_f;
 		stateSensors.temp = temp_f;
+
+		//Count speed_BMP
+		state_master.speed_BMP = (stateSensors.pressure - stateIMUSensors.pressure) * SPEED_COEF;
+
+//		trace_printf("pressure\t%f temp\t%f height\t%f\n------------------------------------------------\n", pressure_f, temp_f, height);
 	taskEXIT_CRITICAL();
-//	trace_printf("pressure\t%f temp\t%f height\t%f\n------------------------------------------------\n", pressure_f, temp_f, height);
 	}
 }
 
@@ -298,19 +306,19 @@ uint8_t init_hi2c(I2C_HandleTypeDef* hi2c){
 
 	int error = 0;
 
-	hi2c->Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-	hi2c->Init.ClockSpeed = 400000;
-	hi2c->Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-	hi2c->Init.DutyCycle = I2C_DUTYCYCLE_2;
-	hi2c->Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-	hi2c->Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+	i2c_mpu9255.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+	i2c_mpu9255.Init.ClockSpeed = 400000;
+	i2c_mpu9255.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+	i2c_mpu9255.Init.DutyCycle = I2C_DUTYCYCLE_2;
+	i2c_mpu9255.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+	i2c_mpu9255.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
 
 	//	TODO: УСТАНОВИТЬ РЕАЛЬНЫЙ АДРЕС
-	hi2c->Init.OwnAddress1 = 0x00;
-	//	hi2c->Init.OwnAddress2 = GYRO_AND_ACCEL;
+	i2c_mpu9255.Init.OwnAddress1 = 0x00;
+	//	i2c_mpu9255.Init.OwnAddress2 = GYRO_AND_ACCEL;
 
-	hi2c->Instance = I2C1;
-	hi2c->Mode = HAL_I2C_MODE_MASTER;
+	i2c_mpu9255.Instance = I2C1;
+	i2c_mpu9255.Mode = HAL_I2C_MODE_MASTER;
 
 	PROCESS_ERROR(HAL_I2C_Init(hi2c));
 end:
@@ -320,6 +328,28 @@ end:
 
 void IMU_Init() {
 
+	if(IMU_BMP | IMU | BMP)
+	{
+		i2c_mpu9255.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+		i2c_mpu9255.Init.ClockSpeed = 400000;
+		i2c_mpu9255.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+		i2c_mpu9255.Init.DutyCycle = I2C_DUTYCYCLE_2;
+		i2c_mpu9255.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+		i2c_mpu9255.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+
+		//	TODO: УСТАНОВИТЬ РЕАЛЬНЫЙ АДРЕС
+		i2c_mpu9255.Init.OwnAddress1 = 0x00;
+	//	i2c_mpu9255.Init.OwnAddress2 = GYRO_AND_ACCEL;
+
+		i2c_mpu9255.Instance = I2C2;
+		i2c_mpu9255.Mode = HAL_I2C_MODE_MASTER;
+
+		int i2c_initError = HAL_I2C_Init(&i2c_mpu9255);
+		trace_printf("i2c: %d\n", i2c_initError);
+
+		if(i2c_initError != HAL_OK)
+			return;
+	}
 
 	if (IMU){
 		//---ИНИЦИАЛИЗАЦИЯ MPU9255---//
@@ -403,7 +433,6 @@ void SENSORS_task() {
 
 
 	for (;;) {
-
 
 		taskENTER_CRITICAL();
 		my_stage_sensor = state_system.globalStage;

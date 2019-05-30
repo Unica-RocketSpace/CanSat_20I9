@@ -8,11 +8,10 @@
 #ifndef EXCHANGE_TASK_H_
 #define EXCHANGE_TASK_H_
 
-#include "stm32f4xx_hal.h"
-
+#include <stm32f4xx_hal.h>
 #include "state.h"
 
-#define EXCHANGE_USART 				(USART1)
+#define EXCHANGE_USART 				(USART3)
 #define EXCHANGE_DMA_BUFFER_SIZE 	(400)
 #define EXCHANGE_MSG_BUFFER_SIZE 	(200)
 #define EXCHANGE_DMA_USART_STREAM 	(DMA2_Stream5)
@@ -28,13 +27,17 @@
 #define COMMAND_OK			4
 
 
-extern uint8_t dma_usartBuffer[100];
+extern uint8_t DMA_UARTBuffer[100];
 
 //инициализация uart для приема/передачи команд
-void init_exchange_command_uart();
+void init_exchange_command_UART();
 
 //инициализация uart для приема/передачи данных
-void init_exchange_data_uart();
+void init_exchange_data_UART();
+
+void init_exchange_DMA_data();
+
+void init_exchange_DMA_logs();
 
 /*
  * Функция для разбора команд

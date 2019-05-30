@@ -26,8 +26,6 @@
 
 #include "mavlink/UNISAT/mavlink.h"
 
-#include "stm32f4xx_hal_uart.h"
-
 
 
 uint8_t UNISAT_ID = 0x01;
@@ -379,7 +377,7 @@ void IO_RF_task() {
 
 	for (;;) {
 
-		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+//		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
 
 		led();
@@ -414,14 +412,12 @@ void IO_RF_task() {
 					trace_printf("T");
 					vTaskDelay(Timeout);
 					mavlink_msg_imu_rsc_send();
-					taskENTER_CRITICAL();
-					command = state_system.globalCommand;
-					state_system.globalStage = command;
-					taskEXIT_CRITICAL();
 				} while (command != 1);
 
-//				do command = mavlink_msg_get_command();
-//				while (command == -1);
+				taskENTER_CRITICAL();
+				command = state_system.globalCommand;
+				state_system.globalStage = command;
+				taskEXIT_CRITICAL();
 
 				break;
 
@@ -439,11 +435,12 @@ void IO_RF_task() {
 					mavlink_msg_imu_isc_send();
 					vTaskDelay(Timeout);
 					mavlink_msg_imu_rsc_send();
-					taskENTER_CRITICAL();
-					command = state_system.globalCommand;
-					state_system.globalStage = command;
-					taskEXIT_CRITICAL();
 				} while (command != 2);
+
+				taskENTER_CRITICAL();
+				command = state_system.globalCommand;
+				state_system.globalStage = command;
+				taskEXIT_CRITICAL();
 
 				break;
 
@@ -455,11 +452,13 @@ void IO_RF_task() {
 					vTaskDelay(30);
 					mavlink_msg_state_zero_send();
 					vTaskDelay(30);
-					taskENTER_CRITICAL();
-					command = state_system.globalCommand;
-					state_system.globalStage = command;
-					taskEXIT_CRITICAL();
 				} while (command != 3);
+
+				taskENTER_CRITICAL();
+				command = state_system.globalCommand;
+				state_system.globalStage = command;
+				taskEXIT_CRITICAL();
+
 				break;
 
 			default:

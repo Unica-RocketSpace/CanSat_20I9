@@ -238,19 +238,19 @@ void GROUND_Init(){
 	HAL_Delay(100);
 
 		//	usart_dbg init
-		usart_ground.Instance = USART3;
-		usart_ground.Init.BaudRate = 115200;
-		usart_ground.Init.WordLength = UART_WORDLENGTH_8B;
-		usart_ground.Init.StopBits = UART_STOPBITS_1;
-		usart_ground.Init.Parity = UART_PARITY_NONE;
-		usart_ground.Init.Mode = UART_MODE_TX_RX;
-
-		PROCESS_ERROR(HAL_USART_Init(&usart_ground));
-
-	HAL_Delay(200);
-
-end:
-	trace_printf("%d\n", error);
+//		usart_ground.Instance = USART3;
+//		usart_ground.Init.BaudRate = 115200;
+//		usart_ground.Init.WordLength = UART_WORDLENGTH_8B;
+//		usart_ground.Init.StopBits = UART_STOPBITS_1;
+//		usart_ground.Init.Parity = UART_PARITY_NONE;
+//		usart_ground.Init.Mode = UART_MODE_TX_RX;
+//
+//		PROCESS_ERROR(HAL_USART_Init(&usart_ground));
+//
+//	HAL_Delay(200);
+//
+//end:
+//	trace_printf("%d\n", error);
 }
 
 

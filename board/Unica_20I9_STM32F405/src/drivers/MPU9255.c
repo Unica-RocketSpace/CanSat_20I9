@@ -42,24 +42,6 @@ int mpu9255_init(I2C_HandleTypeDef* hi2c)
 {
 	int error = 0;
 
-	hi2c->Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-	hi2c->Init.ClockSpeed = 400000;
-	hi2c->Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-	hi2c->Init.DutyCycle = I2C_DUTYCYCLE_2;
-	hi2c->Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-	hi2c->Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-
-	//	TODO: УСТАНОВИТЬ РЕАЛЬНЫЙ АДРЕС
-	hi2c->Init.OwnAddress1 = 0x00;
-//	hi2c->Init.OwnAddress2 = GYRO_AND_ACCEL;
-
-	hi2c->Instance = I2C2;
-	hi2c->Mode = HAL_I2C_MODE_MASTER;
-
-
-	PROCESS_ERROR(HAL_I2C_Init(hi2c));
-	HAL_Delay(400);
-
 	PROCESS_ERROR(mpu9255_writeRegister(GYRO_AND_ACCEL,	107,	0b10000000));	//RESET
 	HAL_Delay(400);
 

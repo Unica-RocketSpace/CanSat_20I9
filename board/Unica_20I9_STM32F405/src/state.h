@@ -30,10 +30,10 @@
 
 
 #define SD 		1
-#define RF		1	//Влияет на отправку телеметрии
+#define RF		1 	//Влияет на отправку телеметрии
 #define IMU		1
 #define IMU_BMP	1
-#define BMP		1
+#define BMP		0
 #define GPS		1
 #define LED		0
 #define CONTROL	1
@@ -160,10 +160,14 @@ typedef struct {
 } state_system_t;
 
 typedef struct {
-	float coordinates[3];
+	float coordinates[2];
 	float quaternion[4];
-	float velosities[3];
+	float accel_isc[3];
 
+	float speed_GPS;
+	float speed_BMP;
+
+	float course;
 } state_master_t;
 
 

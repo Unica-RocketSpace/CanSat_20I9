@@ -20,7 +20,7 @@ GPIO_InitTypeDef engine_pin;
 
 
 int8_t global_command;
-uint8_t global_stage = 0;
+uint8_t global_stage;
 float height;
 uint8_t button;
 uint8_t command;
@@ -39,8 +39,8 @@ void init_pins(){
 	engine_pin.Speed = GPIO_SPEED_MEDIUM;
 	HAL_GPIO_Init(PHOTORES_PORT, &engine_pin);
 
-	engine_pin.Mode = GPIO_MODE_OUTPUT_PP;
-	engine_pin.Pin = BUTTON_PIN_GOL | BUTTON_PIN_GOR;
+	engine_pin.Mode = GPIO_MODE_INPUT;
+	engine_pin.Pin = BUTTON_PIN_GOR | BUTTON_PIN_GOL;
 	engine_pin.Pull = GPIO_PULLUP;
 	engine_pin.Speed = GPIO_SPEED_MEDIUM;
 	HAL_GPIO_Init(BUTTON_PORT, &engine_pin);
@@ -51,9 +51,37 @@ void init_pins(){
 	engine_pin.Speed = GPIO_SPEED_MEDIUM;
 	HAL_GPIO_Init(BUTTON_PORT_2, &engine_pin);
 
-//	S
+/*
+	__USART1_CLK_ENABLE();
+	engine_pin.Alternate = GPIO_AF7_USART1;
+	engine_pin.Mode = GPIO_MODE_AF_OD;
+	engine_pin.Pin = GPIO_PIN_10;
+	engine_pin.Pull = GPIO_NOPULL;
+	engine_pin.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	HAL_GPIO_Init(GPIOA, &engine_pin);
 
+	engine_pin.Alternate = GPIO_AF7_USART1;
+	engine_pin.Mode = GPIO_MODE_AF_PP;
+	engine_pin.Pin = GPIO_PIN_9;
+	engine_pin.Pull = GPIO_NOPULL;
+	engine_pin.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	HAL_GPIO_Init(GPIOA, &engine_pin);
 
+	__USART3_CLK_ENABLE();
+	engine_pin.Alternate = GPIO_AF7_USART3;
+	engine_pin.Mode = GPIO_MODE_AF_OD;
+	engine_pin.Pin = GPIO_PIN_11;
+	engine_pin.Pull = GPIO_NOPULL;
+	engine_pin.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	HAL_GPIO_Init(GPIOC, &engine_pin);
+
+	engine_pin.Alternate = GPIO_AF7_USART3;
+	engine_pin.Mode = GPIO_MODE_AF_PP;
+	engine_pin.Pin = GPIO_PIN_10;
+	engine_pin.Pull = GPIO_NOPULL;
+	engine_pin.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	HAL_GPIO_Init(GPIOC, &engine_pin);
+*/
 }
 
 
@@ -94,24 +122,21 @@ void CONTROL_task() {
 
 
 
-		if (global_command != -1){
-		}
+//		if (global_command != -1){}
 
 
 //		FIXME: нужен ли он здесь?????
 //		if (global_stage == 0){
-//			xQueueSendToBack(handleInternalCmdQueue, &command, 0);
+
 //		}
 		switch (global_stage){
-			case 0:
-//				vTaskDelay(1000/portTICK_RATE_MS);
-//				set_engines();
-//				vTaskDelay(1000/portTICK_RATE_MS);
-//				reset_engines();
-				break;
+//			case 0:
+//				xQueueSendToBack(handleInternalCmdQueue, &command, 0);
+//				break;
 
-			case 2:
-//				FIXME: инициализировать фотосенсор(а надо ли?)
+			case 1:
+				command = 3;
+				xQueueSendToBack(handleInternalCmdQueue, &command, 0);
 				break;
 
 			case 3:
@@ -132,7 +157,7 @@ void CONTROL_task() {
 				break;
 
 			case 5:
-				trace_printf("buttons %d\n", button);
+//				trace_printf("buttons %d\n", button);
 				switch (button){
 				//ждем прерывания от крыльев и стабилизаторов
 					/*case 4:
@@ -176,6 +201,7 @@ void CONTROL_task() {
 						break;
 
 					case 2:
+						vTaskDelay(100/portTICK_RATE_MS);
 						HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_KEEL, GPIO_PIN_SET);
 						if (!HAL_GPIO_ReadPin(BUTTON_PORT_2, BUTTON_PIN_KEEL)){
 							taskENTER_CRITICAL();

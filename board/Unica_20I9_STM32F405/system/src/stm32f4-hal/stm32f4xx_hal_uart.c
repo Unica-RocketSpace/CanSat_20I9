@@ -611,10 +611,14 @@ HAL_StatusTypeDef HAL_UART_DeInit(UART_HandleTypeDef *huart)
   * @param  Timeout: Timeout duration  
   * @retval HAL status
   */
+
+#include <diag/Trace.h>
+
 HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout)
 {
   uint16_t* tmp;
   uint32_t tickstart = 0U;
+
   
   /* Check that a Tx process is not already ongoing */
   if(huart->gState == HAL_UART_STATE_READY) 
@@ -646,6 +650,7 @@ HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, u
         }
         tmp = (uint16_t*) pData;
         huart->Instance->DR = (*tmp & (uint16_t)0x01FFU);
+
         if(huart->Init.Parity == UART_PARITY_NONE)
         {
           pData +=2U;
@@ -662,6 +667,7 @@ HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, u
           return HAL_TIMEOUT;
         }
         huart->Instance->DR = (*pData++ & (uint8_t)0xFFU);
+        trace_printf("data %d\n", (*pData++ & (uint8_t)0xFFU));
       } 
     }
     

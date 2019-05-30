@@ -15,10 +15,12 @@
 
 #include "state.h"
 
+#include <diag/Trace.h>
 
 static UART_HandleTypeDef uartExchangeData;
 static UART_HandleTypeDef uartExchangeCommand;
 static DMA_HandleTypeDef dmaExchangeData;
+static DMA_HandleTypeDef dmaExchangeLogs;
 
 
 uint8_t internal_cmd;
@@ -102,36 +104,11 @@ void initExUsartDma() {
 		state_system.GPS_state = error;
 }
 */
-/*void EXCHANGE_task (){
-
-	for(;;){
-		// Ждать команду в очереди
-		if (uxQueueMessagesWaiting(handleInternalCmdQueue) != 0){	//Проверка очереди на наличие в ней элементов
-			internal_queue_status = xQueueReceive(handleInternalCmdQueue, &internal_cmd, 0);
-		}
-
-		//Данные пришли
-		if (internal_queue_status == pdPASS){
-			 //отправка данных на FC
-
-		}
-
-//		while(){
-//			if (command == )
-
-//		}
-		//записать ответ в sensors_data
 
 
 
 
-
-	}
-}*/
-
-
-
-void init_exchange_data_uart(){
+void init_exchange_data_UART(){
 
 	uartExchangeData.Instance = USART1;
 	uartExchangeData.Init.BaudRate = 9600;
@@ -145,18 +122,83 @@ void init_exchange_data_uart(){
 	HAL_UART_Init(&uartExchangeData);
 }
 
-void init_exchange_command_uart(){
-	uartExchangeData.Instance = USART2;
-	uartExchangeData.Init.BaudRate = 9600;
-	uartExchangeData.Init.WordLength = UART_WORDLENGTH_8B;
-	uartExchangeData.Init.StopBits = UART_STOPBITS_1;
-	uartExchangeData.Init.Parity = UART_PARITY_NONE;
-	uartExchangeData.Init.Mode = UART_MODE_TX_RX;
-	uartExchangeData.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-	uartExchangeData.Init.OverSampling = UART_OVERSAMPLING_16;
+void init_exchange_command_UART(){
+
+	uartExchangeCommand.Instance = USART3;
+	uartExchangeCommand.Init.BaudRate = 9600;
+	uartExchangeCommand.Init.WordLength = UART_WORDLENGTH_8B;
+	uartExchangeCommand.Init.StopBits = UART_STOPBITS_1;
+	uartExchangeCommand.Init.Parity = UART_PARITY_NONE;
+	uartExchangeCommand.Init.Mode = UART_MODE_TX_RX;
+	uartExchangeCommand.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+	uartExchangeCommand.Init.OverSampling = UART_OVERSAMPLING_16;
 
 	HAL_UART_Init(&uartExchangeCommand);
 }
+
+void init_exchange_DMA_data(){
+	__HAL_RCC_DMA2_CLK_ENABLE();
+	//	Инициализация DMA2_Stream7 для работы c FC через USART
+	dmaExchangeData.Instance = DMA2_Stream7;
+	dmaExchangeData.Init.Channel = DMA_CHANNEL_4;						// 4 канал - на USART1_TX
+	dmaExchangeData.Init.Direction = DMA_MEMORY_TO_PERIPH;				// направление - из памяти в периферию
+	dmaExchangeData.Init.PeriphInc = DMA_PINC_DISABLE;					// инкрементация периферии выключена
+	dmaExchangeData.Init.MemInc = DMA_MINC_ENABLE;						// инкрементация памяти включена
+	dmaExchangeData.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;		// длина слова в периферии - байт
+	dmaExchangeData.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;		// длина слова в памяти - байт
+	dmaExchangeData.Init.Mode = DMA_CIRCULAR;							// режим - обычный
+	dmaExchangeData.Init.Priority = DMA_PRIORITY_HIGH;					// приоритет - средний
+	dmaExchangeData.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+	dmaExchangeData.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
+	dmaExchangeData.Init.MemBurst = DMA_MBURST_SINGLE;
+	dmaExchangeData.Init.PeriphBurst = DMA_PBURST_SINGLE;
+	HAL_DMA_Init(&dmaExchangeData);
+
+}
+	//FIXME:
+	// запускаем ДМА на трансфер данных
+	/*PROCESS_ERROR(HAL_DMA_Start(
+			&dmaExchangeData, (uint32_t)&uartExchangeData.Instance->DR,
+			(uint32_t)&DMA_UARTBuffer, sizeof(EXCHANGE_DMA_BUFFER_SIZE)
+	));
+*/
+	/*	Enable the DMA transfer for the receiver request by setting the DMAR bit
+	in the UART CR3 register		*/
+/*	SET_BIT(uartExchangeData.Instance->CR3, USART_CR3_DMAR);
+*/
+
+
+
+void init_exchange_DMA_logs(){
+	__HAL_RCC_DMA2_CLK_ENABLE();
+	//	Инициализация DMA2_Stream5 для работы c FC через USART
+	dmaExchangeLogs.Instance = DMA2_Stream5;
+	dmaExchangeLogs.Init.Channel = DMA_CHANNEL_4;						// 4 канал - на USART1_RX
+	dmaExchangeLogs.Init.Direction = DMA_PERIPH_TO_MEMORY;				// направление - из периферии в память
+	dmaExchangeLogs.Init.PeriphInc = DMA_PINC_DISABLE;					// инкрементация периферии выключена
+	dmaExchangeLogs.Init.MemInc = DMA_MINC_ENABLE;						// инкрементация памяти включена
+	dmaExchangeLogs.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;		// длина слова в периферии - байт
+	dmaExchangeLogs.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;		// длина слова в памяти - байт
+	dmaExchangeLogs.Init.Mode = DMA_CIRCULAR;							// режим - обычный
+	dmaExchangeLogs.Init.Priority = DMA_PRIORITY_HIGH;					// приоритет - средний
+	dmaExchangeLogs.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+	dmaExchangeLogs.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
+	dmaExchangeLogs.Init.MemBurst = DMA_MBURST_SINGLE;
+	dmaExchangeLogs.Init.PeriphBurst = DMA_PBURST_SINGLE;
+	HAL_DMA_Init(&dmaExchangeLogs);
+
+
+}
+	// запускаем ДМА на трансфер данных
+/*	PROCESS_ERROR(HAL_DMA_Start(
+			&dmaExchangeLogs, (uint32_t)&uartExchangeData.Instance->DR,
+			(uint32_t)&DMA_UARTBuffer, sizeof(EXCHANGE_DMA_BUFFER_SIZE)
+	));
+*/
+	/*Enable the DMA transfer for the receiver request by setting the DMAR bit
+	in the UART CR3 register		*/
+/*	SET_BIT(uartExchangeData.Instance->CR3, USART_CR3_DMAR);
+*/
 
 
 //FIXME: возможно не нужна
@@ -177,16 +219,26 @@ void TransmitData(UART_HandleTypeDef *uart, state_master_t * stateToSend){
 
 void parse_command(uint8_t uplink_command){
 	if (uplink_command == COMMAND_DATA){
+		//copy_data for FC
 		taskENTER_CRITICAL();
-		for (int i = 0; i < 3; i++){
+		for (int i = 0; i < 2; i++){
 			state_master.coordinates[i] = stateIMU_isc.coordinates[i];
-			state_master.velosities[i] = stateIMU_isc.velocities[i];
+			state_master.accel_isc[i] = stateIMU_isc.accel[i];
 			state_master.quaternion[i] = stateIMU_isc.quaternion[i];
 		}
+		state_master.accel_isc[2] = stateIMU_isc.accel[2];
+		state_master.quaternion[2] = stateIMU_isc.quaternion[2];
 		state_master.quaternion[3] = stateIMU_isc.quaternion[3];
+
+		state_master.speed_GPS = stateGPS.speed;
+		state_master.course = stateGPS.course;
 		taskEXIT_CRITICAL();
-		//copy_data for FC
+
+		//отправка данных на FC
+		HAL_UART_Transmit_DMA(&uartExchangeData, (uint8_t*)&state_master, sizeof(state_master));
+//		trace_printf("addres %d\n", state_master.accel_isc[0]);
 	}
+
 	else if (uplink_command == COMMAND_OK){
 		taskENTER_CRITICAL();
 		state_system.master_state = 1;
@@ -197,24 +249,23 @@ void parse_command(uint8_t uplink_command){
 
 
 void EXCHANGE_task(){
+	init_exchange_data_UART();
+	init_exchange_command_UART();
+	init_exchange_DMA_data();
+	init_exchange_DMA_logs();
+
+	HAL_UART_MspInit(&uartExchangeData);
+	HAL_UART_MspInit(&uartExchangeCommand);
 
 	for(;;){
 		//Проверка очереди на наличие в ней элементов
 		internal_queue_status = xQueueReceive(handleInternalCmdQueue, &internal_cmd, portMAX_DELAY);
 		//Данные пришли
 		if (internal_queue_status == pdPASS){
-			parse_command(uplink_command);
-			 //отправка данных на FC
+			parse_command(internal_cmd);
+
 		}
 	}
-
-		answer_queue = xQueueReceive(handleInternalCmdQueue, &internal_cmd, 100);
-		if (answer_queue == pdPASS){
-			if (internal_cmd == COMMAND_OK)
-				taskENTER_CRITICAL();
-
-		}
-		//записать ответ в sensors_data
 }
 
 

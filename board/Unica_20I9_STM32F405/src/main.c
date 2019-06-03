@@ -55,6 +55,7 @@ stateBMPSensors_t	stateSensors;
 state_system_t 		state_system;
 state_master_t		state_master;
 state_zero_t		state_zero;
+FC_logs_t			FCLogs;
 
 stateIMU_isc_t		stateIMU_isc_prev;
 stateSensors_t		stateIMUSensors_prev;
@@ -241,6 +242,8 @@ int main(int argc, char* argv[])
 	memset(&state_system, 			0x00, sizeof(state_system));
 	memset(&state_master,			0x00, sizeof(state_master));
 	memset(&state_zero, 	 		0x00, sizeof(state_zero));
+	memset(&FCLogs, 				0x00, sizeof(FCLogs));
+
 	memset(&stateIMU_isc_prev, 		0x00, sizeof(stateIMU_isc_prev));
 	memset(&stateIMUSensors_prev,	0x00, sizeof(stateIMUSensors_prev));
 	memset(&stateSensors_prev,		0x00, sizeof(stateSensors_prev));

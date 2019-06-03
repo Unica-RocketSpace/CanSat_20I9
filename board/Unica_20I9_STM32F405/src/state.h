@@ -188,6 +188,14 @@ typedef enum {
 } error;
 
 
+typedef struct {
+	float time;
+	uint8_t fc_stage;
+	float angle_left;
+	float angle_right;
+	float angle_keel;
+} FC_logs_t;
+
 //FIXME: DELETE
 typedef enum {
 	servo_left		= 0,
@@ -245,6 +253,7 @@ extern stateBMPSensors_t	stateSensors;
 extern state_system_t 		state_system;
 extern state_master_t		state_master;
 extern state_zero_t			state_zero;
+extern FC_logs_t			FCLogs;
 
 extern stateIMU_isc_t		stateIMU_isc_prev;
 extern stateSensors_t		stateIMUSensors_prev;

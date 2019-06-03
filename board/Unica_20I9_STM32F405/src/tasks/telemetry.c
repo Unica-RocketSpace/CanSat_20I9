@@ -309,9 +309,35 @@ static uint8_t mavlink_msg_servo(){
 		taskEXIT_CRITICAL();
 		dump(&stream_file, buffer, len);
 	}
-
 	return error;
+}
 
+static uint8_t mavlink_msg_FCLogs(){
+	mavlink_fclogs_t msg_logs;
+
+	taskENTER_CRITICAL();
+	msg_logs.time = FCLogs.time;
+	msg_logs.FC_stage = FCLogs.fc_stage;
+	msg_logs.angle_left = FCLogs.angle_left;
+	msg_logs.angle_right = FCLogs.angle_right;
+	msg_logs.angle_keel = FCLogs.angle_keel;
+	taskEXIT_CRITICAL();
+
+	mavlink_message_t msg;
+	uint16_t len = mavlink_msg_servo_encode(UNISAT_ID, UNISAT_NoComp, &msg, &msg_logs);
+	uint8_t buffer[100];
+	uint8_t error = 0;
+	len = mavlink_msg_to_send_buffer(buffer, &msg);
+	if (RF)
+		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 0);
+
+	if (SD){
+		taskENTER_CRITICAL();
+		state_system.SD_state = stream_file.res;
+		taskEXIT_CRITICAL();
+		dump(&stream_file, buffer, len);
+	}
+	return error;
 }
 
 
@@ -371,7 +397,7 @@ void IO_RF_task() {
 
 	for (;;) {
 
-//		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
 
 		led();
@@ -380,11 +406,11 @@ void IO_RF_task() {
 		my_stage_telem = state_system.globalStage;
 		taskEXIT_CRITICAL();
 
-//		taskENTER_CRITICAL();
-//		command = state_system.globalCommand = mavlink_msg_get_command();
-//		if (command != -1)
-//			xQueueSendToBack(handleInternalCmdQueue, &command, 0);
-//		taskEXIT_CRITICAL();
+	//		taskENTER_CRITICAL();
+	//		command = state_system.globalCommand = mavlink_msg_get_command();
+	//		if (command != -1)
+	//			xQueueSendToBack(handleInternalCmdQueue, &command, 0);
+	//		taskEXIT_CRITICAL();
 
 		switch (my_stage_telem){
 			// Этап 0. Подтверждение инициализации отправкой пакета состояния и ожидание ответа от НС
@@ -452,8 +478,24 @@ void IO_RF_task() {
 				command = state_system.globalCommand;
 				state_system.globalStage = command;
 				taskEXIT_CRITICAL();
-
 				break;
+
+			case 6:
+				mavlink_msg_state_send();
+				vTaskDelay(Timeout);
+				mavlink_msg_BMP_send();
+				vTaskDelay(Timeout);
+				mavlink_msg_sensors_send();
+				vTaskDelay(Timeout);
+				mavlink_msg_gps_send();
+				vTaskDelay(Timeout);
+				mavlink_msg_imu_isc_send();
+				vTaskDelay(Timeout);
+				mavlink_msg_imu_rsc_send();
+				vTaskDelay(Timeout);
+				mavlink_msg_FCLogs();
+				break;
+
 
 			default:
 				mavlink_msg_state_send();

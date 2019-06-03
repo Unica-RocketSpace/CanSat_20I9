@@ -20,7 +20,6 @@
             <field type="uint8_t" name="master_state">state of master MC</field>
             <field type="uint8_t" name="buttons">state of buttons</field>
             <field type="uint8_t" name="globalStage">current global stage number</field>
-
         </message>
 
 
@@ -86,17 +85,23 @@
             <field type="uint8_t" name="cmd"> </field>
         </message>
 
+
         <message id="158" name="servo">
             <description>Msg to send servo angles</description>
             <field type="float" name="time">current time</field>
             <field type="float" name="angle_left"> </field>
-<<<<<<< HEAD
             <field type="float" name="angle_right"> </field>
             <field type="float" name="angle_keel"> </field>
-=======
-			<field type="float" name="angle_right"> </field>
-			<field type="float" name="angle_keel"> </field>
->>>>>>> 66d24401a00d653f9e262006b2ce7e687894958a
+        </message>
+
+
+        <message id="159" name="FCLogs">
+            <description>Msg to send logs from FC to SC</description>
+            <field type="float" name="time">current time </field>
+            <field type="uint8_t" name="FC_stage"> </field>
+            <field type="float" name="angle_left"> </field>
+            <field type="float" name="angle_right"> </field>
+            <field type="float" name="angle_keel"> </field>
         </message>
     </messages>
 </mavlink>

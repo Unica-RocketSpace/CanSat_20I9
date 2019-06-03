@@ -136,41 +136,52 @@ void USART3_IRQHandler(void){
 }
 
 
+void USART1_IRQHandler(void){
+	//Проверка флага о приеме байтика по USART
+	if ((USART3->SR & USART_SR_RXNE) != 0){
+		HAL_UART_Receive_IT(&uartExchangeData, (uint8_t *)&FCLogs, sizeof(FCLogs));
+	}
+}
+/*
 void DMA2_Stream5_IRQHandler(void){
-	HAL_DMA_IRQHandler(&dmaExchangeLogs);
 	//Проверка флага о заполнении половины буффера
 	if (__HAL_DMA_GET_HT_FLAG_INDEX(&dmaExchangeLogs) != 0){
 		__HAL_DMA_CLEAR_FLAG(&dmaExchangeLogs, DMA_FLAG_HTIF1_5);
 		//Запись на SD
-		sd_write(&Exchange_DMA_Buffer[0], EXCHANGE_BUFFER_SIZE / 2);
 		trace_printf("HTIE\n");
 	}
 	//Проверка флага о заполнении всего буффера
 	if (__HAL_DMA_GET_TC_FLAG_INDEX(&dmaExchangeLogs) != 0){
 		__HAL_DMA_CLEAR_FLAG(&dmaExchangeLogs, DMA_FLAG_TCIF1_5);
 		//Запись на SD
-		sd_write(&Exchange_DMA_Buffer[EXCHANGE_BUFFER_SIZE / 2], EXCHANGE_BUFFER_SIZE / 2);
 		trace_printf("TCIE\n");
 	}
 }
+*/
 
 
 void EXCHANGE_task(void){
 	init_exchange_data_UART();
 	init_exchange_command_UART();
-	init_exchange_DMA_logs();
+//	init_exchange_DMA_logs();
 
 	//Включение прерывания USART: RXNE
 	USART3->CR1 |= USART_CR1_RXNEIE;
 	HAL_NVIC_SetPriority(USART3_IRQn, 6, 0);
 	HAL_NVIC_EnableIRQ(USART3_IRQn);
 
-	//Включение прерывания DMA: TC, HT
+	//Включение прерывания USART: RXNE
+	USART1->CR1 |= USART_CR1_RXNEIE;
+	HAL_NVIC_SetPriority(USART1_IRQn, 6, 0);
+	HAL_NVIC_EnableIRQ(USART1_IRQn);
+
+
+/*	//Включение прерывания DMA: TC, HT
 	DMA2_Stream5->CR |= DMA_SxCR_HTIE;
 	DMA2_Stream5->CR |= DMA_SxCR_TCIE;
 	HAL_NVIC_SetPriority(DMA2_Stream5_IRQn, 6, 0);
 	HAL_NVIC_EnableIRQ(DMA2_Stream5_IRQn);
-
+*/
 
 	for(;;){
 		//Проверка очереди на наличие в ней элементов

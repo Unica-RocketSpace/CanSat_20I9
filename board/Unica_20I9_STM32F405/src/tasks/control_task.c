@@ -50,38 +50,6 @@ void init_pins(){
 	engine_pin.Pull = GPIO_PULLUP;
 	engine_pin.Speed = GPIO_SPEED_MEDIUM;
 	HAL_GPIO_Init(BUTTON_PORT_2, &engine_pin);
-
-/*
-	__USART1_CLK_ENABLE();
-	engine_pin.Alternate = GPIO_AF7_USART1;
-	engine_pin.Mode = GPIO_MODE_AF_OD;
-	engine_pin.Pin = GPIO_PIN_10;
-	engine_pin.Pull = GPIO_NOPULL;
-	engine_pin.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-	HAL_GPIO_Init(GPIOA, &engine_pin);
-
-	engine_pin.Alternate = GPIO_AF7_USART1;
-	engine_pin.Mode = GPIO_MODE_AF_PP;
-	engine_pin.Pin = GPIO_PIN_9;
-	engine_pin.Pull = GPIO_NOPULL;
-	engine_pin.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-	HAL_GPIO_Init(GPIOA, &engine_pin);
-
-	__USART3_CLK_ENABLE();
-	engine_pin.Alternate = GPIO_AF7_USART3;
-	engine_pin.Mode = GPIO_MODE_AF_OD;
-	engine_pin.Pin = GPIO_PIN_11;
-	engine_pin.Pull = GPIO_NOPULL;
-	engine_pin.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-	HAL_GPIO_Init(GPIOC, &engine_pin);
-
-	engine_pin.Alternate = GPIO_AF7_USART3;
-	engine_pin.Mode = GPIO_MODE_AF_PP;
-	engine_pin.Pin = GPIO_PIN_10;
-	engine_pin.Pull = GPIO_NOPULL;
-	engine_pin.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-	HAL_GPIO_Init(GPIOC, &engine_pin);
-*/
 }
 
 
@@ -109,7 +77,7 @@ void CONTROL_task() {
 	for(;;){
 
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-		trace_printf("C");
+//		trace_printf("C");
 
 		taskENTER_CRITICAL();
 		global_stage = state_system.globalStage;
@@ -135,8 +103,8 @@ void CONTROL_task() {
 //				break;
 
 			case 1:
-				command = 3;
-				xQueueSendToBack(handleInternalCmdQueue, &command, 0);
+//				command = 3;
+//				xQueueSendToBack(handleInternalCmdQueue, &command, 0);
 				break;
 
 			case 3:

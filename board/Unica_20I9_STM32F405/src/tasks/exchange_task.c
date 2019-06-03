@@ -11,103 +11,26 @@
 #include "task.h"
 #include "queue.h"
 
+#include "sd/sd.h"
 #include "exchange_task.h"
 
 #include "state.h"
 
 #include <diag/Trace.h>
 
-static UART_HandleTypeDef uartExchangeData;
-static UART_HandleTypeDef uartExchangeCommand;
-static DMA_HandleTypeDef dmaExchangeData;
-static DMA_HandleTypeDef dmaExchangeLogs;
+UART_HandleTypeDef uartExchangeData;
+UART_HandleTypeDef uartExchangeCommand;
+DMA_HandleTypeDef dmaExchangeLogs;
 
+uint8_t Exchange_DMA_Buffer[EXCHANGE_BUFFER_SIZE];
 
 uint8_t internal_cmd;
 portBASE_TYPE internal_queue_status, answer_queue;
 
 uint8_t uplink_command;
 
-/*
-static volatile size_t _dma_carret;
-static char _dma_buffer[EXCHANGE_DMA_BUFFER_SIZE] = {0};
-
-static volatile size_t _msg_carret;
-static char _msg_buffer[EXCHANGE_MSG_BUFFER_SIZE];
-
-
-
-static UART_HandleTypeDef uartExchangeData;
-static DMA_HandleTypeDef dmaExchangeData;
-
-
-inline static char _read_dma_buffer(void)
-{
-	// ждем, пока ДМА чего-нибудь скачает
-	while(_dma_carret == (size_t)(EXCHANGE_DMA_BUFFER_SIZE - __HAL_DMA_GET_COUNTER(&dmaExchangeData))) {}
-
-	char retval = _dma_buffer[_dma_carret];
-
-	_dma_carret++;
-	if (_dma_carret >= EXCHANGE_DMA_BUFFER_SIZE)
-		_dma_carret = 0;
-
-	return retval;
-}
-
 
 // ИНИЦИАЛИЗАЦИЯ USART //
-
-void initExUsartDma() {
-	uint8_t error;
-
-	uartExchangeData.Instance = USART1;
-	uartExchangeData.Init.BaudRate = 9600;
-	uartExchangeData.Init.Woruplink_commanddLength = UART_WORDLENGTH_8B;
-	uartExchangeData.Init.StopBits = UART_STOPBITS_1;
-	uartExchangeData.Init.Parity = UART_PARITY_NONE;
-	uartExchangeData.Init.Mode = UART_MODE_TX_RX;
-	uartExchangeData.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-	uartExchangeData.Init.OverSampling = UART_OVERSAMPLING_16;
-
-	PROCESS_ERROR(HAL_UART_Init(&uartExchangeData));
-
-
-	__HAL_RCC_DMA2_CLK_ENABLE();
-	//	Инициализация DMA1_Stream5 для работы c FC через USART
-	dmaExchangeData.Instance = DMA2_Stream5;
-	dmaExchangeData.Init.Channel = DMA_CHANNEL_4;						// 4 канал - на USART2_RX
-	dmaExchangeData.Init.Direction = DMA_PERIPH_TO_MEMORY;				// направление - из периферии в память
-	dmaExchangeData.Init.PeriphInc = DMA_PINC_DISABLE;					// инкрементация периферии выключена
-	dmaExchangeData.Init.MemInc = DMA_MINC_ENABLE;						// инкрементация памяти включена
-	dmaExchangeData.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;		// длина слова в периферии - байт
-	dmaExchangeData.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;		// длина слова в памяти - байт
-	dmaExchangeData.Init.Mode = DMA_CIRCULAR;							// режим - обычный
-	dmaExchangeData.Init.Priority = DMA_PRIORITY_HIGH;					// приоритет - средний
-	dmaExchangeData.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-	dmaExchangeData.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
-	dmaExchangeData.Init.MemBurst = DMA_MBURST_SINGLE;
-	dmaExchangeData.Init.PeriphBurst = DMA_PBURST_SINGLE;
-	PROCESS_ERROR(HAL_DMA_Init(&dmaExchangeData));
-
-	// запускаем ДМА на трансфер данных
-	PROCESS_ERROR(HAL_DMA_Start(
-			&dmaExchangeData, (uint32_t)&uartExchangeData.Instance->DR,
-			(uint32_t)&_dma_buffer, sizeof(_dma_buffer)
-	));
-
-     Enable the DMA transfer for the receiver request by setting the DMAR bit
-    in the UART CR3 register
-    SET_BIT(uartExchangeData.Instance->CR3, USART_CR3_DMAR);
-
-	end:
-		state_system.GPS_state = error;
-}
-*/
-
-
-
-
 void init_exchange_data_UART(){
 
 	uartExchangeData.Instance = USART1;
@@ -123,7 +46,7 @@ void init_exchange_data_UART(){
 }
 
 void init_exchange_command_UART(){
-
+	__HAL_RCC_USART3_CLK_ENABLE();
 	uartExchangeCommand.Instance = USART3;
 	uartExchangeCommand.Init.BaudRate = 9600;
 	uartExchangeCommand.Init.WordLength = UART_WORDLENGTH_8B;
@@ -136,40 +59,10 @@ void init_exchange_command_UART(){
 	HAL_UART_Init(&uartExchangeCommand);
 }
 
-void init_exchange_DMA_data(){
-	__HAL_RCC_DMA2_CLK_ENABLE();
-	//	Инициализация DMA2_Stream7 для работы c FC через USART
-	dmaExchangeData.Instance = DMA2_Stream7;
-	dmaExchangeData.Init.Channel = DMA_CHANNEL_4;						// 4 канал - на USART1_TX
-	dmaExchangeData.Init.Direction = DMA_MEMORY_TO_PERIPH;				// направление - из памяти в периферию
-	dmaExchangeData.Init.PeriphInc = DMA_PINC_DISABLE;					// инкрементация периферии выключена
-	dmaExchangeData.Init.MemInc = DMA_MINC_ENABLE;						// инкрементация памяти включена
-	dmaExchangeData.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;		// длина слова в периферии - байт
-	dmaExchangeData.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;		// длина слова в памяти - байт
-	dmaExchangeData.Init.Mode = DMA_CIRCULAR;							// режим - обычный
-	dmaExchangeData.Init.Priority = DMA_PRIORITY_HIGH;					// приоритет - средний
-	dmaExchangeData.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-	dmaExchangeData.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
-	dmaExchangeData.Init.MemBurst = DMA_MBURST_SINGLE;
-	dmaExchangeData.Init.PeriphBurst = DMA_PBURST_SINGLE;
-	HAL_DMA_Init(&dmaExchangeData);
-
-}
-	//FIXME:
-	// запускаем ДМА на трансфер данных
-	/*PROCESS_ERROR(HAL_DMA_Start(
-			&dmaExchangeData, (uint32_t)&uartExchangeData.Instance->DR,
-			(uint32_t)&DMA_UARTBuffer, sizeof(EXCHANGE_DMA_BUFFER_SIZE)
-	));
-*/
-	/*	Enable the DMA transfer for the receiver request by setting the DMAR bit
-	in the UART CR3 register		*/
-/*	SET_BIT(uartExchangeData.Instance->CR3, USART_CR3_DMAR);
-*/
-
-
 
 void init_exchange_DMA_logs(){
+	uint8_t error;
+
 	__HAL_RCC_DMA2_CLK_ENABLE();
 	//	Инициализация DMA2_Stream5 для работы c FC через USART
 	dmaExchangeLogs.Instance = DMA2_Stream5;
@@ -185,37 +78,22 @@ void init_exchange_DMA_logs(){
 	dmaExchangeLogs.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
 	dmaExchangeLogs.Init.MemBurst = DMA_MBURST_SINGLE;
 	dmaExchangeLogs.Init.PeriphBurst = DMA_PBURST_SINGLE;
-	HAL_DMA_Init(&dmaExchangeLogs);
+	PROCESS_ERROR(HAL_DMA_Init(&dmaExchangeLogs));
 
-
-}
 	// запускаем ДМА на трансфер данных
-/*	PROCESS_ERROR(HAL_DMA_Start(
+	PROCESS_ERROR(HAL_DMA_Start_IT(
 			&dmaExchangeLogs, (uint32_t)&uartExchangeData.Instance->DR,
-			(uint32_t)&DMA_UARTBuffer, sizeof(EXCHANGE_DMA_BUFFER_SIZE)
+			(uint32_t)&Exchange_DMA_Buffer, EXCHANGE_BUFFER_SIZE
 	));
-*/
-	/*Enable the DMA transfer for the receiver request by setting the DMAR bit
+
+	/*	Enable the DMA transfer for the receiver request by setting the DMAR bit
 	in the UART CR3 register		*/
-/*	SET_BIT(uartExchangeData.Instance->CR3, USART_CR3_DMAR);
-*/
+	SET_BIT(uartExchangeData.Instance->CR3, USART_CR3_DMAR);
 
-
-//FIXME: возможно не нужна
-/*
-void recive_command(UART_HandleTypeDef *uart, uint8_t * command){
-	HAL_UART_Receive(uart, command, sizeof(command), 0);
+	end:
+	state_system.master_state = error;
 }
-*/
 
-// FIXME: stateToSend - state_master_t, а должен быть uint8_t
-/*
-void TransmitData(UART_HandleTypeDef *uart, state_master_t * stateToSend){
-	uint8_t buffer[100];
-
-	HAL_UART_Transmit(uart, stateToSend, sizeof(stateToSend), 0);
-}
-*/
 
 void parse_command(uint8_t uplink_command){
 	if (uplink_command == COMMAND_DATA){
@@ -235,8 +113,7 @@ void parse_command(uint8_t uplink_command){
 		taskEXIT_CRITICAL();
 
 		//отправка данных на FC
-		HAL_UART_Transmit_DMA(&uartExchangeData, (uint8_t*)&state_master, sizeof(state_master));
-//		trace_printf("addres %d\n", state_master.accel_isc[0]);
+		HAL_UART_Transmit(&uartExchangeData, (uint8_t*)&state_master, sizeof(state_master), 10);
 	}
 
 	else if (uplink_command == COMMAND_OK){
@@ -247,21 +124,60 @@ void parse_command(uint8_t uplink_command){
 }
 
 
+void USART3_IRQHandler(void){
+	uint8_t tmp;
+	//Проверка флага о приеме байтика по USART
+	if ((USART3->SR & USART_SR_RXNE) != 0){
+		//Сохранение принятого байтика
+		tmp = USART3->DR;
+		BaseType_t p = pdFALSE;
+		xQueueSendToBackFromISR(handleInternalCmdQueue, &tmp, &p);
+	}
+}
 
-void EXCHANGE_task(){
+
+void DMA2_Stream5_IRQHandler(void){
+	HAL_DMA_IRQHandler(&dmaExchangeLogs);
+	//Проверка флага о заполнении половины буффера
+	if (__HAL_DMA_GET_HT_FLAG_INDEX(&dmaExchangeLogs) != 0){
+		__HAL_DMA_CLEAR_FLAG(&dmaExchangeLogs, DMA_FLAG_HTIF1_5);
+		//Запись на SD
+		sd_write(&Exchange_DMA_Buffer[0], EXCHANGE_BUFFER_SIZE / 2);
+		trace_printf("HTIE\n");
+	}
+	//Проверка флага о заполнении всего буффера
+	if (__HAL_DMA_GET_TC_FLAG_INDEX(&dmaExchangeLogs) != 0){
+		__HAL_DMA_CLEAR_FLAG(&dmaExchangeLogs, DMA_FLAG_TCIF1_5);
+		//Запись на SD
+		sd_write(&Exchange_DMA_Buffer[EXCHANGE_BUFFER_SIZE / 2], EXCHANGE_BUFFER_SIZE / 2);
+		trace_printf("TCIE\n");
+	}
+}
+
+
+void EXCHANGE_task(void){
 	init_exchange_data_UART();
 	init_exchange_command_UART();
-	init_exchange_DMA_data();
 	init_exchange_DMA_logs();
 
-	HAL_UART_MspInit(&uartExchangeData);
-	HAL_UART_MspInit(&uartExchangeCommand);
+	//Включение прерывания USART: RXNE
+	USART3->CR1 |= USART_CR1_RXNEIE;
+	HAL_NVIC_SetPriority(USART3_IRQn, 6, 0);
+	HAL_NVIC_EnableIRQ(USART3_IRQn);
+
+	//Включение прерывания DMA: TC, HT
+	DMA2_Stream5->CR |= DMA_SxCR_HTIE;
+	DMA2_Stream5->CR |= DMA_SxCR_TCIE;
+	HAL_NVIC_SetPriority(DMA2_Stream5_IRQn, 6, 0);
+	HAL_NVIC_EnableIRQ(DMA2_Stream5_IRQn);
+
 
 	for(;;){
 		//Проверка очереди на наличие в ней элементов
 		internal_queue_status = xQueueReceive(handleInternalCmdQueue, &internal_cmd, portMAX_DELAY);
 		//Данные пришли
 		if (internal_queue_status == pdPASS){
+			trace_printf("E");
 			parse_command(internal_cmd);
 
 		}

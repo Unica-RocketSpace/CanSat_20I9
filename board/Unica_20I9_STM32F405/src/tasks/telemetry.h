@@ -15,8 +15,6 @@
 void IO_RF_Init();
 void IO_RF_task();
 
-void led();
-
 uint8_t UNISAT_ID;
 uint8_t UNISAT_NoComp;
 uint8_t UNISAT_IMU;

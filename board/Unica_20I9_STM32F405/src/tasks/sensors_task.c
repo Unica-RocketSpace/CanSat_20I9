@@ -438,7 +438,7 @@ void SENSORS_task() {
 		my_stage_sensor = state_system.globalStage;
 		taskEXIT_CRITICAL();
 
-		trace_printf("S");
+//		trace_printf("S");
 
 		switch (my_stage_sensor){
 			case 1:

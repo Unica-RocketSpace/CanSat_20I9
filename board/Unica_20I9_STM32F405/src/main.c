@@ -16,7 +16,6 @@
 #include <tasks/control_task.h>
 #include <tasks/sensors_task.h>
 #include <tasks/telemetry.h>
-//#include <tasks/ground.h>
 #include "task.h"
 #include "mavlink/UNISAT/mavlink.h"
 
@@ -204,6 +203,13 @@ void Init_led(){
 	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
 }
 
+void led(){
+	if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_12))
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
+	else
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
+}
+
 
 void LED_task(){
 	for(;;){
@@ -222,6 +228,8 @@ void LED_task(){
 
 int main(int argc, char* argv[])
 {
+	HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
+
 	// Инициализация структур глобального состояния (в нашем случае просто заполняем их нулями)
 	memset(&stateIMUSensors_raw, 	0x00, sizeof(stateIMUSensors_raw));
 	memset(&stateSensors_raw,		0x00, sizeof(stateSensors_raw));
@@ -250,7 +258,6 @@ int main(int argc, char* argv[])
 	state_system.NRF_state 	= 255;
 	state_system.SD_state 	= 255;
 	state_system.globalStage = 1;
-
 
 
 	if (BMP || IMU_BMP || IMU)
@@ -308,6 +315,10 @@ int main(int argc, char* argv[])
 	if (RF || SD) IO_RF_Init();
 	if (GPS) GPS_Init();
 	if (CONTROL) init_pins();
+
+	__enable_irq();
+
+
 
 	HAL_InitTick(15);
 

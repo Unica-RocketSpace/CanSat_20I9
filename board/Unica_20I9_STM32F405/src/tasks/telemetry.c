@@ -346,13 +346,7 @@ void IO_RF_Init(){
 	}
 }
 
-void led(){
-	if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_12))
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
-	else
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
 
-}
 
 
 bool check_TX_DR(int status){

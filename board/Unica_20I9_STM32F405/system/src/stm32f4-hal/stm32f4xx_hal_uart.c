@@ -612,8 +612,6 @@ HAL_StatusTypeDef HAL_UART_DeInit(UART_HandleTypeDef *huart)
   * @retval HAL status
   */
 
-#include <diag/Trace.h>
-
 HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, uint16_t Size, uint32_t Timeout)
 {
   uint16_t* tmp;
@@ -667,7 +665,6 @@ HAL_StatusTypeDef HAL_UART_Transmit(UART_HandleTypeDef *huart, uint8_t *pData, u
           return HAL_TIMEOUT;
         }
         huart->Instance->DR = (*pData++ & (uint8_t)0xFFU);
-        trace_printf("data %d\n", (*pData++ & (uint8_t)0xFFU));
       } 
     }
     

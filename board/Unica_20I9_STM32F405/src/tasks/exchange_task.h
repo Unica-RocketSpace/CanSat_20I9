@@ -11,14 +11,7 @@
 #include <stm32f4xx_hal.h>
 #include "state.h"
 
-#define EXCHANGE_USART 				(USART3)
-#define EXCHANGE_DMA_BUFFER_SIZE 	(400)
-#define EXCHANGE_MSG_BUFFER_SIZE 	(200)
-#define EXCHANGE_DMA_USART_STREAM 	(DMA2_Stream5)
-
-
-#define EXCHANGE_BUFFER_SIZE			(100)
-
+#define EXCHANGE_BUFFER_SIZE	100
 
 #define COMMAND_TEST 		2
 #define COMMAND_SLEEP_MODE 	0
@@ -27,7 +20,7 @@
 #define COMMAND_OK			4
 
 
-extern uint8_t DMA_UARTBuffer[100];
+extern uint8_t Exchange_DMA_Buffer[EXCHANGE_BUFFER_SIZE];
 
 //инициализация uart для приема/передачи команд
 void init_exchange_command_UART();

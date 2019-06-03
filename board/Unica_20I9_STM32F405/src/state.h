@@ -33,10 +33,10 @@
 #define RF		1 	//Влияет на отправку телеметрии
 #define IMU		1
 #define IMU_BMP	1
-#define BMP		0
+#define BMP		1
 #define GPS		1
 #define LED		0
-#define CONTROL	1
+#define CONTROL 1
 
 #define GROUND	0
 
@@ -217,9 +217,9 @@ typedef struct {
 /*##################################################*/
 
 extern USART_HandleTypeDef	usart_dbg;
-//extern UART_HandleTypeDef uartExchangeData;
-//extern UART_HandleTypeDef uartExchangeCommand;
-//extern DMA_HandleTypeDef dmaExchangeData;
+extern UART_HandleTypeDef uartExchangeData;
+extern UART_HandleTypeDef uartExchangeCommand;
+extern DMA_HandleTypeDef dmaExchangeLogs;
 
 extern SPI_HandleTypeDef	spi_nRF24L01;
 extern I2C_HandleTypeDef 	i2c_mpu9255;
@@ -257,6 +257,6 @@ extern 	servo_task_param_t servo_param_left, servo_param_right, servo_param_keel
 extern state_servo_t		stateServo;
 
 void init_pin(GPIO_InitTypeDef port, uint32_t Alternate, uint32_t Mode, uint32_t Pin, uint32_t Pull, uint32_t Speed, GPIO_TypeDef GPIOT);
-
+void led();
 
 #endif /* STATE_H_ */

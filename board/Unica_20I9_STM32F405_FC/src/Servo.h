@@ -8,11 +8,8 @@
 #ifndef SERVO_H_
 #define SERVO_H_
 
-typedef enum {
-	servo_go_left		= 0,
-	servo_go_right		= 1,
-	servo_keel			= 2
-} servo_id_t;
+#include <stm32f4xx_hal.h>
+#include "state.h"
 
 
 void _timerPWMInit(TIM_HandleTypeDef *htim);
@@ -21,6 +18,10 @@ void _timerPWMChangePulse(TIM_HandleTypeDef *htim, uint32_t Channel, uint32_t pu
 void allServosInit();
 void servoRotate(servo_id_t servo_id, float angle_deg);
 
+
+extern TIM_OC_InitTypeDef CH1;
+extern TIM_OC_InitTypeDef CH2;
+extern TIM_OC_InitTypeDef CH3;
 extern TIM_HandleTypeDef htimServo;
 
 #endif /* SERVO_H_ */

@@ -6,17 +6,10 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "Servo.h"
+#include "state.h"
 
-#define fl float
-#define u32 uint32_t
-//TODO:Написать ошибки к функциям
 
-//Внутренние глобалные переменные
-TIM_OC_InitTypeDef CH1;
-TIM_OC_InitTypeDef CH2;
-TIM_OC_InitTypeDef CH3;
-TIM_HandleTypeDef htimServo;
-
+//some constants
 const fl pulseMin = 3000;
 const fl pulseMax = 6000;
 const fl k1 = 37.8250591;
@@ -26,6 +19,57 @@ const fl b2 = 3500;
 const fl k3 = 37.8250591;
 const fl b3 = 3500;
 
+const fl angleMin = -30;
+const fl angleMax = 60;
+const fl angleKeelMax = 45;
+const fl angleKeelMin = -45;
+
+//TODO:Написать ошибки к функциям
+
+//Внутренние глобалные переменные
+
+TIM_OC_InitTypeDef CH1;
+TIM_OC_InitTypeDef CH2;
+TIM_OC_InitTypeDef CH3;
+TIM_HandleTypeDef htimServo;
+
+
+
+void speedRot(fl speed, servo_id_t servo, fl alpha_start, fl alpha_finish) {
+	if (alpha_finish > alpha_start) {
+		for (fl i = alpha_start; i <= alpha_finish; i += speed) {
+			servoRotate(servo, i);
+			HAL_Delay(10);
+		}
+	} else {
+		for (fl i = alpha_start; i >= alpha_finish; i -= speed) {
+			servoRotate(servo, i);
+			HAL_Delay(10);
+		}
+	}
+	return;
+}
+
+
+
+void calibration_servo(){
+	allServosInit();
+	uint32_t pulse;
+	while(1) {
+		//_timerPWMChangePulse(&htimServo, TIM_CHANNEL_1, 5200);
+		//trace_printf("pulse = %d\n", pulse);
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, GPIO_PIN_SET);
+		HAL_Delay(100);
+
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, GPIO_PIN_RESET);
+		HAL_Delay(100);
+		for (pulse =3000; pulse < 5800; pulse +=100) {
+			_timerPWMChangePulse(&htimServo, TIM_CHANNEL_1, pulse);
+			trace_printf("pulse = %d\n", pulse);
+			HAL_Delay(100);
+		}
+	}
+}
 
 void _timerPWMInit(TIM_HandleTypeDef *htim) {
 	htim->Instance = TIM1;

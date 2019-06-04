@@ -71,30 +71,10 @@ stateCamera_orient_t stateCamera_orient_prev;
 
 
 //	параметры IO_RF_task
-/*#define IO_RF_TASK_STACK_SIZE (50*configMINIMAL_STACK_SIZE)
+#define IO_RF_TASK_STACK_SIZE (50*configMINIMAL_STACK_SIZE)
 static StackType_t	_iorfTaskStack[IO_RF_TASK_STACK_SIZE];
 static StaticTask_t	_iorfTaskObj;
 
-
-//	параметры GPS_task
-#define GPS_TASK_STACK_SIZE (80*configMINIMAL_STACK_SIZE)
-static StackType_t _gpsTaskStack[GPS_TASK_STACK_SIZE];
-static StaticTask_t _gpsTaskObj;
-
-//	параметры IMU_task
-#define IMU_TASK_STACK_SIZE (60*configMINIMAL_STACK_SIZE)
-static StackType_t	_IMUTaskStack[IMU_TASK_STACK_SIZE];
-static StaticTask_t	_IMUTaskObj;
-
-//	параметры MOTORS_task
-#define MOTORS_TASK_STACK_SIZE (40*configMINIMAL_STACK_SIZE)
-static StackType_t	_MOTORSTaskStack[MOTORS_TASK_STACK_SIZE];
-static StaticTask_t	_MOTORSTaskObj;
-
-
-#define CALIBRATION_TASK_STACK_SIZE (20*configMINIMAL_STACK_SIZE)
-static StackType_t	_CALIBRATIONTaskStack[MOTORS_TASK_STACK_SIZE];
-static StaticTask_t	_CALIBRATIONTaskObj;*/
 
 
 signed main(int argc, char* argv[]) {
@@ -144,110 +124,112 @@ signed main(int argc, char* argv[]) {
 	*/
 
 	//Инициализация сервоприводов
+//	allServosInit();
+//	HAL_Delay(1000);
+//	fl speed = 0.1;
+//	fl fast_speed = 1;
+//	while (1 != 0) {
+//		trace_printf("Hi!\n");
+//		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, GPIO_PIN_SET);
+//		servoRotate(servo_go_left, 0);
+//		servoRotate(servo_go_right, 0);
+//		servoRotate(servo_keel, 0);
+//
+//		HAL_Delay(10000);
+//		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, GPIO_PIN_RESET);
+//		//начало техасской резни
+//
+//		speedRot(fast_speed, servo_go_left, 0, angleMax);
+//		HAL_Delay(10000);
+//		speedRot(speed, servo_go_left, angleMax, angleMin);
+//		HAL_Delay(1000);
+//		speedRot(fast_speed, servo_go_left, angleMin, 0);
+//		HAL_Delay(10000);
+//
+//		speedRot(fast_speed, servo_go_right, 0, angleMax);
+//		HAL_Delay(10000);
+//		speedRot(speed, servo_go_right, angleMax, angleMin);
+//		HAL_Delay(1000);
+//		speedRot(fast_speed, servo_go_right, angleMin, 0);
+//
+//		HAL_Delay(10000);
+//
+//		speedRot(fast_speed, servo_keel, 0, angleKeelMax);
+//		HAL_Delay(10000);
+//		speedRot(speed, servo_keel, angleKeelMax, angleKeelMin);
+//		HAL_Delay(1000);
+//		speedRot(fast_speed, servo_keel, angleKeelMin, 0);
+//
+//		HAL_Delay(10000);
+//
+//		speedRot(fast_speed, servo_go_left, 0, angleMax);
+//		speedRot(fast_speed, servo_go_right, 0, angleMin);
+//		speedRot(fast_speed, servo_keel, 0, angleKeelMax);
+//		HAL_Delay(10000);
+//		speedRot(speed, servo_go_left, angleMax, angleMin);
+//		speedRot(speed, servo_go_right, angleMin, angleMax);
+//		speedRot(speed, servo_keel, angleKeelMax, angleKeelMin);
+//		HAL_Delay(10000);
+//		speedRot(fast_speed, servo_go_left, angleMin, 0);
+//		speedRot(fast_speed, servo_go_right, angleMax, 0);
+//		speedRot(fast_speed, servo_keel, angleKeelMin, 0);
+//
+//		HAL_Delay(10000);
+//
+//		speedRot(fast_speed, servo_go_left, 0, angleMin);
+//		speedRot(fast_speed, servo_go_right, 0, angleMax);
+//		speedRot(fast_speed, servo_keel, 0, angleKeelMin);
+//		HAL_Delay(10000);
+//		speedRot(speed, servo_go_left, angleMin, angleMax);
+//		speedRot(speed, servo_go_right, angleMax, angleMin);
+//		speedRot(speed, servo_keel, angleKeelMin, angleKeelMax);
+//		HAL_Delay(10000);
+//		speedRot(fast_speed, servo_go_left, angleMax, 0);
+//		speedRot(fast_speed, servo_go_right, angleMin, 0);
+//		speedRot(fast_speed, servo_keel, angleKeelMax, 0);
+//
+//		HAL_Delay(10000);
+//
+//		speedRot(fast_speed, servo_go_left, 0, angleMin);
+//		speedRot(fast_speed, servo_go_right, 0, angleMin);
+//		HAL_Delay(10000);
+//		speedRot(speed, servo_go_left, angleMin, angleMax);
+//		speedRot(speed, servo_go_right, angleMin, angleMax);
+//		HAL_Delay(10000);
+//		speedRot(fast_speed, servo_go_left, angleMax, 0);
+//		speedRot(fast_speed, servo_go_right, angleMax, 0);
+//
+//		HAL_Delay(10000);
+//
+//		speedRot(fast_speed, servo_go_left, 0, angleMax);
+//		speedRot(fast_speed, servo_go_right, 0, angleMax);
+//		HAL_Delay(10000);
+//		speedRot(speed, servo_go_left, angleMax, angleMin);
+//		speedRot(speed, servo_go_right, angleMax, angleMin);
+//		HAL_Delay(10000);
+//		speedRot(fast_speed, servo_go_left, angleMin, 0);
+//		speedRot(fast_speed, servo_go_right, angleMin, 0);
+//
+//		HAL_Delay(10000);
+//		}
+
 	allServosInit();
-	HAL_Delay(1000);
-	fl speed = 0.1;
-	fl fast_speed = 1;
-	while (1 != 0) {
-		trace_printf("Hi!\n");
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, GPIO_PIN_SET);
-		servoRotate(servo_go_left, 0);
-		servoRotate(servo_go_right, 0);
-		servoRotate(servo_keel, 0);
-
-		HAL_Delay(10000);
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, GPIO_PIN_RESET);
-		//начало техасской резни
-
-		speedRot(fast_speed, servo_go_left, 0, angleMax);
-		HAL_Delay(10000);
-		speedRot(speed, servo_go_left, angleMax, angleMin);
-		HAL_Delay(1000);
-		speedRot(fast_speed, servo_go_left, angleMin, 0);
-		HAL_Delay(10000);
-
-		speedRot(fast_speed, servo_go_right, 0, angleMax);
-		HAL_Delay(10000);
-		speedRot(speed, servo_go_right, angleMax, angleMin);
-		HAL_Delay(1000);
-		speedRot(fast_speed, servo_go_right, angleMin, 0);
-
-		HAL_Delay(10000);
-
-		speedRot(fast_speed, servo_keel, 0, angleKeelMax);
-		HAL_Delay(10000);
-		speedRot(speed, servo_keel, angleKeelMax, angleKeelMin);
-		HAL_Delay(1000);
-		speedRot(fast_speed, servo_keel, angleKeelMin, 0);
-
-		HAL_Delay(10000);
-
-		speedRot(fast_speed, servo_go_left, 0, angleMax);
-		speedRot(fast_speed, servo_go_right, 0, angleMin);
-		speedRot(fast_speed, servo_keel, 0, angleKeelMax);
-		HAL_Delay(10000);
-		speedRot(speed, servo_go_left, angleMax, angleMin);
-		speedRot(speed, servo_go_right, angleMin, angleMax);
-		speedRot(speed, servo_keel, angleKeelMax, angleKeelMin);
-		HAL_Delay(10000);
-		speedRot(fast_speed, servo_go_left, angleMin, 0);
-		speedRot(fast_speed, servo_go_right, angleMax, 0);
-		speedRot(fast_speed, servo_keel, angleKeelMin, 0);
-
-		HAL_Delay(10000);
-
-		speedRot(fast_speed, servo_go_left, 0, angleMin);
-		speedRot(fast_speed, servo_go_right, 0, angleMax);
-		speedRot(fast_speed, servo_keel, 0, angleKeelMin);
-		HAL_Delay(10000);
-		speedRot(speed, servo_go_left, angleMin, angleMax);
-		speedRot(speed, servo_go_right, angleMax, angleMin);
-		speedRot(speed, servo_keel, angleKeelMin, angleKeelMax);
-		HAL_Delay(10000);
-		speedRot(fast_speed, servo_go_left, angleMax, 0);
-		speedRot(fast_speed, servo_go_right, angleMin, 0);
-		speedRot(fast_speed, servo_keel, angleKeelMax, 0);
-
-		HAL_Delay(10000);
-
-		speedRot(fast_speed, servo_go_left, 0, angleMin);
-		speedRot(fast_speed, servo_go_right, 0, angleMin);
-		HAL_Delay(10000);
-		speedRot(speed, servo_go_left, angleMin, angleMax);
-		speedRot(speed, servo_go_right, angleMin, angleMax);
-		HAL_Delay(10000);
-		speedRot(fast_speed, servo_go_left, angleMax, 0);
-		speedRot(fast_speed, servo_go_right, angleMax, 0);
-
-		HAL_Delay(10000);
-
-		speedRot(fast_speed, servo_go_left, 0, angleMax);
-		speedRot(fast_speed, servo_go_right, 0, angleMax);
-		HAL_Delay(10000);
-		speedRot(speed, servo_go_left, angleMax, angleMin);
-		speedRot(speed, servo_go_right, angleMax, angleMin);
-		HAL_Delay(10000);
-		speedRot(fast_speed, servo_go_left, angleMin, 0);
-		speedRot(fast_speed, servo_go_right, angleMin, 0);
-
-		HAL_Delay(10000);
-		}
-	//while(1) {
+	uint32_t pulse;
+	while(1) {
 		//_timerPWMChangePulse(&htimServo, TIM_CHANNEL_1, 5200);
 		//trace_printf("pulse = %d\n", pulse);
-		/*HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, GPIO_PIN_SET);
 		HAL_Delay(100);
 
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, GPIO_PIN_RESET);
 		HAL_Delay(100);
-		for (pulse = 2500; pulse < 7000; pulse += 100) {
+		for (pulse =3000; pulse < 5800; pulse +=100) {
 			_timerPWMChangePulse(&htimServo, TIM_CHANNEL_1, pulse);
 			trace_printf("pulse = %d\n", pulse);
-			HAL_Delay(100);
+  			HAL_Delay(100);
 		}
-		//write tasks on wednesday
-    	*/
-    //}
+
+    }
 	return 0;
 }
 

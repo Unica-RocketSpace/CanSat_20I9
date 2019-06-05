@@ -59,12 +59,14 @@ static StaticQueue_t internal_queue_static;
 
 
 int main(int argc, char* argv[]) {
+	HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
+
 	// Инициализация структур глобального состояния (в нашем случае просто заполняем их нулями)
 	memset(&state_system, 			0x00, sizeof(state_system));
 	memset(&state_zero, 			0x00, sizeof(state_zero));
-
+	memset(&state_master, 			0x00, sizeof(state_master));
+	memset(&FC_logs, 				0x00, sizeof(FC_logs));
 	memset(&state_system_prev, 		0x00, sizeof(state_system_prev));
-
 
 
 	xTaskCreateStatic(EXCHANGE_task, 	"EXCHANGE", 	EXCHANGE_TASK_STACK_SIZE, 	NULL, 3, _exchangeTaskStack, 	&_exchangeTaskObj);

@@ -33,6 +33,14 @@
 #define PROCESS_ERROR(x) if (0 != (error = (x))) { goto end; }
 
 
+#define COMMAND_SLEEP	 	0
+#define COMMAND_START 		1
+#define COMMAND_TEST 		2
+#define COMMAND_DATA 		3
+#define COMMAND_OK			4
+#define COMMAND_LOGS		5
+
+
 /*#################################################*/
 /*################## СТРУКТУРЫ ###################*/
 /*#################################################*/
@@ -92,24 +100,30 @@ typedef enum {
 } error;
 
 
+typedef struct {
+	float time;
+	uint8_t fc_stage;
+	float angle_left;
+	float angle_right;
+	float angle_keel;
+} FC_logs_t;
+
+
 
 /*##################################################*/
 /*################### ПЕРЕМЕННЫЕ ###################*/
 /*##################################################*/
 
-//extern USART_HandleTypeDef  usart_HC05;
-extern USART_HandleTypeDef	usart_dbg;
-extern SPI_HandleTypeDef	spi_nRF24L01;
-extern I2C_HandleTypeDef 	i2c_mpu9255;
+extern QueueHandle_t handleInternalCmdQueue;
+
 
 // глобальные структуры
-
 extern state_system_t 		state_system;
 extern state_zero_t			state_zero;
 extern state_master_t		state_master;
+extern FC_logs_t			FC_logs;
 
 extern state_system_t		state_system_prev;
-
 
 
 #endif /* STATE_H_ */

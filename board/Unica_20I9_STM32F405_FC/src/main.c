@@ -13,6 +13,7 @@
 #include <FreeRTOS.h>
 #include <FreeRTOSConfig.h>
 #include "task.h"
+#include "queue.h"
 
 #include "state.h"
 #include "Servo.h"
@@ -37,13 +38,13 @@
 
 
 // глобальные структуры
-
 state_system_t 		state_system;
 state_zero_t		state_zero;
 state_master_t		state_master;
-
 state_system_t		state_system_prev;
+FC_logs_t			FC_logs;
 
+QueueHandle_t handleInternalCmdQueue;
 
 
 //	параметры IO_RF_task
@@ -51,20 +52,24 @@ state_system_t		state_system_prev;
 static StackType_t	_exchangeTaskStack[EXCHANGE_TASK_STACK_SIZE];
 static StaticTask_t	_exchangeTaskObj;
 
-
+#define INTERNAL_QUEUE_LENGHT  sizeof( uint8_t )
+#define INTERNAL_QUEUE_ITEM_SIZE  5
+uint8_t internal_queue_storage_area[INTERNAL_QUEUE_LENGHT * INTERNAL_QUEUE_ITEM_SIZE];
+static StaticQueue_t internal_queue_static;
 
 
 int main(int argc, char* argv[]) {
 	// Инициализация структур глобального состояния (в нашем случае просто заполняем их нулями)
-	memset(&state_system, 		0x00, sizeof(state_system));
-	memset(&state_zero, 		0x00, sizeof(state_zero));
+	memset(&state_system, 			0x00, sizeof(state_system));
+	memset(&state_zero, 			0x00, sizeof(state_zero));
 
-	memset(&state_system_prev, 			0x00, sizeof(state_system_prev));
+	memset(&state_system_prev, 		0x00, sizeof(state_system_prev));
 
 
 
 	xTaskCreateStatic(EXCHANGE_task, 	"EXCHANGE", 	EXCHANGE_TASK_STACK_SIZE, 	NULL, 3, _exchangeTaskStack, 	&_exchangeTaskObj);
 
+	handleInternalCmdQueue = xQueueCreateStatic(INTERNAL_QUEUE_LENGHT, INTERNAL_QUEUE_ITEM_SIZE, internal_queue_storage_area, &internal_queue_static);
 
 	init_exchange_command_UART();
 	init_exchange_data_UART();

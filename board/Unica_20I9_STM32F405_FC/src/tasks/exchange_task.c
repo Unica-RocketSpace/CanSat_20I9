@@ -17,6 +17,9 @@
 UART_HandleTypeDef uartExchangeData;
 UART_HandleTypeDef uartExchangeCommand;
 
+uint8_t internal_cmd;
+BaseType_t internal_queue_status;
+
 // ИНИЦИАЛИЗАЦИЯ UART //
 void init_exchange_data_UART(void){
 	uint8_t error = 0;
@@ -35,6 +38,7 @@ void init_exchange_data_UART(void){
 	end:
 		state_system.EX_logs_UART_state = error;
 }
+
 
 void init_exchange_command_UART(void){
 	uint8_t error = 0;
@@ -63,27 +67,48 @@ void USART3_IRQHandler(void){
 		//Сохранение принятого байтика
 		tmp = USART3->DR;
 		BaseType_t p = pdFALSE;
-//		xQueueSendToBackFromISR(handleInternalCmdQueue, &tmp, &p);
+		xQueueSendToBackFromISR(handleInternalCmdQueue, &tmp, &p);
 	}
 }
 
 
-void USART1_IRQHandler(void){
-	//Проверка флага о приеме байтика по USART
-	if ((USART3->SR & USART_SR_RXNE) != 0){
-//		HAL_UART_Receive_IT(&uartExchangeData, (uint8_t *)&FCLogs, sizeof(FCLogs));
+void parse_command(uint8_t uplink_command){
+	switch (uplink_command){
+		case COMMAND_TEST:
+			HAL_UART_Transmit(&uartExchangeCommand, (uint8_t*)COMMAND_OK, sizeof(COMMAND_OK), 10);
+			break;
+
+		case COMMAND_DATA:
+			HAL_UART_Transmit(&uartExchangeCommand, (uint8_t*)COMMAND_DATA, sizeof(COMMAND_DATA), 10);
+			HAL_UART_Receive(&uartExchangeData, (uint8_t*)&state_master, sizeof(state_master), HAL_MAX_DELAY);
+			break;
+
+		case COMMAND_LOGS:
+			HAL_UART_Transmit(&uartExchangeData, (uint8_t*)&FC_logs, sizeof(FC_logs), 10);
+			break;
+
+		case COMMAND_START:
+			parse_command(COMMAND_DATA);
+//			start predictor task
+//			vTaskResume();
+			break;
+
+		case COMMAND_SLEEP:
+//			stop all tasks
+//			vTaskSuspend();
+			break;
 	}
 }
-
 
 void EXCHANGE_task(void){
 
 	for(;;){
 		//Проверка очереди на наличие в ней элементов
-//		internal_queue_status = xQueueReceive(handleInternalCmdQueue, &internal_cmd, portMAX_DELAY);
+		internal_queue_status = xQueueReceive(handleInternalCmdQueue, &internal_cmd, portMAX_DELAY);
 		//Данные пришли
-//		if (internal_queue_status == pdPASS){
-//			trace_printf("E");
-//		parse_command(internal_cmd);
+		if (internal_queue_status == pdPASS){
+			trace_printf("E");
+			parse_command(internal_cmd);
+		}
 	}
 }

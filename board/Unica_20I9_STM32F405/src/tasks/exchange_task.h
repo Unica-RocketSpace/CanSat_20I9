@@ -13,11 +13,6 @@
 
 #define EXCHANGE_BUFFER_SIZE	100
 
-#define COMMAND_TEST 		2
-#define COMMAND_SLEEP_MODE 	0
-#define COMMAND_START 		1
-#define COMMAND_DATA 		3
-#define COMMAND_OK			4
 
 
 extern uint8_t Exchange_DMA_Buffer[EXCHANGE_BUFFER_SIZE];
@@ -38,6 +33,7 @@ void init_exchange_DMA_logs();
  */
 void parse_command(uint8_t uplink_command);
 
+void init_EX();
 
 void EXCHANGE_task();
 

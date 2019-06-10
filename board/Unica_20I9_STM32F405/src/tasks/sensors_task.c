@@ -137,6 +137,7 @@ static int IMU_updateDataAll() {
 			stateIMU_rsc.gyro[k] = gyro[k];
 			stateIMU_rsc.compass[k] = compass[k];
 		}
+//		trace_printf("x\t%f y\t%f z\t%f\n------------------------------------------------\n", compass[0], compass[1], compass[2]);
 	taskEXIT_CRITICAL();
 	////////////////////////////////////////////////////
 
@@ -244,6 +245,7 @@ void bmp280_update() {
 		height = 18400 * log(zero_pressure / pressure_f);
 
 	taskENTER_CRITICAL();
+		stateIMUSensors_prev.height = stateIMUSensors.height;
 		stateIMUSensors_raw.pressure = pressure;
 		stateIMUSensors_raw.temp = temp;
 		stateIMUSensors.pressure = pressure_f;

@@ -25,22 +25,21 @@
 #include "task.h"
 #include "queue.h"
 
-
 #include "drivers/UNICS_bmp280.h"
 
 
-#define SD 		1
-#define RF		1 	//Влияет на отправку телеметрии
-#define IMU		1
-#define IMU_BMP	1
-#define BMP		1
-#define GPS		1
-#define LED		0
-#define CONTROL 1
+#define SD 			0
+#define RF			1 	//Влияет на отправку телеметрии
+#define IMU			1
+#define IMU_BMP		1
+#define BMP			1
+#define GPS			1
+#define LED			0
+#define CONTROL 	1
+#define EXCHANGE	1
 
-#define GROUND	0
-
-#define SERVO	0
+#define GROUND		0
+#define SERVO		0
 
 
 #define HEIGHT_TO_DEPLOY_PARACHUTE 	270
@@ -66,6 +65,13 @@
 #define BUTTON_PIN_KEEL				GPIO_PIN_7
 #define BUTTON_PIN_WR				GPIO_PIN_9
 #define BUTTON_PIN_WL				GPIO_PIN_8
+
+
+#define COMMAND_TEST 		2
+#define COMMAND_SLEEP_MODE 	0
+#define COMMAND_START 		1
+#define COMMAND_DATA 		3
+#define COMMAND_OK			4
 
 
 // if error set value and go to end

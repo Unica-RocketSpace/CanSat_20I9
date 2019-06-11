@@ -32,6 +32,7 @@ uint8_t uplink_command;
 
 // ИНИЦИАЛИЗАЦИЯ USART //
 void init_exchange_data_UART(){
+	uint8_t error = 0;
 
 	uartExchangeData.Instance = USART1;
 	uartExchangeData.Init.BaudRate = 9600;
@@ -42,10 +43,13 @@ void init_exchange_data_UART(){
 	uartExchangeData.Init.HwFlowCtl = UART_HWCONTROL_NONE;
 	uartExchangeData.Init.OverSampling = UART_OVERSAMPLING_16;
 
-	HAL_UART_Init(&uartExchangeData);
+	error = HAL_UART_Init(&uartExchangeData);
+	trace_printf("init EX_data_UART %d\n", error);
 }
 
 void init_exchange_command_UART(){
+	uint8_t error = 0;
+
 	__HAL_RCC_USART3_CLK_ENABLE();
 	uartExchangeCommand.Instance = USART3;
 	uartExchangeCommand.Init.BaudRate = 9600;
@@ -56,7 +60,8 @@ void init_exchange_command_UART(){
 	uartExchangeCommand.Init.HwFlowCtl = UART_HWCONTROL_NONE;
 	uartExchangeCommand.Init.OverSampling = UART_OVERSAMPLING_16;
 
-	HAL_UART_Init(&uartExchangeCommand);
+	error = HAL_UART_Init(&uartExchangeCommand);
+	trace_printf("init EX_cmd_UART %d\n", error);
 }
 
 
@@ -96,6 +101,7 @@ void init_exchange_DMA_logs(){
 
 
 void parse_command(uint8_t uplink_command){
+	trace_printf("EX cmd %d\n", uplink_command);
 	if (uplink_command == COMMAND_DATA){
 		//copy_data for FC
 		taskENTER_CRITICAL();
@@ -114,6 +120,7 @@ void parse_command(uint8_t uplink_command){
 
 		//отправка данных на FC
 		HAL_UART_Transmit(&uartExchangeData, (uint8_t*)&state_master, sizeof(state_master), 10);
+
 	}
 
 	else if (uplink_command == COMMAND_OK){
@@ -121,6 +128,8 @@ void parse_command(uint8_t uplink_command){
 		state_system.master_state = 1;
 		taskEXIT_CRITICAL();
 	}
+
+	else HAL_UART_Transmit(&uartExchangeCommand, &uplink_command, uplink_command, 10);
 }
 
 
@@ -142,6 +151,7 @@ void USART1_IRQHandler(void){
 		HAL_UART_Receive_IT(&uartExchangeData, (uint8_t *)&FCLogs, sizeof(FCLogs));
 	}
 }
+
 /*
 void DMA2_Stream5_IRQHandler(void){
 	//Проверка флага о заполнении половины буффера
@@ -156,11 +166,10 @@ void DMA2_Stream5_IRQHandler(void){
 		//Запись на SD
 		trace_printf("TCIE\n");
 	}
-}
-*/
+}*/
 
 
-void EXCHANGE_task(void){
+void init_EX(void){
 	init_exchange_data_UART();
 	init_exchange_command_UART();
 //	init_exchange_DMA_logs();
@@ -182,6 +191,10 @@ void EXCHANGE_task(void){
 	HAL_NVIC_SetPriority(DMA2_Stream5_IRQn, 6, 0);
 	HAL_NVIC_EnableIRQ(DMA2_Stream5_IRQn);
 */
+}
+
+
+void EXCHANGE_task(void){
 
 	for(;;){
 		//Проверка очереди на наличие в ней элементов

@@ -21,7 +21,7 @@ GPIO_InitTypeDef engine_pin;
 
 int8_t global_command;
 uint8_t global_stage;
-float height;
+float height_now, height_prev;
 uint8_t button;
 uint8_t command;
 
@@ -82,29 +82,17 @@ void CONTROL_task() {
 		taskENTER_CRITICAL();
 		global_stage = state_system.globalStage;
 		global_command = state_system.globalCommand;
-		height = stateIMUSensors.height;
+		height_now = stateIMUSensors.height;
+		height_prev = stateIMUSensors_prev.height;
 		button = state_system.buttons;
 		taskEXIT_CRITICAL();
 
-		trace_printf("stage %d\n", global_stage);
+//		trace_printf("stage %d\n", global_stage);
 
 
-
-//		if (global_command != -1){}
-
-
-//		FIXME: нужен ли он здесь?????
-//		if (global_stage == 0){
-
-//		}
 		switch (global_stage){
-//			case 0:
-//				xQueueSendToBack(handleInternalCmdQueue, &command, 0);
-//				break;
-
-			case 1:
-//				command = 3;
-//				xQueueSendToBack(handleInternalCmdQueue, &command, 0);
+			case 0:
+				xQueueSendToBack(handleInternalCmdQueue, &command, 0);
 				break;
 
 			case 3:
@@ -116,7 +104,7 @@ void CONTROL_task() {
 				break;
 
 			case 4:
-				if (height <= HEIGHT_TO_DEPLOY_PARACHUTE){
+				if (height_now <= HEIGHT_TO_DEPLOY_PARACHUTE){
 					taskENTER_CRITICAL();
 					deploy_parachute();
 					state_system.globalStage = 5;
@@ -128,7 +116,7 @@ void CONTROL_task() {
 //				trace_printf("buttons %d\n", button);
 				switch (button){
 				//ждем прерывания от крыльев и стабилизаторов
-					/*case 4:
+					case 0:
 						HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_WL, GPIO_PIN_SET);
 						if (!HAL_GPIO_ReadPin(BUTTON_PORT_2, BUTTON_PIN_WL)){
 							taskENTER_CRITICAL();
@@ -138,7 +126,7 @@ void CONTROL_task() {
 						}
 						break;
 
-					case 5:
+					case 1:
 						HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_WR, GPIO_PIN_SET);
 						if (!HAL_GPIO_ReadPin(BUTTON_PORT_2, BUTTON_PIN_WR)){
 							taskENTER_CRITICAL();
@@ -146,9 +134,9 @@ void CONTROL_task() {
 							taskEXIT_CRITICAL();
 							HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_WR, GPIO_PIN_RESET);
 						}
-						break;*/
+						break;
 
-					case 0:
+					case 2:
 						HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_GOL, GPIO_PIN_SET);
 						if (!HAL_GPIO_ReadPin(BUTTON_PORT, BUTTON_PIN_GOL)){
 							taskENTER_CRITICAL();
@@ -158,7 +146,7 @@ void CONTROL_task() {
 						}
 						break;
 
-					case 1:
+					case 3:
 						HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_GOR, GPIO_PIN_SET);
 						if (!HAL_GPIO_ReadPin(BUTTON_PORT, BUTTON_PIN_GOR)){
 							taskENTER_CRITICAL();
@@ -168,7 +156,7 @@ void CONTROL_task() {
 						}
 						break;
 
-					case 2:
+					case 4:
 						vTaskDelay(100/portTICK_RATE_MS);
 						HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_KEEL, GPIO_PIN_SET);
 						if (!HAL_GPIO_ReadPin(BUTTON_PORT_2, BUTTON_PIN_KEEL)){
@@ -179,7 +167,7 @@ void CONTROL_task() {
 						}
 						break;
 
-					case 3:
+					case 5:
 						taskENTER_CRITICAL();
 						state_system.globalStage = 6;
 						taskEXIT_CRITICAL();
@@ -188,20 +176,26 @@ void CONTROL_task() {
 				break;
 
 			case 6:
-				//unhook_parachute
 				//тук-тук к мастеру
+				xQueueSendToBack(&handleInternalCmdQueue, (uint8_t*)COMMAND_START, 0);
+				vTaskDelay(30);
+				taskENTER_CRITICAL();
+				if (state_system.master_state == COMMAND_OK)
+					deploy_parachute();
+				taskEXIT_CRITICAL();
 
-	//			Определяем неизменность высоты
-	/*			if (){
-					task_ENTER_CRITICAL();
-					state_system.globalStage = 6;
-					task_EXIT_CRITICAL();
-					global_stage = 6;
+
+				//Определяем неизменность высоты
+				if ((height_now + DELTA_HEIGHT <= height_prev) || (height_now - DELTA_HEIGHT <= height_prev)){
+					taskENTER_CRITICAL();
+					state_system.globalStage = 7;
+					taskEXIT_CRITICAL();
 				}
-	*/			break;
+				break;
 
 			case 7:
 				//Переходим в режим ожидания
+				xQueueSendToBack(&handleInternalCmdQueue, (uint8_t*)COMMAND_SLEEP_MODE, 0);
 				break;
 		}
 

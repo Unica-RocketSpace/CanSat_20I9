@@ -296,7 +296,8 @@ int main(int argc, char* argv[])
 	if (GPS)
 		xTaskCreateStatic(GPS_task, 	"GPS", 		GPS_TASK_STACK_SIZE, 	NULL, 1, _gpsTaskStack, 	&_gpsTaskObj);
 
-	xTaskCreateStatic(EXCHANGE_task, 	"EXCHANGE", 	EXCHANGE_TASK_STACK_SIZE, 	NULL, 3, _ExchangeTaskStack, 	&_ExchangeTaskObj);
+	if (EXCHANGE)
+		xTaskCreateStatic(EXCHANGE_task, 	"EXCHANGE", 	EXCHANGE_TASK_STACK_SIZE, 	NULL, 3, _ExchangeTaskStack, 	&_ExchangeTaskObj);
 
 	handleInternalCmdQueue = xQueueCreateStatic(INTERNAL_QUEUE_LENGHT, INTERNAL_QUEUE_ITEM_SIZE, internal_queue_storage_area, &internal_queue_static);
 
@@ -318,6 +319,7 @@ int main(int argc, char* argv[])
 	if (RF || SD) IO_RF_Init();
 	if (GPS) GPS_Init();
 	if (CONTROL) init_pins();
+	if (EXCHANGE) init_EX();
 
 	__enable_irq();
 

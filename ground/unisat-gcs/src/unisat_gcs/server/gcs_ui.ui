@@ -20,28 +20,44 @@
    <layout class="QHBoxLayout" name="horizontalLayout_2">
     <item>
      <layout class="QVBoxLayout" name="verticalLayout_3">
+      <property name="spacing">
+       <number>6</number>
+      </property>
       <property name="sizeConstraint">
-       <enum>QLayout::SetDefaultConstraint</enum>
+       <enum>QLayout::SetFixedSize</enum>
       </property>
       <item>
-       <widget class="QTextBrowser" name="textBrowser">
-        <property name="maximumSize">
-         <size>
-          <width>430</width>
-          <height>30</height>
-         </size>
-        </property>
-        <property name="readOnly">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QCommandLinkButton" name="commandLinkButton">
-        <property name="text">
-         <string>Отправить команду</string>
-        </property>
-       </widget>
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QTextBrowser" name="textBrowser">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>200</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="readOnly">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QCommandLinkButton" name="commandLinkButton">
+          <property name="maximumSize">
+           <size>
+            <width>200</width>
+            <height>60</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>Отправить команду</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0">
@@ -50,6 +66,9 @@
         </property>
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_2">
+          <property name="sizeConstraint">
+           <enum>QLayout::SetFixedSize</enum>
+          </property>
           <item>
            <widget class="QPushButton" name="pushButton_3">
             <property name="maximumSize">
@@ -64,22 +83,15 @@
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="pushButton">
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>Очистить телеметрию</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <layout class="QHBoxLayout" name="horizontalLayout_9">
             <item>
              <widget class="QLabel" name="label_6">
+              <property name="maximumSize">
+               <size>
+                <width>220</width>
+                <height>30</height>
+               </size>
+              </property>
               <property name="text">
                <string>Инициализация</string>
               </property>
@@ -384,20 +396,7 @@
        </layout>
       </item>
       <item>
-       <widget class="QTextBrowser" name="textBrowser_2">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>16777215</width>
-          <height>16777215</height>
-         </size>
-        </property>
-       </widget>
+       <layout class="QGridLayout" name="gridLayou_telem"/>
       </item>
      </layout>
     </item>
@@ -414,116 +413,24 @@
        </layout>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
-        <item>
-         <widget class="QPushButton" name="pushButton_13">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="minimumSize">
-           <size>
-            <width>300</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Увеличить</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_14">
-          <property name="minimumSize">
-           <size>
-            <width>300</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Увеличить</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_12">
-          <property name="minimumSize">
-           <size>
-            <width>300</width>
-            <height>0</height>
-           </size>
-          </property>
-          <property name="text">
-           <string>Увеличить</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
        <layout class="QGridLayout" name="middle"/>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_4">
-        <item>
-         <widget class="QPushButton" name="pushButton_6">
-          <property name="text">
-           <string>Увеличить</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_7">
-          <property name="text">
-           <string>Увеличить</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_5">
-          <property name="text">
-           <string>Увеличить</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
        <layout class="QGridLayout" name="down"/>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_5">
-        <item>
-         <widget class="QPushButton" name="pushButton_8">
-          <property name="text">
-           <string>Увеличить</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_9">
-          <property name="text">
-           <string>Увеличить</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_10">
-          <property name="text">
-           <string>Увеличить</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
       </item>
      </layout>
     </item>
     <item>
      <layout class="QVBoxLayout" name="verticalLayout">
+      <property name="sizeConstraint">
+       <enum>QLayout::SetFixedSize</enum>
+      </property>
       <item>
-       <layout class="QGridLayout" name="grid_large_graf"/>
+       <layout class="QGridLayout" name="grid_right_2_graf">
+        <property name="sizeConstraint">
+         <enum>QLayout::SetMinimumSize</enum>
+        </property>
+       </layout>
       </item>
       <item>
        <layout class="QGridLayout" name="grid_3D"/>

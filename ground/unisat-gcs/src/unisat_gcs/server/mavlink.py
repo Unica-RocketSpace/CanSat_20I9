@@ -16,42 +16,7 @@ SD = 0
 
 # Файл, из которого мы читаем данные
 if SD:
-    read_file = r'C:\Users\MI\PycharmProjects\CanSat_20I9\ground\unisat-gcs\src\unisat_gcs\server\radio.bin'
-
-def bytes_to_int(bytes):
-    result = 0
-    for b in bytes:
-        result = result * 256 + int(b)
-    return result
-
-def connection_uart(_port, _baudrate=256000):
-    while True:
-        try:
-            port = serial.Serial(
-                port=_port,
-                baudrate=_baudrate,
-                parity=serial.PARITY_NONE,
-                stopbits=serial.STOPBITS_ONE,
-                bytesize=serial.SEVENBITS,
-                xonxoff=False,
-                rtscts=False,
-                dsrdtr=False
-            )
-            if not port.is_open:
-                port.open()
-
-            print("port_opened")
-            return port
-        except IOError as e:
-            print("error")
-            pass
-
-
-def uart_recive(port):
-    leng = bytes_to_int(port.read())
-    msg = port.read(leng - 1)
-    return msg
-
+    read_file = r'C:\Users\MI\PycharmProjects\CanSat_20I9\ground\unisat-gcs\src\unisat_gcs\server\gravicapa.txt'
 
 
 class MsgAccumulator:
@@ -77,6 +42,8 @@ class MavlinkThread(QThread):
     new_gps_record = pyqtSignal(list)
     new_state_record = pyqtSignal(list)
     new_servo_record = pyqtSignal(list)
+    new_zero_data_record = pyqtSignal(list)
+    new_fc_logs_record = pyqtSignal(list)
 
     def __init__(self):
         QThread.__init__(self)
@@ -86,7 +53,9 @@ class MavlinkThread(QThread):
         self.sensors_accum = MsgAccumulator(10, self.new_sensors_record)
         self.gps_accum = MsgAccumulator(10, self.new_gps_record)
         self.state_accum = MsgAccumulator(10, self.new_state_record)
+        self.zero_data_accum = MsgAccumulator(10, self.new_zero_data_record)
         self.servo_accum = MsgAccumulator(10, self.new_servo_record)
+        self.fc_logs_accum = MsgAccumulator(10, self.new_fc_logs_record)
         self.uplink_msgs = []
 
 
@@ -99,10 +68,11 @@ class MavlinkThread(QThread):
         # _log.debug(msg)
         # _log.info(msg)
         if isinstance(msg, MAVLink_bmp280_message):
-            self.atmega_accum.push_message(msg)
+            # self.atmega_accum.push_message(msg)
             print('bmp msg')
 
         elif isinstance(msg, MAVLink_state_zero_message):
+            self.zero_data_accum.push_message(msg)
             print("zero data")
 
         elif isinstance(msg, MAVLink_imu_rsc_message):
@@ -127,6 +97,9 @@ class MavlinkThread(QThread):
         elif isinstance(msg, MAVLink_servo_message):
             self.servo_accum.push_message(msg)
 
+        elif isinstance(msg, MAVLink_fclogs_message):
+            self.fc_logs_accum.push_message(msg)
+
         else:
             _log.warning("неизвестный тип сообщения!")
             _log.info(msg)
@@ -140,16 +113,7 @@ class MavlinkThread(QThread):
             mav1 = mavutil.mavlink_connection("udpin:0.0.0.0:10000")
             mav2 = mavutil.mavlink_connection("udpin:0.0.0.0:10001")
 
-        if UART:
-            _log.info("Запускаюсь. Использую serial port")
-            mav_serial = mavutil.mavserial("COM6", baud=115200, autoreconnect=True)
-
-        if SD:
-            _log.info("Запускаюсь. Использую SD")
-            mav_read_file = mavutil.mavlogfile(read_file, robust_parsing=True, notimestamps= True)
-
-        while True:
-            if UDP:
+            while True:
                 msg1 = mav1.recv_match(blocking=False)
                 msg2 = mav2.recv_match(blocking=False)
 
@@ -167,15 +131,22 @@ class MavlinkThread(QThread):
                         print(self.uplink_msgs)
                         self.uplink_msgs = []
 
-            if SD:
-                msg_read_file = mav_read_file.recv_match(blocking=False)
-                if msg_read_file:
-                    self.process_message(msg_read_file)
+        elif UART:
+            _log.info("Запускаюсь. Использую serial port")
+            mav_serial = mavutil.mavserial("COM6", baud=115200, autoreconnect=True)
 
-            if UART:
+            while True:
                 msg_serial = mav_serial.recv_match(blocking=False)
                 if msg_serial:
                     # print(msg_serial)
                     self.process_message(msg_serial)
                     print(msg_serial)
 
+        elif SD:
+            _log.info("Запускаюсь. Использую SD")
+            mav_read_file = mavutil.mavlogfile(read_file, robust_parsing=True, notimestamps= True)
+
+            while True:
+                msg_read_file = mav_read_file.recv_match(blocking=False)
+                if msg_read_file:
+                    self.process_message(msg_read_file)

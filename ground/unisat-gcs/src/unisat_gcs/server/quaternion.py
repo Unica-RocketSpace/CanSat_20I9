@@ -27,7 +27,7 @@ def quat_invert(quat):
 
 
 def quat_mult_by_quat(a, b):
-    res_quat = [0, 0, 0, 0];
+    res_quat = [0, 0, 0, 0]
 
     res_quat[0] = a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3]
     res_quat[1] = a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2]

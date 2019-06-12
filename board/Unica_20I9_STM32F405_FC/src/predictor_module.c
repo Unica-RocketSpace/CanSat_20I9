@@ -3,16 +3,33 @@
 #include <stdbool.h>
 #include "sofa.h"
 
+
 #include "config.h"
 #include "state.h"
 #include "quaternion.h"
 
+#define double float
 
 void straight_flight(double alpha) {
 	//set angle of incidence equal to alpha
+	servo_id_t serv;
+	serv = 0;
+	servoRotate(serv, alpha);
+	serv = 1;
+	servoRotate(serv, alpha);
 	return;
 }
 
+
+
+void turn_flight(double z, double x, char turn) {
+	if (turn == 'L') {
+		//do rotation using the left turn circle
+
+	} else if (turn == 'R') {
+		//do rotation using the right turn circle
+	}
+}
 
 bool check_tube_target(double a, double b, double c, double z, double x, bool flag) {
 	double dist = abs(c) / sqrt(a * a + b * b);
@@ -22,7 +39,6 @@ bool check_tube_target(double a, double b, double c, double z, double x, bool fl
 	}
 	return false;
 }
-
 
 void height_predictor(double x, double y, double z) {
 	double target_dist = sqrt(z * z + x * x);
@@ -45,16 +61,6 @@ void height_predictor(double x, double y, double z) {
 	}
 	return;
 }
-
-
-void turn_flight(double z, double x, char turn) {
-	if (turn == 'L') {
-		//do rotation using the left turn circle
-	} else if (turn == 'R') {
-		//do rotation using the right turn circle
-	}
-}
-
 
 void calculating_distance_of_linear_further_motion(double R, double r, double vz, double vx, char turn) {
 	double dist;

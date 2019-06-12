@@ -18,8 +18,7 @@ extern UART_HandleTypeDef uartExchangeCommand;
 void init_exchange_command_UART(void);
 void init_exchange_data_UART(void);
 
+void init_EX();
 void EXCHANGE_task(void);
-
-
 
 #endif /* EXCHANGE_TASK_H_ */

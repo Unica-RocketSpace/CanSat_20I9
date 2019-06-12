@@ -37,6 +37,7 @@ void init_exchange_data_UART(void){
 
 	end:
 		state_system.EX_logs_UART_state = error;
+		trace_printf("EX_data_UART %d\n", error);
 }
 
 
@@ -57,6 +58,7 @@ void init_exchange_command_UART(void){
 
 	end:
 		state_system.EX_cmd_UART_state = error;
+		trace_printf("EX_cmd_UART %d\n", error);
 }
 
 
@@ -66,21 +68,25 @@ void USART3_IRQHandler(void){
 	if ((USART3->SR & USART_SR_RXNE) != 0){
 		//Сохранение принятого байтика
 		tmp = USART3->DR;
-		BaseType_t p = pdFALSE;
+		BaseType_t p = pdTRUE;
 		xQueueSendToBackFromISR(handleInternalCmdQueue, &tmp, &p);
 	}
 }
 
 
 void parse_command(uint8_t uplink_command){
+	trace_printf("command %d\n", uplink_command);
+	uint8_t tmp;
 	switch (uplink_command){
 		case COMMAND_TEST:
-			HAL_UART_Transmit(&uartExchangeCommand, (uint8_t*)COMMAND_OK, sizeof(COMMAND_OK), 10);
+			tmp = COMMAND_OK;
+			HAL_UART_Transmit(&uartExchangeCommand, &tmp, sizeof(tmp), 10);
 			break;
 
 		case COMMAND_DATA:
-			HAL_UART_Transmit(&uartExchangeCommand, (uint8_t*)COMMAND_DATA, sizeof(COMMAND_DATA), 10);
-			HAL_UART_Receive(&uartExchangeData, (uint8_t*)&state_master, sizeof(state_master), HAL_MAX_DELAY);
+			tmp = COMMAND_DATA;
+			do HAL_UART_Transmit(&uartExchangeCommand, &tmp, sizeof(tmp), 10);
+			while(HAL_UART_Receive(&uartExchangeData, (uint8_t*)&state_master, sizeof(state_master), 200) == HAL_TIMEOUT);
 			break;
 
 		case COMMAND_LOGS:
@@ -88,17 +94,39 @@ void parse_command(uint8_t uplink_command){
 			break;
 
 		case COMMAND_START:
-			parse_command(COMMAND_DATA);
+			tmp = COMMAND_DATA;
+			parse_command(tmp);
 //			start predictor task
 //			vTaskResume();
+			tmp = COMMAND_OK;
+			HAL_UART_Transmit(&uartExchangeCommand, &tmp, sizeof(tmp), 10);
 			break;
 
 		case COMMAND_SLEEP:
 //			stop all tasks
+			tmp = COMMAND_OK;
+			HAL_UART_Transmit(&uartExchangeCommand, &tmp, sizeof(tmp), 10);
 //			vTaskSuspend();
 			break;
 	}
 }
+
+
+void init_EX(){
+	init_exchange_command_UART();
+	init_exchange_data_UART();
+
+	//Включение прерывания USART: RXNE
+	USART3->CR1 |= USART_CR1_RXNEIE;
+	HAL_NVIC_SetPriority(USART3_IRQn, 6, 0);
+	HAL_NVIC_EnableIRQ(USART3_IRQn);
+
+//	//Включение прерывания USART: RXNE
+//	USART1->CR1 |= USART_CR1_RXNEIE;
+//	HAL_NVIC_SetPriority(USART1_IRQn, 6, 0);
+//	HAL_NVIC_EnableIRQ(USART1_IRQn);
+}
+
 
 void EXCHANGE_task(void){
 

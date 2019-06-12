@@ -58,6 +58,29 @@ uint8_t internal_queue_storage_area[INTERNAL_QUEUE_LENGHT * INTERNAL_QUEUE_ITEM_
 static StaticQueue_t internal_queue_static;
 
 
+// Keep the LED on for 2/3 of a second.
+#define BLINK_ON_TICKS  (TIMER_FREQUENCY_HZ * 3 / 4)
+#define BLINK_OFF_TICKS (TIMER_FREQUENCY_HZ - BLINK_ON_TICKS)
+
+
+void Init_led(){
+	GPIO_InitTypeDef gpioc;
+	gpioc.Mode = GPIO_MODE_OUTPUT_PP;
+	gpioc.Pin = GPIO_PIN_12;
+	gpioc.Pull = GPIO_NOPULL;
+	gpioc.Speed = GPIO_SPEED_HIGH;
+	HAL_GPIO_Init(GPIOC, &gpioc);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
+}
+
+void led(){
+	if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_12))
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
+	else
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
+}
+
+
 int main(int argc, char* argv[]) {
 	HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
 
@@ -73,34 +96,19 @@ int main(int argc, char* argv[]) {
 
 	handleInternalCmdQueue = xQueueCreateStatic(INTERNAL_QUEUE_LENGHT, INTERNAL_QUEUE_ITEM_SIZE, internal_queue_storage_area, &internal_queue_static);
 
-	init_exchange_command_UART();
-	init_exchange_data_UART();
 
-	//Включение прерывания USART: RXNE
-	USART3->CR1 |= USART_CR1_RXNEIE;
-	HAL_NVIC_SetPriority(USART3_IRQn, 6, 0);
-	HAL_NVIC_EnableIRQ(USART3_IRQn);
-
-	//Включение прерывания USART: RXNE
-	USART1->CR1 |= USART_CR1_RXNEIE;
-	HAL_NVIC_SetPriority(USART1_IRQn, 6, 0);
-	HAL_NVIC_EnableIRQ(USART1_IRQn);
+	init_EX();
+	Init_led();
 
 	HAL_Delay(300);
 
 	__enable_irq();
 
-
 	HAL_InitTick(15);
-
 	vTaskStartScheduler();
 
 	return 0;
 }
-
-
-
-
 
 #pragma GCC diagnostic pop
 

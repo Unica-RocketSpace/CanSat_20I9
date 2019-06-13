@@ -1,0 +1,3 @@
+[submodule "common/mavlink/pymavlink"]
+	path = common/mavlink/pymavlink
+	url = ../pymavlink.git

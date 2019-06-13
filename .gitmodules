@@ -1,3 +1,0 @@
-[submodule "common/mavlink/pymavlink"]
-	path = common/mavlink/pymavlink
-	url = https://github.com/Unica-RocketSpace/pymavlink.git

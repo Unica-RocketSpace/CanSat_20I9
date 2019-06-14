@@ -113,6 +113,7 @@ void parse_command(uint8_t uplink_command){
 		state_master.accel_isc[2] = stateIMU_isc.accel[2];
 		state_master.quaternion[2] = stateIMU_isc.quaternion[2];
 		state_master.quaternion[3] = stateIMU_isc.quaternion[3];
+		state_master.height = stateIMUSensors.height;
 
 		state_master.speed_GPS = stateGPS.speed;
 		state_master.course = stateGPS.course;

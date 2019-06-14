@@ -169,6 +169,7 @@ typedef struct {
 	float coordinates[2];
 	float quaternion[4];
 	float accel_isc[3];
+	float height;
 
 	float speed_GPS;
 	float speed_BMP;

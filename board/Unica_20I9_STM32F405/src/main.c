@@ -260,7 +260,7 @@ int main(int argc, char* argv[])
 	state_system.MPU_state 	= 255;
 	state_system.NRF_state 	= 255;
 	state_system.SD_state 	= 255;
-	state_system.globalStage = 1;
+	state_system.globalStage = 0;
 
 
 	if (BMP || IMU_BMP || IMU)
@@ -326,6 +326,8 @@ int main(int argc, char* argv[])
 
 
 	HAL_InitTick(15);
+
+
 
 	vTaskStartScheduler();
 

@@ -104,4 +104,13 @@ void vect_rotate(float* vect, float* quat, float* res_vect) {
 }
 
 
+Euler_angles_t quat_to_angles(float* quat){
+	Euler_angles_t angles;
+
+	angles.roll = (float)atan((double)((2 * (quat[0] * quat[1] + quat[2] * quat[3])) / (1 - 2 * (quat[1] * quat[1] + quat[2] * quat[2]))));
+	angles.pitch = (float)asin((double)(2 * (quat[0] * quat[2] - quat[3] * quat[1])));
+	angles.yaw = (float)atan((double)((2 * (quat[0] * quat[3] + quat[1] * quat[2])) / (1 - 2 * (quat[2] * quat[2] + quat[3] * quat[3]))));
+	return angles;
+}
+
 

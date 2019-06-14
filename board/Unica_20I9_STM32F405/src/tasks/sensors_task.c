@@ -41,6 +41,7 @@ rscs_bmp280_descriptor_t * bmp280;
 rscs_bmp280_descriptor_t * IMUbmp280;
 const rscs_bmp280_calibration_values_t * bmp280_calibration_values;
 
+Euler_angles_t angles;
 
 uint8_t get_gyro_staticShift(float* gyro_staticShift) {
 	uint8_t error = 0;
@@ -163,6 +164,12 @@ static int IMU_updateDataAll() {
 	taskEXIT_CRITICAL();
 	////////////////////////////////////////////////////
 
+	//считаем углы
+	angles = quat_to_angles(quaternion);
+	taskENTER_CRITICAL();
+	state_master.angles = angles;
+	taskEXIT_CRITICAL();
+
 
 	/////////  ПЕРЕВОДИМ ВЕКТОРЫ в ISC  ////////////////
 		float accel_ISC[3] = {0, 0, 0};
@@ -271,6 +278,7 @@ void bmp280_update() {
 
 		//Count speed_BMP
 		state_master.speed_BMP = (stateSensors.pressure - stateIMUSensors.pressure) * SPEED_COEF;
+		stateSensors.speed_bmp = state_master.speed_BMP;
 
 //		trace_printf("pressure\t%f temp\t%f height\t%f\n------------------------------------------------\n", pressure_f, temp_f, height);
 	taskEXIT_CRITICAL();

@@ -26,7 +26,7 @@
 #include "queue.h"
 
 #include "drivers/UNICS_bmp280.h"
-
+#include "quaternion.h"
 
 #define SD 			0
 #define RF			1 	//Влияет на отправку телеметрии
@@ -122,7 +122,6 @@ typedef struct {
 
 	//	orientation
 	float quaternion[4];
-
 } stateIMU_isc_t;
 
 
@@ -137,15 +136,9 @@ typedef struct {
 typedef struct {
 	float temp;
 	float pressure;
+	float speed_bmp;
 } stateBMPSensors_t;
 
-
-typedef struct {
-	//	"position" of servo and step engine
-	float servo_pos;
-	float step_engine_pos;
-	float target[3];
-} stateCamera_orient_t;
 
 //	system parameters
 typedef struct {
@@ -165,6 +158,7 @@ typedef struct {
 	float time;				//	current time
 } state_system_t;
 
+
 typedef struct {
 	float coordinates[2];
 	float quaternion[4];
@@ -173,6 +167,8 @@ typedef struct {
 
 	float speed_GPS;
 	float speed_BMP;
+
+	Euler_angles_t angles;
 
 	float course;
 } state_master_t;
@@ -188,13 +184,6 @@ typedef struct {
 } state_zero_t;
 
 
-typedef enum {
-	no_error		= 0,
-	driver_overheat	= -1
-
-} error;
-
-
 typedef struct {
 	float time;
 	uint8_t fc_stage;
@@ -202,6 +191,14 @@ typedef struct {
 	float angle_right;
 	float angle_keel;
 } FC_logs_t;
+
+
+typedef enum {
+	no_error		= 0,
+	driver_overheat	= -1
+
+} error;
+
 
 //FIXME: DELETE
 typedef enum {

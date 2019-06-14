@@ -185,7 +185,7 @@ static uint8_t mavlink_msg_BMP_send() {
 taskENTER_CRITICAL();
 	msg_BMP.temp = stateSensors.temp;
 	msg_BMP.pressure = stateSensors.pressure;
-
+	msg_BMP.speed_bmp = stateSensors.speed_bmp;
 taskEXIT_CRITICAL();
 
 	mavlink_message_t msg;
@@ -324,7 +324,7 @@ static uint8_t mavlink_msg_FCLogs(){
 	taskEXIT_CRITICAL();
 
 	mavlink_message_t msg;
-	uint16_t len = mavlink_msg_servo_encode(UNISAT_ID, UNISAT_NoComp, &msg, &msg_logs);
+	uint16_t len = mavlink_msg_fclogs_encode(UNISAT_ID, UNISAT_NoComp, &msg, &msg_logs);
 	uint8_t buffer[100];
 	uint8_t error = 0;
 	len = mavlink_msg_to_send_buffer(buffer, &msg);

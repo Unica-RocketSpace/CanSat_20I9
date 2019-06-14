@@ -68,6 +68,7 @@
             <field type="float" name="temp">temperature</field>
             <field type="float" name="pressure">pressure</field>
             <field type="float" name="time">current time</field>
+        	<field type="float" name="speed_bmp"></field>
         </message>
 
 

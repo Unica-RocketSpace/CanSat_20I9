@@ -25,6 +25,14 @@ from . import _log as _root_log
 
 _log = _root_log.getChild("main")
 
+'''
+TODO:
+    проверить все функции для приема на правильность записываемых в файлы данных
+    реализовать таблицу
+    db
+    
+'''
+
 # Запись данных в файлы
 FILE_WRITE = 1
 
@@ -43,7 +51,7 @@ if FILE_WRITE:
     file_servo = file_name + "_servo" + expansion
     file_zero_data = file_name + "_zero_data" + expansion
 
-
+    #
     f = open(file_bmp, 'w')
     f.write("Time" + '\t' + "Pressure" + '\t' + "Temp" + '\n')
     f.close()
@@ -144,7 +152,25 @@ class PlaneWidget(gl.GLViewWidget):
         self.mesh.translate(0, 1, 0)
         self._transform_object(self.plane_axis, move=False)
 
-# TODO: написать функцию записи в буффер данных
+
+class TelemWidget1(QtWidgets.QDockWidget):
+    def __init__(self, parent=None):
+        QtWidgets.QDockWidget.__init__(self, parent)
+        self.ui = Ui_DockWidget_telem1()
+        self.ui.setupUi(self)
+
+    def set_value_x(self, value):
+        self.ui.label_x_value.setText(str(value))
+
+    def set_value_y(self, value):
+        self.ui.label_y_value.setText(str(value))
+
+    def set_value_z(self, value):
+        self.ui.label_z_value.setText(str(value))
+
+    def set_value_result(self, value):
+        self.ui.label_result_value.setText(str(value))
+
 
 # Главный класс
 class MyWin(QtWidgets.QMainWindow):
@@ -159,6 +185,15 @@ class MyWin(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
         self.setWindowTitle('Unica gcs')
 
+        self.ui.telem_widget_accel, self.ui.dockwid_telem_1 = TelemWidget1(), TelemWidget1()
+        self.ui.telem_widget_accel.setWindowTitle("Accel ICS")
+        self.ui.telem_widget_accel.set_value_x(12)
+        self.ui.verticalLayout_telem_left.addWidget(self.ui.telem_widget_accel)
+        self.ui.verticalLayout_telem_right.addWidget(self.ui.dockwid_telem_1)
+        self.ui.verticalLayout_telem_left.addWidget(TelemWidget1())
+        self.ui.verticalLayout_telem_left.addWidget(TelemWidget1())
+        self.ui.verticalLayout_telem_left.addWidget(TelemWidget1())
+        self.ui.verticalLayout_telem_left.addWidget(TelemWidget1())
 
         pg.setConfigOption('background', 'w')
         pg.setConfigOption('foreground', 'k')
@@ -311,19 +346,22 @@ class MyWin(QtWidgets.QMainWindow):
         self.isc_coord.setSize(25, 25, 25)
         self.ui.glwid.show()
 
+        #
         self.pl_graf_top1_x = self.sc_item_top1.plot()
         self.pl_graf_top2_x = self.sc_item_top2.plot()
         self.pl_graf_top3_x = self.sc_item_top3.plot()
+        self.pl_graf_top4_x = self.sc_item_top4.plot()
 
         self.pl_graf_top1_y = self.sc_item_top1.plot()
         self.pl_graf_top2_y = self.sc_item_top2.plot()
         self.pl_graf_top3_y = self.sc_item_top3.plot()
+        self.pl_graf_top4_y = self.sc_item_top4.plot()
 
         self.pl_graf_top1_z = self.sc_item_top1.plot()
         self.pl_graf_top2_z = self.sc_item_top2.plot()
         self.pl_graf_top3_z = self.sc_item_top3.plot()
 
-
+        #
         self.pl_graf_middle1_x = self.sc_item_middle1.plot()
         self.pl_graf_middle2_x = self.sc_item_middle2.plot()
 
@@ -333,7 +371,7 @@ class MyWin(QtWidgets.QMainWindow):
         self.pl_graf_middle1_z = self.sc_item_middle1.plot()
         self.pl_graf_middle2_z = self.sc_item_middle2.plot()
 
-
+        #
         self.pl_graf_down1_x = self.sc_item_down1.plot()
         self.pl_graf_down2_x = self.sc_item_down2.plot()
 
@@ -343,24 +381,20 @@ class MyWin(QtWidgets.QMainWindow):
         self.pl_graf_down1_z = self.sc_item_down1.plot()
         self.pl_graf_down2_z = self.sc_item_down2.plot()
 
-        self.ui.gridLayou_telem.addWidget()
-
         # Здесь прописываем событие нажатия на кнопку
         self.ui.pushButton_3.clicked.connect(self.Remove_graf)
         self.ui.commandLinkButton.clicked.connect(self.send_command)
 
-    def clear_log(self):
-        global log_text
-        log_text = ''
-        self.ui.textBrowser_2.setText(log_text)
+    #
+    def write_to_file(self, buffer, file):
+        if len(buffer) >= 10:
+            f = open(file, 'a')
+            for foo in range(len(buffer)):
+                f.write(buffer[foo])
+            buffer = []
+            f.close()
 
-
-    def log_add(self, log_msg):
-        global log_text
-        log_text = log_text + str(log_msg) + "\n"
-        self.ui.textBrowser_2.setText(log_text)
-
-
+    #
     def send_command(self):
         com = self.ui.textBrowser.toPlainText()
 
@@ -371,7 +405,7 @@ class MyWin(QtWidgets.QMainWindow):
             com = None
         self.ui.textBrowser.clear()
 
-
+    #
     def Remove_graf(self):
         global now_graf, str_now_graf
         # if self.sc_item_large == None:
@@ -406,10 +440,6 @@ class MyWin(QtWidgets.QMainWindow):
         self.sc_item_large.clear()
     # FIXME: возможно не работает
 
-    def clear_telem(self):
-        self.ui.textBrowser_2.clear()
-
-
     @QtCore.pyqtSlot(list)
     def atm_msg(self, msgs):   # сообщения с bmp (не с MPU)!!!!
         for i in range(len(msgs)):
@@ -423,22 +453,8 @@ class MyWin(QtWidgets.QMainWindow):
                                         str(msgs[i].pressure) + '\t' + '\t' +
                                         str(msgs[i].temp) + '\n')
 
-
-            self.ui.textBrowser_2.append(
-                "bmp {n: %ld, time : %0.3f, pressure : %0.3f, temp : %0.1f}"
-                %
-                (msgs[i].get_header().seq, msgs[i].time, msgs[i].pressure, msgs[i].temp)
-            )
-
-
         if FILE_WRITE:
-            if len(self.buffer_bmp_msg) >= 10:
-                f = open(file_bmp, 'a')
-                for foo in range(len(self.buffer_bmp_msg)):
-                    f.write(self.buffer_bmp_msg[foo])
-                self.buffer_bmp_msg = []
-                f.close()
-
+            self.write_to_file(self.buffer_bmp_msg, file_bmp)
 
         if len(self.time_atm) > self.lenght:
             self.time_atm = self.time_atm[self.cut:(self.lenght-1)]
@@ -454,7 +470,7 @@ class MyWin(QtWidgets.QMainWindow):
         # self.ui.state_para.clear()
         # self.ui.state_para.setText(str(self.state_amt_para))
 
-
+    #
     @QtCore.pyqtSlot(list)
     def imu_rsc_msg(self, msgs):
         i = 0
@@ -478,21 +494,8 @@ class MyWin(QtWidgets.QMainWindow):
                                         str(msgs[i].compass[0]) + ' ' + str(msgs[i].compass[1]) + ' ' + str(msgs[i].compass[2]) + '\t' + '\t' +
                                         str(msgs[i].gyro[0]) + ' ' + str(msgs[i].gyro[1]) + ' ' + str(msgs[i].gyro[2]) + '\n')
 
-
-            self.ui.textBrowser_2.append(
-                "IMU_RSC\t {n: %ld, time: %0.3f, A: [%0.4f, %0.4f, %0.4f] G: [%0.4f, %0.4f, %0.4f] M: [%0.3f, %0.3f, %0.3f]}"
-                    %
-                    (msgs[i].get_header().seq, msgs[i].time, msgs[i].accel[0], msgs[i].accel[1], msgs[i].accel[2], msgs[i].gyro[0], msgs[i].gyro[1], msgs[i].gyro[2], msgs[i].compass[0], msgs[i].compass[1], msgs[i].compass[2])
-                )
-
         if FILE_WRITE:
-            if len(self.buffer_imu_rsc_msg) >= 10:
-                f = open(file_imu_rsc, 'a')
-                for foo in range(len(self.buffer_imu_rsc_msg)):
-                    f.write(self.buffer_imu_rsc_msg[foo])
-                self.buffer_imu_rsc_msg = []
-                f.close()
-
+            self.write_to_file(self.buffer_imu_rsc_msg, file_imu_rsc)
 
         if len(self.time_RSC) > self.lenght:
             self.a_RSC_x = self.a_RSC_x[self.cut:(self.lenght - 1)]
@@ -511,14 +514,7 @@ class MyWin(QtWidgets.QMainWindow):
         self.pl_graf_middle1_y.setData(x=self.time_RSC, y=self.av_y, pen=('g'), width=0.5)
         self.pl_graf_middle1_z.setData(x=self.time_RSC, y=self.av_z, pen=('b'), width=0.5)
 
-
-
-
-        # Вывод в лог #
-        # log = '' + 'sfkslk'+ "\n"
-        # self.ui.textBrowser_2.append(log)
-        #  #
-
+    #
     @QtCore.pyqtSlot(list)
     def imu_isc_msg(self, msgs):
         i = 0
@@ -539,38 +535,11 @@ class MyWin(QtWidgets.QMainWindow):
                                         str(msgs[i].compass[0]) + ' ' + str(msgs[i].compass[1]) + ' ' + str(msgs[i].compass[2]) + '\t' + '\t' +
                                         str(msgs[i].quaternion[0]) + ' ' + str(msgs[i].quaternion[1]) + ' ' + str(msgs[i].quaternion[2]) + ' ' + str(msgs[i].quaternion[3]) + '\n')
 
-
-            # tr = Transform3D()
             quat = pyquaternion.Quaternion(msgs[i].quaternion)
-            # quat = QQuaternion(msgs[i].quaternion[0], msgs[i].quaternion[1], msgs[i].quaternion[2], msgs[i].quaternion[3])
-
-            # tr.rotate(quat)
             self.plane_widget._update_rotation(quat)
 
-            self.ui.textBrowser_2.append(
-                "IMU_ISC\t {n: %ld, time: %0.3f, A: [%0.4f, %0.4f, %0.4f] M: [%0.3f, %0.3f, %0.3f]}"
-                %
-                (msgs[i].get_header().seq, msgs[i].time, msgs[i].accel[0], msgs[i].accel[1], msgs[i].accel[2], msgs[i].compass[0], msgs[i].compass[1], msgs[i].compass[2])
-            )
-            self.ui.textBrowser_2.append(
-                "QUAT\t {n: %ld, time: %0.3f, quat: [%0.4f, %0.4f, %0.4f, %0.4f]}"
-                %
-                (msgs[i].get_header().seq, msgs[i].time, msgs[i].quaternion[0], msgs[i].quaternion[1], msgs[i].quaternion[2], msgs[i].quaternion[3])
-            )
-            # self.ui.textBrowser_2.append(
-            #     "POS\t {n: %ld, time: %0.3f, velo: [%0.3f, %0.3f, %0.3f], pos: [%0.3f, %0.3f, %0.3f]}"
-            #     %
-            #     (msgs[i].get_header().seq, msgs[i].time, *msgs[i].velocities, *msgs[i].coordinates)
-            # )
-
         if FILE_WRITE:
-            if len(self.buffer_imu_isc_msg) >= 10:
-                f = open(file_imu_isc, 'a')
-                for foo in range(len(self.buffer_imu_isc_msg)):
-                    f.write(self.buffer_imu_isc_msg[foo])
-                self.buffer_imu_isc_msg = []
-                f.close()
-
+            self.write_to_file(self.buffer_imu_isc_msg, file_imu_isc)
 
         if len(self.time_ISC) > self.lenght:
             self.a_ISC_x = self.a_ISC_x[self.cut:(self.lenght - 1)]
@@ -631,21 +600,8 @@ class MyWin(QtWidgets.QMainWindow):
                                             str(msgs[i].temp) + '\t' + '\t' +
                                             str(msgs[i].height) + '\n')
 
-
-            self.ui.textBrowser_2.append(
-                "imu_bmp  {n: %ld, time: %0.3f, temp: %0.3f, pressure: %0.3f}"
-                %
-                (msgs[i].get_header().seq, msgs[i].time, msgs[i].temp, msgs[i].pressure)
-            )
-
         if FILE_WRITE:
-            if len(self.buffer_sensors_msg) >= 10:
-                f = open(file_sensors, 'a')
-                for foo in range(len(self.buffer_sensors_msg)):
-                    f.write(self.buffer_sensors_msg[foo])
-                self.buffer_sensors_msg = []
-                f.close()
-
+            self.write_to_file(self.buffer_sensors_msg, file_sensors)
 
         if len(self.time_sens) > self.lenght:
             self.time_sens = self.time_sens[self.cut:(self.lenght - 1)]
@@ -666,11 +622,6 @@ class MyWin(QtWidgets.QMainWindow):
             self.y.append(msgs[i].coordinates[1])
             speed = msgs[i].speed
 
-            self.ui.textBrowser_2.append(
-                "GPS {n: %ld, time: %0.3f, coordinates: [%0.5f, %0.5f], speed: %0.3f}"
-                %
-                (msgs[i].get_header().seq, msgs[i].time, msgs[i].coordinates[1], msgs[i].coordinates[0], msgs[i].speed)
-            )
 
             y0 = []
             x0 = []
@@ -678,6 +629,7 @@ class MyWin(QtWidgets.QMainWindow):
             y0.append(self.y[0])
 
         self.pl_graf_down3_y.setData(x=x0, y=y0, pen=('b'), width=10)
+
 
         if len(self.x) > self.lenght:
             self.x = self.x[self.cut:(self.lenght - 1)]
@@ -754,19 +706,10 @@ class MyWin(QtWidgets.QMainWindow):
                                             str(msgs[i].angle_keel) + '\n')
 
 
-            self.ui.textBrowser_2.append(
-                "SERVO  {n: %ld, angle left: %0.3f, angle_right: %0.3f, angle_keel: %0.3f}"
-                %
-                (msgs[i].get_header().seq, msgs[i].angle_left, msgs[i].angle_right, msgs[i].angle_keel)
-            )
+
 
         if FILE_WRITE:
-            if len(self.buffer_servo_msg) >= 10:
-                f = open(file_servo, 'a')
-                for foo in range(len(self.buffer_servo_msg)):
-                    f.write(self.buffer_servo_msg[foo])
-                self.buffer_servo_msg = []
-                f.close()
+            self.write_to_file(self.buffer_servo_msg, file_servo)
 
     @QtCore.pyqtSlot(list)
     def zero_data_msg(self, msgs):
@@ -781,20 +724,10 @@ class MyWin(QtWidgets.QMainWindow):
                                                  str(msgs[i].zero_quaternion[2]) + ' ' +
                                                  str(msgs[i].zero_quaternion[3]) + '\t' +
                                                  str(msgs[i].zero_GPS[0]) + ' ' +
-                                                 str(msgs[i].zero_GPS[1]) + ' ' +
-                                                 str(msgs[i].zero_GPS[2]) + '\t' +
+                                                 str(msgs[i].zero_GPS[1]) + '\t' +
                                                  str(msgs[i].gyro_staticShift) + '\t' +
                                                  str(msgs[i].accel_staticShift) + '\n')
 
-                self.ui.textBrowser_2.append(
-                    "ZERO DATA  {n: %ld, time: %0.3f, zero pressure: %0.3f, zero quaternion: [%0.5f, %0.5f, %0.5f, %0.5f] zero GPS }"
-                #     TODO: не доделано
-                )
 
                 if FILE_WRITE:
-                    if len(self.buffer_zero_data) >= 10:
-                        f = open(file_zero_data, 'a')
-                        for foo in range(len(self.buffer_zero_data)):
-                            f.write(self.buffer_zero_data[foo])
-                        self.buffer_zero_data = []
-                        f.close()
+                    self.write_to_file(self.buffer_zero_data, file_zero_data)

@@ -28,6 +28,9 @@
       </property>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <property name="sizeConstraint">
+         <enum>QLayout::SetFixedSize</enum>
+        </property>
         <item>
          <widget class="QTextBrowser" name="textBrowser">
           <property name="enabled">
@@ -201,9 +204,12 @@
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_5">
           <item>
-           <widget class="QLabel" name="label_5">
+           <widget class="QLabel" name="label_3">
+            <property name="layoutDirection">
+             <enum>Qt::LeftToRight</enum>
+            </property>
             <property name="text">
-             <string>ATmega</string>
+             <string>STM</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -251,19 +257,6 @@
              </widget>
             </item>
            </layout>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_3">
-            <property name="layoutDirection">
-             <enum>Qt::LeftToRight</enum>
-            </property>
-            <property name="text">
-             <string>STM</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
           </item>
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_15">
@@ -396,7 +389,21 @@
        </layout>
       </item>
       <item>
-       <layout class="QGridLayout" name="gridLayou_telem"/>
+       <layout class="QGridLayout" name="gridLayou_telem">
+        <property name="sizeConstraint">
+         <enum>QLayout::SetFixedSize</enum>
+        </property>
+        <item row="0" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_telem">
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_telem_left"/>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_telem_right"/>
+          </item>
+         </layout>
+        </item>
+       </layout>
       </item>
      </layout>
     </item>

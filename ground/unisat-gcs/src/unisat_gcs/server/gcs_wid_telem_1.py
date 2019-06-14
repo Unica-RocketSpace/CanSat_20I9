@@ -11,7 +11,10 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_DockWidget_telem1(object):
     def setupUi(self, DockWidget_telem1):
         DockWidget_telem1.setObjectName("DockWidget_telem1")
+        DockWidget_telem1.setWindowModality(QtCore.Qt.NonModal)
         DockWidget_telem1.resize(238, 160)
+        DockWidget_telem1.setMaximumSize(QtCore.QSize(238, 160))
+        DockWidget_telem1.setWindowTitle("")
         self.dockWidgetContents = QtWidgets.QWidget()
         self.dockWidgetContents.setObjectName("dockWidgetContents")
         self.label_x = QtWidgets.QLabel(self.dockWidgetContents)
@@ -84,7 +87,6 @@ class Ui_DockWidget_telem1(object):
 
     def retranslateUi(self, DockWidget_telem1):
         _translate = QtCore.QCoreApplication.translate
-        DockWidget_telem1.setWindowTitle(_translate("DockWidget_telem1", "DockWidget"))
         self.label_x.setText(_translate("DockWidget_telem1", "x"))
         self.label_y.setText(_translate("DockWidget_telem1", "y"))
         self.label_z.setText(_translate("DockWidget_telem1", "z"))

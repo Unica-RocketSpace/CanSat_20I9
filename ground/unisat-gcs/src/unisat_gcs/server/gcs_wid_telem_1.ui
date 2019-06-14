@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>DockWidget_telem1</class>
  <widget class="QDockWidget" name="DockWidget_telem1">
+  <property name="windowModality">
+   <enum>Qt::NonModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -10,8 +13,14 @@
     <height>160</height>
    </rect>
   </property>
+  <property name="maximumSize">
+   <size>
+    <width>238</width>
+    <height>160</height>
+   </size>
+  </property>
   <property name="windowTitle">
-   <string>DockWidget</string>
+   <string/>
   </property>
   <widget class="QWidget" name="dockWidgetContents">
    <widget class="QLabel" name="label_x">

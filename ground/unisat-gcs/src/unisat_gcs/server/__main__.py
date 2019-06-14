@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
 
     thread = MavlinkThread()
-    thread.new_atmega_record.connect(myapp.atm_msg)
+    thread.new_bmp_record.connect(myapp.bmp_msg)
     thread.new_imu_isc_record.connect(myapp.imu_isc_msg)
     thread.new_imu_rsc_record.connect(myapp.imu_rsc_msg)
     thread.new_sensors_record.connect(myapp.sens_msg)

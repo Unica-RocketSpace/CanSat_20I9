@@ -36,7 +36,7 @@ class MsgAccumulator:
 
 class MavlinkThread(QThread):
     new_imu_rsc_record = pyqtSignal(list)
-    new_atmega_record = pyqtSignal(list)
+    new_bmp_record = pyqtSignal(list)
     new_imu_isc_record = pyqtSignal(list)
     new_sensors_record = pyqtSignal(list)
     new_gps_record = pyqtSignal(list)
@@ -47,7 +47,7 @@ class MavlinkThread(QThread):
 
     def __init__(self):
         QThread.__init__(self)
-        self.atmega_accum = MsgAccumulator(10, self.new_atmega_record)
+        self.bmp_accum = MsgAccumulator(10, self.new_bmp_record)
         self.imu_isc_accum = MsgAccumulator(10, self.new_imu_isc_record)
         self.imu_rsc_accum = MsgAccumulator(10, self.new_imu_rsc_record)
         self.sensors_accum = MsgAccumulator(10, self.new_sensors_record)
@@ -68,7 +68,7 @@ class MavlinkThread(QThread):
         # _log.debug(msg)
         # _log.info(msg)
         if isinstance(msg, MAVLink_bmp280_message):
-            # self.atmega_accum.push_message(msg)
+            self.bmp_accum.push_message(msg)
             print('bmp msg')
 
         elif isinstance(msg, MAVLink_state_zero_message):
@@ -105,7 +105,6 @@ class MavlinkThread(QThread):
             _log.info(msg)
 
     # self.f.close()
-
 
     def run(self):
         if UDP:

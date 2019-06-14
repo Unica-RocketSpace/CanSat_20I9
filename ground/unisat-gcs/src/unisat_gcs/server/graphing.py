@@ -53,7 +53,7 @@ if FILE_WRITE:
 
     #
     f = open(file_bmp, 'w')
-    f.write("Time" + '\t' + "Pressure" + '\t' + "Temp" + '\n')
+    f.write("Time" + '\t' + "Pressure" + '\t' + "Temp" + '\t' + "Speed" + '\n')
     f.close()
 
     f = open(file_sensors, 'w')
@@ -185,15 +185,15 @@ class MyWin(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
         self.setWindowTitle('Unica gcs')
 
-        self.ui.telem_widget_accel, self.ui.dockwid_telem_1 = TelemWidget1(), TelemWidget1()
+        self.ui.telem_widget_accel, self.ui.telem_widget_gyro = TelemWidget1(), TelemWidget1()
         self.ui.telem_widget_accel.setWindowTitle("Accel ICS")
-        self.ui.telem_widget_accel.set_value_x(12)
+        self.ui.telem_widget_gyro.setWindowTitle("Gyro")
+        self.ui.telem_wdget_magnetometer = TelemWidget1()
+        self.ui.telem_wdget_magnetometer.setWindowTitle("Magnetometer")
+
         self.ui.verticalLayout_telem_left.addWidget(self.ui.telem_widget_accel)
-        self.ui.verticalLayout_telem_right.addWidget(self.ui.dockwid_telem_1)
-        self.ui.verticalLayout_telem_left.addWidget(TelemWidget1())
-        self.ui.verticalLayout_telem_left.addWidget(TelemWidget1())
-        self.ui.verticalLayout_telem_left.addWidget(TelemWidget1())
-        self.ui.verticalLayout_telem_left.addWidget(TelemWidget1())
+        self.ui.verticalLayout_telem_left.addWidget(self.ui.telem_widget_gyro)
+        self.ui.verticalLayout_telem_left.addWidget(self.ui.telem_wdget_magnetometer)
 
         pg.setConfigOption('background', 'w')
         pg.setConfigOption('foreground', 'k')
@@ -205,9 +205,10 @@ class MyWin(QtWidgets.QMainWindow):
         self.cut = 11
         self.zero_data = 1
 
-        self.temp_atmega = []
-        self.pressure_atmega = []
-        self.time_atm = []
+        self.temp_bmp = []
+        self.pressure_bmp = []
+        self.speed_bmp = []
+        self.time_bmp = []
 
         self.state_time = None
         self.state_mpu_bmp = None
@@ -231,7 +232,6 @@ class MyWin(QtWidgets.QMainWindow):
         self.a_ISC_z = []
 
         self.v_x = []
-
         self.v_y = []
         self.v_z = []
 
@@ -247,9 +247,9 @@ class MyWin(QtWidgets.QMainWindow):
 
         self.quat = []
 
-        self.temp_sensors = []
-        self.pressure_sensors = []
-        self.time_sens = []
+        self.temp_bmpIMU = []
+        self.pressure_bmpIMU = []
+        self.time_bmpIMU = []
 
         self.x = []
         self.y = []
@@ -268,15 +268,10 @@ class MyWin(QtWidgets.QMainWindow):
         self.ui.plot_top = pg.GraphicsLayout()
         self.ui.glv_top.addItem(self.ui.plot_top)
 
-        self.sc_item_top1 = pg.PlotItem(title='Accel ISC', labels={'left': 'accel', 'bottom': 'time'})
+        self.sc_item_top1 = pg.PlotItem(title='Accel ISC')
         self.ui.plot_top.addItem(self.sc_item_top1)
         self.graf_top1 = pg.PlotCurveItem()
         self.sc_item_top1.addItem(self.graf_top1)
-
-        # self.sc_item_top2 = pg.PlotItem(title='Accel RSC')
-        # self.ui.plot_top.addItem(self.sc_item_top2)
-        # self.graf_top2 = pg.PlotCurveItem()
-        # self.sc_item_top2.addItem(self.graf_top2)
 
         self.sc_item_top2 = pg.PlotItem(title='Velosity')
         self.ui.plot_top.addItem(self.sc_item_top2)
@@ -375,12 +370,6 @@ class MyWin(QtWidgets.QMainWindow):
         self.pl_graf_down1_x = self.sc_item_down1.plot()
         self.pl_graf_down2_x = self.sc_item_down2.plot()
 
-        self.pl_graf_down1_y = self.sc_item_down1.plot()
-        self.pl_graf_down2_y = self.sc_item_down2.plot()
-
-        self.pl_graf_down1_z = self.sc_item_down1.plot()
-        self.pl_graf_down2_z = self.sc_item_down2.plot()
-
         # Здесь прописываем событие нажатия на кнопку
         self.ui.pushButton_3.clicked.connect(self.Remove_graf)
         self.ui.commandLinkButton.clicked.connect(self.send_command)
@@ -441,43 +430,38 @@ class MyWin(QtWidgets.QMainWindow):
     # FIXME: возможно не работает
 
     @QtCore.pyqtSlot(list)
-    def atm_msg(self, msgs):   # сообщения с bmp (не с MPU)!!!!
+    def bmp_msg(self, msgs):   # сообщения с bmp (не с MPU)!!!!
         for i in range(len(msgs)):
 
-            self.pressure_atmega.append(msgs[i].pressure)
-            self.temp_atmega.append(msgs[i].temp)
-            self.time_atm.append(msgs[i].time)
+            self.pressure_bmp.append(msgs[i].pressure)
+            self.temp_bmp.append(msgs[i].temp)
+            self.speed_bmp.append(msgs[i].speed_bmp)
+            self.time_bmp.append(msgs[i].time)
 
             if FILE_WRITE:
-                self.buffer_bmp_msg.append(  str(msgs[i].time) +'\t' + '\t' +
+                self.buffer_bmp_msg.append(str(msgs[i].time) + '\t' + '\t' +
                                         str(msgs[i].pressure) + '\t' + '\t' +
-                                        str(msgs[i].temp) + '\n')
+                                        str(msgs[i].temp) + '\t' + '\t' +
+                                        str(msgs[i].speed_bmp) + '\n')
 
         if FILE_WRITE:
             self.write_to_file(self.buffer_bmp_msg, file_bmp)
 
-        if len(self.time_atm) > self.lenght:
-            self.time_atm = self.time_atm[self.cut:(self.lenght-1)]
-            self.pressure_atmega = self.pressure_atmega[self.cut:(self.lenght-1)]
-            self.temp_atmega = self.temp_atmega[self.cut:(self.lenght-1)]
-
-        self.pl_graf_down1_x.setData(x=self.time_atm, y=self.temp_atmega, pen=('r'))
-        self.pl_graf_down2_x.setData(x=self.time_atm, y=self.pressure_atmega, pen=('r'))
-        #
-        # self.ui.state_atm_motor.clear()
-        # self.ui.state_atm_motor.setText(str(self.state_atm_motor))
-        #
-        # self.ui.state_para.clear()
-        # self.ui.state_para.setText(str(self.state_amt_para))
+        if len(self.time_bmp) > self.lenght:
+            self.time_bmp = self.time_bmp[self.cut:(self.lenght - 1)]
+            self.pressure_bmp = self.pressure_bmp[self.cut:(self.lenght - 1)]
+            self.temp_bmp = self.temp_bmp[self.cut:(self.lenght - 1)]
+            self.speed_bmp = self.speed_bmp[self.cut:(self.lenght - 1)]
+        self.pl_graf_top4_x.setData(x=self.time_bmp, y=self.speed_bmp, pen=('r'))
 
     #
     @QtCore.pyqtSlot(list)
     def imu_rsc_msg(self, msgs):
         i = 0
         for i in range(len(msgs)):
-            self.a_RSC_x.append(msgs[i].accel[0])
-            self.a_RSC_y.append(msgs[i].accel[1])
-            self.a_RSC_z.append(msgs[i].accel[2])
+            # self.a_RSC_x.append(msgs[i].accel[0])
+            # self.a_RSC_y.append(msgs[i].accel[1])
+            # self.a_RSC_z.append(msgs[i].accel[2])
 
             # self.accel_f.write("%f\t%f\t%f\n" % (msgs[i].accel[0], msgs[i].accel[1], msgs[i].accel[2]))
             # self.compass_f.write("%f\t%f\t%f\n" % (msgs[i].compass[0], msgs[i].compass[1], msgs[i].compass[2]))
@@ -498,17 +482,17 @@ class MyWin(QtWidgets.QMainWindow):
             self.write_to_file(self.buffer_imu_rsc_msg, file_imu_rsc)
 
         if len(self.time_RSC) > self.lenght:
-            self.a_RSC_x = self.a_RSC_x[self.cut:(self.lenght - 1)]
-            self.a_RSC_y = self.a_RSC_y[self.cut:(self.lenght - 1)]
-            self.a_RSC_z = self.a_RSC_z[self.cut:(self.lenght - 1)]
+            # self.a_RSC_x = self.a_RSC_x[self.cut:(self.lenght - 1)]
+            # self.a_RSC_y = self.a_RSC_y[self.cut:(self.lenght - 1)]
+            # self.a_RSC_z = self.a_RSC_z[self.cut:(self.lenght - 1)]
             self.time_RSC = self.time_RSC[self.cut:(self.lenght - 1)]
             self.av_x = self.av_x[self.cut:(self.lenght - 1)]
             self.av_y = self.av_y[self.cut:(self.lenght - 1)]
             self.av_z = self.av_z[self.cut:(self.lenght - 1)]
 
-        self.pl_graf_top2_x.setData(x=self.time_RSC, y=self.a_RSC_x, pen=('r'), width=0.5)
-        self.pl_graf_top2_y.setData(x=self.time_RSC, y=self.a_RSC_y, pen=('g'), width=0.5)
-        self.pl_graf_top2_z.setData(x=self.time_RSC, y=self.a_RSC_z, pen=('b'), width=0.5)
+        # self.pl_graf_top2_x.setData(x=self.time_RSC, y=self.a_RSC_x, pen=('r'), width=0.5)
+        # self.pl_graf_top2_y.setData(x=self.time_RSC, y=self.a_RSC_y, pen=('g'), width=0.5)
+        # self.pl_graf_top2_z.setData(x=self.time_RSC, y=self.a_RSC_z, pen=('b'), width=0.5)
 
         self.pl_graf_middle1_x.setData(x=self.time_RSC, y=self.av_x, pen=('r'), width=0.5)
         self.pl_graf_middle1_y.setData(x=self.time_RSC, y=self.av_y, pen=('g'), width=0.5)
@@ -571,9 +555,9 @@ class MyWin(QtWidgets.QMainWindow):
         self.pl_graf_top1_y.setData(x=self.time_ISC, y=self.a_ISC_y, pen=('g'))
         self.pl_graf_top1_z.setData(x=self.time_ISC, y=self.a_ISC_z, pen=('b'))
 
-        self.pl_graf_middle3_x.setData(x=self.time_ISC, y=self.vmf_x, pen=('r'))
-        self.pl_graf_middle3_y.setData(x=self.time_ISC, y=self.vmf_y, pen=('g'))
-        self.pl_graf_middle3_z.setData(x=self.time_ISC, y=self.vmf_z, pen=('b'))
+        self.pl_graf_middle2_x.setData(x=self.time_ISC, y=self.vmf_x, pen=('r'))
+        self.pl_graf_middle2_y.setData(x=self.time_ISC, y=self.vmf_y, pen=('g'))
+        self.pl_graf_middle2_z.setData(x=self.time_ISC, y=self.vmf_z, pen=('b'))
 
         # self.pl_graf_top3_x.setData(x=self.time_ISC, y=self.v_x, pen=('r'))
         # self.pl_graf_top3_y.setData(x=self.time_ISC, y=self.v_y, pen=('g'))
@@ -588,9 +572,9 @@ class MyWin(QtWidgets.QMainWindow):
     def sens_msg(self, msgs):
         i = 0
         for i in range(len(msgs)):
-            self.time_sens.append(msgs[i].time)
-            self.pressure_sensors.append(msgs[i].pressure)
-            self.temp_sensors.append(msgs[i].temp)
+            self.time_bmpIMU.append(msgs[i].time)
+            self.pressure_bmpIMU.append(msgs[i].pressure)
+            self.temp_bmpIMU.append(msgs[i].temp)
 
             time = msgs[i].time
 
@@ -604,12 +588,12 @@ class MyWin(QtWidgets.QMainWindow):
             self.write_to_file(self.buffer_sensors_msg, file_sensors)
 
         if len(self.time_sens) > self.lenght:
-            self.time_sens = self.time_sens[self.cut:(self.lenght - 1)]
-            self.pressure_sensors = self.pressure_sensors[self.cut:(self.lenght - 1)]
-            self.temp_sensors = self.temp_sensors[self.cut:(self.lenght - 1)]
+            self.time_bmpIMU = self.time_bmpIMU[self.cut:(self.lenght - 1)]
+            self.pressure_bmpIMU = self.pressure_bmpIMU[self.cut:(self.lenght - 1)]
+            self.temp_bmpIMU = self.temp_bmpIMU[self.cut:(self.lenght - 1)]
 
-        self.pl_graf_down1_y.setData(x=self.time_sens, y=self.temp_sensors, pen=('b'))
-        self.pl_graf_down2_y.setData(x=self.time_sens, y=self.pressure_sensors, pen=('b'))
+        self.pl_graf_down1_x.setData(x=self.time_bmpIMU, y=self.temp_bmpIMU, pen=('r'))
+        self.pl_graf_down2_x.setData(x=self.time_bmpIMU, y=self.pressure_bmpIMU, pen=('r'))
 
 
 

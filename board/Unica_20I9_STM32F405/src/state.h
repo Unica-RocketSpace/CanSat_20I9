@@ -95,7 +95,7 @@ typedef struct {
 
 typedef struct {
 	//GPS data
-	float coordinates[3];
+	float coordinates[2];
 	float speed;
 	float course;
 	float time;
@@ -190,6 +190,7 @@ typedef struct {
 	float angle_left;
 	float angle_right;
 	float angle_keel;
+	uint8_t critical_angles;
 } FC_logs_t;
 
 

@@ -321,6 +321,7 @@ static uint8_t mavlink_msg_FCLogs(){
 	msg_logs.angle_left = FCLogs.angle_left;
 	msg_logs.angle_right = FCLogs.angle_right;
 	msg_logs.angle_keel = FCLogs.angle_keel;
+	msg_logs.critical_angles = FCLogs.critical_angles;
 	taskEXIT_CRITICAL();
 
 	mavlink_message_t msg;

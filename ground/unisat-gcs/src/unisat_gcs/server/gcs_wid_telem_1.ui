@@ -23,7 +23,7 @@
    <string/>
   </property>
   <widget class="QWidget" name="dockWidgetContents">
-   <widget class="QLabel" name="label_x">
+   <widget class="QLabel" name="label_1">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -36,7 +36,7 @@
      <string>x</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_x_value">
+   <widget class="QLabel" name="label_1_value">
     <property name="geometry">
      <rect>
       <x>120</x>
@@ -62,7 +62,7 @@
      <enum>Qt::Horizontal</enum>
     </property>
    </widget>
-   <widget class="QLabel" name="label_y">
+   <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -75,7 +75,7 @@
      <string>y</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_y_value">
+   <widget class="QLabel" name="label_2_value">
     <property name="geometry">
      <rect>
       <x>120</x>
@@ -140,7 +140,7 @@
      <enum>Qt::Horizontal</enum>
     </property>
    </widget>
-   <widget class="QLabel" name="label_z">
+   <widget class="QLabel" name="label_3">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -166,7 +166,7 @@
      <enum>Qt::Vertical</enum>
     </property>
    </widget>
-   <widget class="QLabel" name="label_z_value">
+   <widget class="QLabel" name="label_3_value">
     <property name="geometry">
      <rect>
       <x>120</x>
@@ -179,7 +179,7 @@
      <string/>
     </property>
    </widget>
-   <widget class="QLabel" name="label_z_2">
+   <widget class="QLabel" name="label_4">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -192,7 +192,7 @@
      <string>result</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_result_value">
+   <widget class="QLabel" name="label_4_value">
     <property name="geometry">
      <rect>
       <x>120</x>

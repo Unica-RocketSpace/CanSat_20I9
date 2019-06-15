@@ -33,7 +33,7 @@
      <enum>Qt::Horizontal</enum>
     </property>
    </widget>
-   <widget class="QLabel" name="label_x">
+   <widget class="QLabel" name="label_1">
     <property name="geometry">
      <rect>
       <x>10</x>
@@ -46,7 +46,7 @@
      <string/>
     </property>
    </widget>
-   <widget class="QLabel" name="label_x_value">
+   <widget class="QLabel" name="label_1_value">
     <property name="geometry">
      <rect>
       <x>120</x>
@@ -85,7 +85,7 @@
      <enum>Qt::Horizontal</enum>
     </property>
    </widget>
-   <widget class="QLabel" name="label_y_value">
+   <widget class="QLabel" name="label_2_value">
     <property name="geometry">
      <rect>
       <x>120</x>
@@ -98,7 +98,7 @@
      <string/>
     </property>
    </widget>
-   <widget class="QLabel" name="label_y">
+   <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
       <x>10</x>

@@ -30,6 +30,7 @@ uint32_t tickstart_;
 uint32_t tick_;
 
 
+
 static void _cs_enable(){
 //	nRF24L01_CS_PORT &= ~nRF24L01_CS_PIN;
 //	HAL_GPIO_WritePin(nRF24L01_CS_PORT, nRF24L01_CS_PIN, RESET);
@@ -77,6 +78,7 @@ uint8_t nRF24L01_init (SPI_HandleTypeDef* hspi){
 	sd_cs(false);
 	_ce_down();
 	HAL_Delay(1500);
+
 
 	uint8_t value = 0;
 	uint8_t _read_value = 0;

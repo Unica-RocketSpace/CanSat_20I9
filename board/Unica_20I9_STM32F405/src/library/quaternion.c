@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <math.h>
+#include <diag/Trace.h>
 
 #include "quaternion.h"
 
@@ -108,8 +109,11 @@ Euler_angles_t quat_to_angles(float* quat){
 	Euler_angles_t angles;
 
 	angles.roll = (float)atan((double)((2 * (quat[0] * quat[1] + quat[2] * quat[3])) / (1 - 2 * (quat[1] * quat[1] + quat[2] * quat[2]))));
+//	trace_printf("roll   %d\n", angles.roll);
 	angles.pitch = (float)asin((double)(2 * (quat[0] * quat[2] - quat[3] * quat[1])));
+//	trace_printf("pitch   %d\n", angles.pitch);
 	angles.yaw = (float)atan((double)((2 * (quat[0] * quat[3] + quat[1] * quat[2])) / (1 - 2 * (quat[2] * quat[2] + quat[3] * quat[3]))));
+//	trace_printf("yaw   %d\n", angles.yaw);
 	return angles;
 }
 

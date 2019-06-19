@@ -24,6 +24,7 @@ uint8_t global_stage;
 float height_now, height_prev;
 uint8_t button;
 uint8_t command;
+uint8_t master;
 
 
 void init_pins(){
@@ -85,18 +86,19 @@ void CONTROL_task() {
 		height_now = stateIMUSensors.height;
 		height_prev = stateIMUSensors_prev.height;
 		button = state_system.buttons;
-		trace_printf("mas_state %d\n", state_system.master_state);
+		master = state_system.master_state;
 		taskEXIT_CRITICAL();
 
-
+//		trace_printf("mas_state %d\n", master);
 
 //		trace_printf("stage %d\n", global_stage);
 
 
 		switch (global_stage){
 			case 0:
-//				xQueueSendToBack(handleInternalCmdQueue, &global_command, 0);
-				xQueueSendToBack(handleInternalCmdQueue, (uint8_t*)2, 10);
+				if (master != 4)
+					xQueueSendToBack(handleInternalCmdQueue, (uint8_t*)2, 10);
+				//				xQueueSendToBack(handleInternalCmdQueue, &global_command, 0);
 				break;
 
 			case 3:

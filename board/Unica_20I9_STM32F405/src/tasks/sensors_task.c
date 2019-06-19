@@ -31,8 +31,8 @@
 
 #define SPEED_COEF		1.0				//FIXME: Посчитать
 
-#define BMP_DELTA_PRESSURE		200
-#define	IMU_BMP_DELTA_PRESSURE	-2600
+#define BMP_DELTA_PRESSURE		490
+#define	IMU_BMP_DELTA_PRESSURE	-8300
 
 I2C_HandleTypeDef 	i2c_mpu9255;
 USART_HandleTypeDef usart_dbg;
@@ -408,7 +408,7 @@ void IMU_Init() {
 void zero_data(){
 	taskENTER_CRITICAL();
 	state_zero.zero_pressure = stateSensors.pressure;
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < 2; i++)
 		state_zero.zero_GPS[i] = stateGPS.coordinates[i];
 	for (int i = 0; i < 4; i++)
 		state_zero.zero_quaternion[i] = stateIMU_isc.quaternion[i];
@@ -473,7 +473,7 @@ void SENSORS_task() {
 
 		}
 
-		if (RF)
+		if (RF || SD)
 			xTaskNotifyGive(handleRF);
 		if (CONTROL)
 			xTaskNotifyGive(handleControl);

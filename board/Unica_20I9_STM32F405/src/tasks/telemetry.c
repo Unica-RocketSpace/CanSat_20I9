@@ -162,9 +162,8 @@ taskEXIT_CRITICAL();
 	uint8_t buffer[100];
 	uint8_t error = 0;
 	len = mavlink_msg_to_send_buffer(buffer, &msg);
-//	if (RF)
+	if (RF)
 		error = nRF24L01_send(&spi_nRF24L01, buffer, len, 1);
-		HAL_USART_Transmit(&usart_dbg, buffer, len, 20);
 
 	if (SD){
 		taskENTER_CRITICAL();
@@ -351,7 +350,6 @@ uint8_t read_error;
 
 void IO_RF_Init(){
 
-	uint8_t error = 255;
 	if (RF){
 		uint8_t nRF24L01_initError = nRF24L01_init(&spi_nRF24L01);
 		trace_printf("nRF init error  %d\n", nRF24L01_initError);
@@ -361,7 +359,6 @@ void IO_RF_Init(){
 	}
 
 	HAL_Delay(200);
-	trace_printf("%d\n", error);
 
 	if (SD){
 		stream_file.res = 1;
@@ -371,6 +368,8 @@ void IO_RF_Init(){
 		state_system.SD_state = (uint8_t)stream_file.res;
 		HAL_Delay(200);
 	}
+
+
 }
 
 
@@ -405,13 +404,14 @@ void IO_RF_task() {
 
 		taskENTER_CRITICAL();
 		my_stage_telem = state_system.globalStage;
+		command = state_system.globalCommand;
 		taskEXIT_CRITICAL();
 
-	//		taskENTER_CRITICAL();
-	//		command = state_system.globalCommand = mavlink_msg_get_command();
-	//		if (command != -1)
+			taskENTER_CRITICAL();
+
+//			if (command != -1)
 	//			xQueueSendToBack(handleInternalCmdQueue, &command, 0);
-	//		taskEXIT_CRITICAL();
+			taskEXIT_CRITICAL();
 
 		switch (my_stage_telem){
 			// Этап 0. Подтверждение инициализации отправкой пакета состояния и ожидание ответа от НС
@@ -433,6 +433,10 @@ void IO_RF_task() {
 					trace_printf("T");
 					vTaskDelay(Timeout);
 					mavlink_msg_imu_rsc_send();
+
+					taskENTER_CRITICAL();
+					command = state_system.globalCommand;
+					taskEXIT_CRITICAL();
 				} while (command != 1);
 
 				taskENTER_CRITICAL();
@@ -456,6 +460,9 @@ void IO_RF_task() {
 					mavlink_msg_imu_isc_send();
 					vTaskDelay(Timeout);
 					mavlink_msg_imu_rsc_send();
+					taskENTER_CRITICAL();
+					command = state_system.globalCommand;
+					taskEXIT_CRITICAL();
 				} while (command != 2);
 
 				taskENTER_CRITICAL();
@@ -466,13 +473,15 @@ void IO_RF_task() {
 				break;
 
 			// Этап 2. Определение начального состояния и полет в ракете
-			//Todo: посмотреть реализован ли прием zero_state на наземке
 			case 2:
 				do {
 					mavlink_msg_state_send();
 					vTaskDelay(30);
 					mavlink_msg_state_zero_send();
 					vTaskDelay(30);
+					taskENTER_CRITICAL();
+					command = state_system.globalCommand;
+					taskEXIT_CRITICAL();
 				} while (command != 3);
 
 				taskENTER_CRITICAL();
@@ -495,6 +504,10 @@ void IO_RF_task() {
 				mavlink_msg_imu_rsc_send();
 				vTaskDelay(Timeout);
 				mavlink_msg_FCLogs();
+
+				taskENTER_CRITICAL();
+				command = state_system.globalCommand;
+				taskEXIT_CRITICAL();
 				break;
 
 
@@ -510,6 +523,9 @@ void IO_RF_task() {
 				mavlink_msg_imu_isc_send();
 				vTaskDelay(Timeout);
 				mavlink_msg_imu_rsc_send();
+				taskENTER_CRITICAL();
+				command = state_system.globalCommand;
+				taskEXIT_CRITICAL();
 				break;
 
 		}

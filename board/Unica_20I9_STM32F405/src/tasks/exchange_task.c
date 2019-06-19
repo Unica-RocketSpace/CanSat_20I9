@@ -126,7 +126,7 @@ void parse_command(uint8_t uplink_command){
 
 	else if (uplink_command == COMMAND_OK){
 		taskENTER_CRITICAL();
-		state_system.master_state = 1;
+		state_system.master_state = 4;
 		taskEXIT_CRITICAL();
 	}
 

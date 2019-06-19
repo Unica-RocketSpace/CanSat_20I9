@@ -35,12 +35,17 @@ TODO:
 '''
 
 # Запись данных в файлы
-FILE_WRITE = 1
+FILE_WRITE = 0
 
-MESH_PATH = r'C:\Users\MI\PycharmProjects\CanSat_20I9\ground\unisat-gcs\src\unisat_gcs\server\theplane.stl'
+TELEM = 1
+
+MESH_PATH = r'C:\Users\MI\PycharmProjects\CanSat_20I9\ground\unisat-gcs\src\unisat_gcs\server\kopia_litaka.stl'
 
 color_red = QtGui.QColor(255, 0, 0).name()
 color_green = QtGui.QColor(0, 255, 0).name()
+
+def result(x, y, z):
+    return sqrt(x*x + y*y + z*z)
 
 if FILE_WRITE:
 
@@ -54,34 +59,39 @@ if FILE_WRITE:
     file_gps = file_name + "_gps" + expansion
     file_servo = file_name + "_servo" + expansion
     file_zero_data = file_name + "_zero_data" + expansion
+    file_fc_logs = file_name + "_fc_logs" + expansion
 
     #
     f = open(file_bmp, 'w')
-    f.write("Time" + '\t' + "Pressure" + '\t' + "Temp" + '\t' + "Speed" + '\n')
+    f.write("Time" + '\t' + 'Pressure' + '\t' + 'Temp' + '\t' + 'Speed' + '\n')
     f.close()
 
     f = open(file_sensors, 'w')
-    f.write("Time" + '\t' + "Pressure" + '\t' + "Height" + '\t' + "Temp" + '\n')
+    f.write("Time" + '\t' + 'Pressure' + '\t' + 'Height' + '\t' + 'Temp' + '\n')
     f.close()
 
     f = open(file_imu_isc, 'w')
-    f.write("Time" + '\t' + "Accel" + '\t' + '\t' + '\t' + "Compass" + '\t' + '\t' + '\t' + "Quaternion" + '\n')
+    f.write("Time" + '\t' + 'Accel' + '\t' + '\t' + '\t' + 'Compass' + '\t' + '\t' + '\t' + 'Quaternion' + '\n')
     f.close()
 
     f = open(file_imu_rsc, 'w')
-    f.write("Time" + '\t' + "Accel" + '\t' + '\t' + '\t' + "Compass" + '\t' + '\t' + '\t' + "Gyro" + '\n')
+    f.write("Time" + '\t' + 'Accel' + '\t' + '\t' + '\t' + 'Compass' + '\t' + '\t' + '\t' + 'Gyro' + '\n')
     f.close()
 
     f = open(file_gps, 'w')
-    f.write("Time" + '\t' + "x" + '\t' + '\t' + '\t' + "y" + '\t' + '\t' + '\t' + "speed" + '\t' + "course" + '\n')
+    f.write("Time" + '\t' + 'x' + '\t' + '\t' + '\t' + 'y' + '\t' + '\t' + '\t' + 'speed' + '\t' + 'course' + '\n')
     f.close()
 
     f = open(file_servo, 'w')
-    f.write("Time" + '\t' + "angle_left" + '\t' + '\t' + '\t' + "angle_right" + '\t' + '\t' + '\t' + "angle_keel" + '\n')
+    f.write("Time" + '\t' + 'angle_left' + '\t' + '\t' + '\t' + 'angle_right' + '\t' + '\t' + '\t' + 'angle_keel' + '\n')
     f.close()
 
     f = open(file_zero_data, "w")
     f.write("Time" + '\t' + 'zero_pressure' + '\t' + 'zero_quaternion' + '\t' + 'zero_GPS' + '\t' + 'gyro_staticShift' + '\t' + 'accel_staticShift' + '\n')
+    f.close()
+
+    f = open(file_fc_logs, 'w')
+    f.write("Time" + '\t' + 'State' + '\t' + 'angle left' + '\t' + 'angle right' + '\t' + 'angle keel' + '\t' + 'critical angle' + '\n')
     f.close()
 
 log_text = ''
@@ -97,10 +107,9 @@ class PlaneWidget(gl.GLViewWidget):
         self.setCameraPosition(distance=15)
         self.setBackgroundColor([100, 100, 100, 0])
         g = gl.GLGridItem()
-        g.scale(2, 2, 1)
+        # g.scale(2, 2, 1)
         # g.translate(0, 0, 0)
         self.addItem(g)
-
 
         isc_coord = gl.GLAxisItem()
         isc_coord.setSize(100, 100, 100)
@@ -110,22 +119,18 @@ class PlaneWidget(gl.GLViewWidget):
         self.plane_axis.setSize(x=300, y=300, z=300)
         self.addItem(self.plane_axis)
 
-
-
         verts = self._get_mesh_points(mesh_path)
         faces = np.array([(i, i+1, i+2,) for i in range(0, len(verts), 3)])
         colors = np.array([(0.0, 1.0, 0.0, 1.0,) for i in range(0, len(verts), 3)])
         self.mesh = gl.GLMeshItem(vertexes=verts, faces=faces, faceColors=colors, smooth=False, shader='shaded')
 
-        self.mesh.rotate(180, 0, 0, 1)
+        # self.mesh.rotate(180, 0, 0, 1)
 
         self.addItem(self.mesh)
         # self._update_mesh([0, 0, 1])
 
-
     def on_new_records(self, records):
         self._update_mesh(records)
-
 
     def _get_mesh_points(self, mesh_path):
         your_mesh = mesh.Mesh.from_file(mesh_path)
@@ -133,7 +138,7 @@ class PlaneWidget(gl.GLViewWidget):
 
         points = np.array(list(chain(*points)))
         i = 0
-        nd_points = np.ndarray(shape=(len(points)//3, 3,) )
+        nd_points = np.ndarray(shape=(len(points)//3, 3,))
         for i in range(0, len(points)//3):
             nd_points[i] = points[i*3: (i+1)*3]
 
@@ -152,8 +157,10 @@ class PlaneWidget(gl.GLViewWidget):
         self.rotation = quat
 
         self._transform_object(self.mesh)
-        self.mesh.rotate(180, 0, 1, 0)
-        self.mesh.translate(0, 1, 0)
+        self.mesh.translate(0, 0, 5)
+        # self.mesh.rotate(90, 1, 0, 0)
+        # self.mesh.rotate(90, 1, 0, 0)
+        # self.mesh.translate(0, 1, 0)
         self._transform_object(self.plane_axis, move=False)
 
 
@@ -170,29 +177,52 @@ class MyWin(QtWidgets.QMainWindow):
         self.ui.setupUi(self)
         self.setWindowTitle('Unica gcs')
 
-        # Инициализация виджетов для телеметрии
-        self.telem_widget_accel = TelemWidget1(title="Accel ICS", layout=self.ui.verticalLayout_telem_left)
-        self.telem_widget_gyro = TelemWidget1(title="Gyro", layout=self.ui.verticalLayout_telem_left)
-        self.telem_widget_magnetometer = TelemWidget1(title="Magnetometer", layout=self.ui.verticalLayout_telem_left)
-        self.telem_widget_quat = TelemWidget1(title="Quaternion", layout=self.ui.verticalLayout_telem_left)
-        self.telem_widget_quat.set_name_label_1('teta')
-        self.telem_widget_quat.set_name_label_2('x')
-        self.telem_widget_quat.set_name_label_3('y')
-        self.telem_widget_quat.set_name_label_4('z')
+        if TELEM:
+            # Инициализация виджетов для телеметрии
+            self.telem_widget_stage = TelemWidgetState(title="Global Stage", layout=self.ui.verticalLayout_2)
+            self.telem_widget_stage.set_name_label_1('Инициализация')
+            self.telem_widget_stage.set_name_label_2('Погрузка в ракету')
+            self.telem_widget_stage.set_name_label_3('Определение нач. состояния')
+            self.telem_widget_stage.set_name_label_4('Полет в ракете')
+            self.telem_widget_stage.set_name_label_5('Свободное падение')
+            self.telem_widget_stage.set_name_label_6('Спуск')
+            self.telem_widget_stage.set_name_label_7('Управляемый полет')
+            self.telem_widget_stage.set_name_label_8('Режим ожидания')
 
-        #
-        self.telem_widget_temp = TelemWidget2(title="Temp", layout=self.ui.verticalLayout_telem_left,
-                                              name_label_1='temp imu bmp', name_label_2='temp bmp')
-        self.telem_widget_pressure = TelemWidget2(title="Pressure", layout=self.ui.verticalLayout_telem_left,
-                                                  name_label_1='pressure imu bmp', name_label_2='pressure bmp')
-        self.telem_widget_speed = TelemWidget2(title="Speed", layout=self.ui.verticalLayout_telem_right,
-                                               name_label_1='speed bmp', name_label_2='speed GPS')
-        self.telem_widget_coord = TelemWidget2(title="Coordinates", layout=self.ui.verticalLayout_telem_right,
-                                               name_label_1='x', name_label_2='y')
+            self.telem_widget_state = TelemWidgetState(title="State SC sensors", layout=self.ui.verticalLayout_5)
+            self.telem_widget_state.set_name_label_1('IMU')
+            self.telem_widget_state.set_name_label_2('IMU BMP')
+            self.telem_widget_state.set_name_label_3('SD')
+            self.telem_widget_state.set_name_label_4('NRF')
+            self.telem_widget_state.set_name_label_5('GPS')
+            self.telem_widget_state.set_name_label_6('BMP')
+            self.telem_widget_state.set_name_label_8('buttons')
+            self.telem_widget_state.set_name_label_7('Master')
 
-        self.telem_widget_buttons = TelemWidgetButtons(title="Buttons", layout=self.ui.verticalLayout_telem_right)
-        # self.telem_widget_buttons.ui.label.setPixmap(self.plane_img)
+            self.telem_widget_accel = TelemWidget1(title="Accel RCS", layout=self.ui.verticalLayout_left_1)
 
+            self.telem_widget_magnetometer = TelemWidget1(title="Magnetometer", layout=self.ui.verticalLayout_left_1)
+
+            self.telem_widget_temp = TelemWidget2(title="Temp", layout=self.ui.verticalLayout_left_2,
+                                                  name_label_1='temp imu bmp', name_label_2='temp bmp')
+            self.telem_widget_pressure = TelemWidget2(title="Pressure", layout=self.ui.verticalLayout_left_3,
+                                                      name_label_1='pressure imu bmp', name_label_2='pressure bmp')
+
+            #
+            self.telem_widget_gyro = TelemWidget1(title="Gyro", layout=self.ui.verticalLayout_right_1)
+
+            self.telem_widget_quat = TelemWidget1(title="Quaternion", layout=self.ui.verticalLayout_right_1)
+            self.telem_widget_quat.set_name_label_1('teta')
+            self.telem_widget_quat.set_name_label_2('x')
+            self.telem_widget_quat.set_name_label_3('y')
+            self.telem_widget_quat.set_name_label_4('z')
+
+            self.telem_widget_speed = TelemWidget2(title="Speed", layout=self.ui.verticalLayout_left_3,
+                                                   name_label_1='speed bmp', name_label_2='speed GPS')
+            self.telem_widget_coord = TelemWidget2(title="Coordinates", layout=self.ui.verticalLayout_right_2,
+                                                   name_label_1='x', name_label_2='y')
+
+            self.telem_widget_buttons = TelemWidgetButtons(title="Buttons", layout=self.ui.verticalLayout_right_3)
 
         #
         pg.setConfigOption('background', 'w')
@@ -226,6 +256,9 @@ class MyWin(QtWidgets.QMainWindow):
         self.av_z = []
 
         self.time_RSC = []
+        self.a_RSC_x = []
+        self.a_RSC_y = []
+        self.a_RSC_z = []
 
         self.a_ISC_x = []
         self.a_ISC_y = []
@@ -251,6 +284,7 @@ class MyWin(QtWidgets.QMainWindow):
         self.pressure_bmpIMU = []
         self.time_bmpIMU = []
 
+        self.time_GPS = []
         self.x = []
         self.y = []
         self.GPS = []
@@ -263,6 +297,7 @@ class MyWin(QtWidgets.QMainWindow):
         self.buffer_gps_msg = []
         self.buffer_servo_msg = []
         self.buffer_zero_data = []
+        self.buffer_fc_logs = []
 
         # Верхний ряд графиков
         self.ui.glv_top = pg.GraphicsLayoutWidget(self.ui.centralwidget)
@@ -270,7 +305,7 @@ class MyWin(QtWidgets.QMainWindow):
         self.ui.plot_top = pg.GraphicsLayout()
         self.ui.glv_top.addItem(self.ui.plot_top)
 
-        self.sc_item_top1 = pg.PlotItem(title='Accel ISC')
+        self.sc_item_top1 = pg.PlotItem(title='Accel RSC')
         self.ui.plot_top.addItem(self.sc_item_top1)
         self.graf_top1 = pg.PlotCurveItem()
         self.sc_item_top1.addItem(self.graf_top1)
@@ -365,7 +400,7 @@ class MyWin(QtWidgets.QMainWindow):
         self.pl_graf_down2_x = self.sc_item_down2.plot()
 
         # Здесь прописываем событие нажатия на кнопку
-        self.ui.pushButton_3.clicked.connect(self.remove_graf)
+        # self.ui.pushButton_3.clicked.connect(self.remove_graf)
         self.ui.commandLinkButton.clicked.connect(self.send_command)
 
     #
@@ -424,24 +459,9 @@ class MyWin(QtWidgets.QMainWindow):
     # FIXME: возможно не работает
 
     #
-    def clear_state(self):
-        self.ui.mpu_state.clear()
-        self.ui.bmp_state.clear()
-        self.ui.sd_state.clear()
-        self.ui.nrf_state.clear()
-        self.ui.morot_stm_state.clear()
-        self.ui.gps_state.clear()
-
-        self.ui.init.clear()
-        self.ui.init_param.clear()
-        self.ui.in_rocket.clear()
-        self.ui.lowering.clear()
-        self.ui.falling.clear()
-        self.ui.end.clear()
-
-    #
     @QtCore.pyqtSlot(list)
     def bmp_msg(self, msgs):   # сообщения с bmp (не с MPU)!!!!
+        print('msg_bmp')
         for i in range(len(msgs)):
             self.pressure_bmp.append(msgs[i].pressure)
             self.temp_bmp.append(msgs[i].temp)
@@ -454,9 +474,10 @@ class MyWin(QtWidgets.QMainWindow):
                                         str(msgs[i].temp) + '\t' + '\t' +
                                         str(msgs[i].speed_bmp) + '\n')
 
-        self.telem_widget_temp.set_value_2(self.temp_bmp[len(self.temp_bmp) - 1])
-        self.telem_widget_pressure.set_value_2(self.pressure_bmp[len(self.pressure_bmp) - 1])
-        self.telem_widget_speed.set_value_1(self.speed_bmp[len(self.speed_bmp) - 1])
+        if TELEM:
+            self.telem_widget_temp.set_value_2(self.temp_bmp[len(self.temp_bmp) - 1])
+            self.telem_widget_pressure.set_value_2(self.pressure_bmp[len(self.pressure_bmp) - 1])
+            self.telem_widget_speed.set_value_1(self.speed_bmp[len(self.speed_bmp) - 1])
 
         if FILE_WRITE:
             self.write_to_file(self.buffer_bmp_msg, file_bmp)
@@ -485,16 +506,40 @@ class MyWin(QtWidgets.QMainWindow):
             self.av_y.append(msgs[i].gyro[1])
             self.av_z.append(msgs[i].gyro[2])
 
+            self.vmf_x.append(msgs[i].compass[0])
+            self.vmf_y.append(msgs[i].compass[1])
+            self.vmf_z.append(msgs[i].compass[2])
+
             if FILE_WRITE:
                 self.buffer_imu_rsc_msg.append(str(msgs[i].time) + '\t' + '\t' +
                                         str(msgs[i].accel[0]) + ' ' + str(msgs[i].accel[1]) + ' ' + str(msgs[i].accel[2]) + '\t' + '\t' +
                                         str(msgs[i].compass[0]) + ' ' + str(msgs[i].compass[1]) + ' ' + str(msgs[i].compass[2]) + '\t' + '\t' +
                                         str(msgs[i].gyro[0]) + ' ' + str(msgs[i].gyro[1]) + ' ' + str(msgs[i].gyro[2]) + '\n')
 
-        self.telem_widget_gyro.set_value_1(self.av_x[len(self.av_x) - 1])
-        self.telem_widget_gyro.set_value_2(self.av_y[len(self.av_y) - 1])
-        self.telem_widget_gyro.set_value_3(self.av_z[len(self.av_z) - 1])
-        # self.telem_widget_gyro.set_value_4()
+        if TELEM:
+            last_x = self.av_x[len(self.av_x) - 1]
+            last_y = self.av_y[len(self.av_y) - 1]
+            last_z = self.av_z[len(self.av_z) - 1]
+            self.telem_widget_gyro.set_value_1(round(last_x, 3))
+            self.telem_widget_gyro.set_value_2(round(last_y, 3))
+            self.telem_widget_gyro.set_value_3(round(last_z, 3))
+            self.telem_widget_gyro.set_value_4(round(result(last_x, last_y, last_z), 3))
+
+            last_x = self.vmf_x[len(self.vmf_x) - 1]
+            last_y = self.vmf_y[len(self.vmf_y) - 1]
+            last_z = self.vmf_z[len(self.vmf_z) - 1]
+            self.telem_widget_magnetometer.set_value_1(last_x)
+            self.telem_widget_magnetometer.set_value_2(last_y)
+            self.telem_widget_magnetometer.set_value_3(last_z)
+            self.telem_widget_magnetometer.set_value_4(result(last_x, last_y, last_z))
+
+            last_x = self.a_RSC_x[len(self.a_RSC_x) - 1]
+            last_y = self.a_RSC_y[len(self.a_RSC_y) - 1]
+            last_z = self.a_RSC_z[len(self.a_RSC_z) - 1]
+            self.telem_widget_accel.set_value_1(round(last_x, 3))
+            self.telem_widget_accel.set_value_2(round(last_y, 3))
+            self.telem_widget_accel.set_value_3(round(last_z, 3))
+            self.telem_widget_accel.set_value_4(result(last_x, last_y, last_z))
 
         if FILE_WRITE:
             self.write_to_file(self.buffer_imu_rsc_msg, file_imu_rsc)
@@ -505,58 +550,64 @@ class MyWin(QtWidgets.QMainWindow):
             self.av_y = self.av_y[self.cut:(self.lenght - 1)]
             self.av_z = self.av_z[self.cut:(self.lenght - 1)]
 
-        # self.pl_graf_top2_x.setData(x=self.time_RSC, y=self.a_RSC_x, pen=('r'), width=0.5)
-        # self.pl_graf_top2_y.setData(x=self.time_RSC, y=self.a_RSC_y, pen=('g'), width=0.5)
-        # self.pl_graf_top2_z.setData(x=self.time_RSC, y=self.a_RSC_z, pen=('b'), width=0.5)
+            self.vmf_x = self.vmf_x[self.cut:(self.lenght - 1)]
+            self.vmf_y = self.vmf_y[self.cut:(self.lenght - 1)]
+            self.vmf_z = self.vmf_z[self.cut:(self.lenght - 1)]
+
+            self.a_RSC_x = self.a_RSC_x[self.cut:(self.lenght - 1)]
+            self.a_RSC_y = self.a_RSC_y[self.cut:(self.lenght - 1)]
+            self.a_RSC_z = self.a_RSC_z[self.cut:(self.lenght - 1)]
+
+        self.pl_graf_top1_x.setData(x=self.time_RSC, y=self.a_RSC_x, pen=('r'), width=0.5)
+        self.pl_graf_top1_y.setData(x=self.time_RSC, y=self.a_RSC_y, pen=('g'), width=0.5)
+        self.pl_graf_top1_z.setData(x=self.time_RSC, y=self.a_RSC_z, pen=('b'), width=0.5)
 
         self.pl_graf_middle1_x.setData(x=self.time_RSC, y=self.av_x, pen=('r'), width=0.5)
         self.pl_graf_middle1_y.setData(x=self.time_RSC, y=self.av_y, pen=('g'), width=0.5)
         self.pl_graf_middle1_z.setData(x=self.time_RSC, y=self.av_z, pen=('b'), width=0.5)
 
+        self.pl_graf_middle2_x.setData(x=self.time_RSC, y=self.vmf_x, pen=('r'), width=0.5)
+        self.pl_graf_middle2_y.setData(x=self.time_RSC, y=self.vmf_y, pen=('g'), width=0.5)
+        self.pl_graf_middle2_z.setData(x=self.time_RSC, y=self.vmf_z, pen=('b'), width=0.5)
+
     #
     @QtCore.pyqtSlot(list)
     def imu_isc_msg(self, msgs):
+        print('msg_imu_isc')
         for i in range(len(msgs)):
-            self.a_ISC_x.append(msgs[i].accel[0])
-            self.a_ISC_y.append(msgs[i].accel[1])
-            self.a_ISC_z.append(msgs[i].accel[2])
-
-            self.time_ISC.append(msgs[i].time)
-
-            self.vmf_x.append(msgs[i].compass[0])
-            self.vmf_y.append(msgs[i].compass[1])
-            self.vmf_z.append(msgs[i].compass[2])
+            # self.a_ISC_x.append(msgs[i].accel[0])
+            # self.a_ISC_y.append(msgs[i].accel[1])
+            # self.a_ISC_z.append(msgs[i].accel[2])
+            #
+            # self.time_ISC.append(msgs[i].time)
 
             if FILE_WRITE:
                 self.buffer_imu_isc_msg.append(str(msgs[i].time) + '\t' + '\t' +
-                                        str(msgs[i].accel[0]) + ' ' + str(msgs[i].accel[1]) + str(msgs[i].accel[2]) + '\t' + '\t' +
+                                        str(msgs[i].accel[0]) + ' ' + str(msgs[i].accel[1]) + ' ' + str(msgs[i].accel[2]) + '\t' + '\t' +
                                         str(msgs[i].compass[0]) + ' ' + str(msgs[i].compass[1]) + ' ' + str(msgs[i].compass[2]) + '\t' + '\t' +
                                         str(msgs[i].quaternion[0]) + ' ' + str(msgs[i].quaternion[1]) + ' ' + str(msgs[i].quaternion[2]) + ' ' + str(msgs[i].quaternion[3]) + '\n')
 
             quat = pyquaternion.Quaternion(msgs[i].quaternion)
             self.plane_widget._update_rotation(quat)
 
-        self.telem_widget_accel.set_value_1(self.a_ISC_x[len(self.a_ISC_x) - 1])
-        self.telem_widget_accel.set_value_2(self.a_ISC_y[len(self.a_ISC_y) - 1])
-        self.telem_widget_accel.set_value_3(self.a_ISC_z[len(self.a_ISC_z) - 1])
-        # self.telem_widget_accel.set_value_4()
-
-        self.telem_widget_magnetometer.set_value_1(self.vmf_x[len(self.vmf_x) - 1])
-        self.telem_widget_magnetometer.set_value_2(self.vmf_y[len(self.vmf_y) - 1])
-        self.telem_widget_magnetometer.set_value_3(self.vmf_z[len(self.vmf_z) - 1])
-        # self.telem_widget_magnetometer.set_value_4()
+        if TELEM:
+            pass
+            # self.telem_widget_accel.set_value_1(self.a_ISC_x[len(self.a_ISC_x) - 1])
+            # self.telem_widget_accel.set_value_2(self.a_ISC_y[len(self.a_ISC_y) - 1])
+            # self.telem_widget_accel.set_value_3(self.a_ISC_z[len(self.a_ISC_z) - 1])
+            # self.telem_widget_accel.set_value_4()
 
         if FILE_WRITE:
             self.write_to_file(self.buffer_imu_isc_msg, file_imu_isc)
 
-        if len(self.time_ISC) > self.lenght:
-            self.a_ISC_x = self.a_ISC_x[self.cut:(self.lenght - 1)]
-            self.a_ISC_y = self.a_ISC_y[self.cut:(self.lenght - 1)]
-            self.a_ISC_z = self.a_ISC_z[self.cut:(self.lenght - 1)]
-            self.time_ISC = self.time_ISC[self.cut:(self.lenght - 1)]
-            self.vmf_x = self.vmf_x[self.cut:(self.lenght - 1)]
-            self.vmf_y = self.vmf_y[self.cut:(self.lenght - 1)]
-            self.vmf_z = self.vmf_z[self.cut:(self.lenght - 1)]
+        # if len(self.time_ISC) > self.lenght:
+            # self.a_ISC_x = self.a_ISC_x[self.cut:(self.lenght - 1)]
+            # self.a_ISC_y = self.a_ISC_y[self.cut:(self.lenght - 1)]
+            # self.a_ISC_z = self.a_ISC_z[self.cut:(self.lenght - 1)]
+            # self.time_ISC = self.time_ISC[self.cut:(self.lenght - 1)]
+            # self.vmf_x = self.vmf_x[self.cut:(self.lenght - 1)]
+            # self.vmf_y = self.vmf_y[self.cut:(self.lenght - 1)]
+            # self.vmf_z = self.vmf_z[self.cut:(self.lenght - 1)]
 
         # self.plt.setData(pos=self.GPS, color=(1.0, 1.0, 1.0, 1.0))
         # m = len(self.mov_x)
@@ -569,17 +620,18 @@ class MyWin(QtWidgets.QMainWindow):
         #     self.rsc_coord.translate(self.mov_x, self.mov_y, self.mov_z)
         # Цвета в pg.glColor
 
-        self.pl_graf_top1_x.setData(x=self.time_ISC, y=self.a_ISC_x, pen=('r'))
-        self.pl_graf_top1_y.setData(x=self.time_ISC, y=self.a_ISC_y, pen=('g'))
-        self.pl_graf_top1_z.setData(x=self.time_ISC, y=self.a_ISC_z, pen=('b'))
+        # self.pl_graf_top1_x.setData(x=self.time_ISC, y=self.a_ISC_x, pen=('r'))
+        # self.pl_graf_top1_y.setData(x=self.time_ISC, y=self.a_ISC_y, pen=('g'))
+        # self.pl_graf_top1_z.setData(x=self.time_ISC, y=self.a_ISC_z, pen=('b'))
 
-        self.pl_graf_middle2_x.setData(x=self.time_ISC, y=self.vmf_x, pen=('r'))
-        self.pl_graf_middle2_y.setData(x=self.time_ISC, y=self.vmf_y, pen=('g'))
-        self.pl_graf_middle2_z.setData(x=self.time_ISC, y=self.vmf_z, pen=('b'))
+        # self.pl_graf_middle2_x.setData(x=self.time_ISC, y=self.vmf_x, pen=('r'))
+        # self.pl_graf_middle2_y.setData(x=self.time_ISC, y=self.vmf_y, pen=('g'))
+        # self.pl_graf_middle2_z.setData(x=self.time_ISC, y=self.vmf_z, pen=('b'))
 
     #
     @QtCore.pyqtSlot(list)
     def sens_msg(self, msgs):
+        print('msg_sensors')
         for i in range(len(msgs)):
             self.time_bmpIMU.append(msgs[i].time)
             self.pressure_bmpIMU.append(msgs[i].pressure)
@@ -591,13 +643,14 @@ class MyWin(QtWidgets.QMainWindow):
                                                str(msgs[i].temp) + '\t' + '\t' +
                                                str(msgs[i].height) + '\n')
 
-        self.telem_widget_temp.set_value_1(self.temp_bmpIMU[len(self.temp_bmpIMU) - 1])
-        self.telem_widget_pressure.set_value_1(self.pressure_bmpIMU[len(self.pressure_bmpIMU) - 1])
+        if TELEM:
+            self.telem_widget_temp.set_value_1(self.temp_bmpIMU[len(self.temp_bmpIMU) - 1])
+            self.telem_widget_pressure.set_value_1(self.pressure_bmpIMU[len(self.pressure_bmpIMU) - 1])
 
         if FILE_WRITE:
             self.write_to_file(self.buffer_sensors_msg, file_sensors)
 
-        if len(self.time_sens) > self.lenght:
+        if len(self.time_bmpIMU) > self.lenght:
             self.time_bmpIMU = self.time_bmpIMU[self.cut:(self.lenght - 1)]
             self.pressure_bmpIMU = self.pressure_bmpIMU[self.cut:(self.lenght - 1)]
             self.temp_bmpIMU = self.temp_bmpIMU[self.cut:(self.lenght - 1)]
@@ -608,19 +661,20 @@ class MyWin(QtWidgets.QMainWindow):
     #
     @QtCore.pyqtSlot(list)
     def gps_msg(self, msgs):
-        time = []
+        print('msg_gps')
         for i in range(len(msgs)):
             self.x.append(msgs[i].coordinates[0])
             self.y.append(msgs[i].coordinates[1])
             self.speed_GPS.append(msgs[i].speed)
-            time.append(msgs[i].time)
+            self.time_GPS.append(msgs[i].time)
+            print(msgs[i].course)
 
             if FILE_WRITE:
-                self.buffer_gps_msg.append(str(time[i]) + '\t' +
-                                           str(self.x[i]) + '\t' + '\t' +
-                                           str(self.y[i]) + '\t' + '\t' +
-                                           str(self.speed_GPS) + '\t' +
-                                           str(msgs[i].course + '\n'))
+                self.buffer_gps_msg.append(str(msgs[i].time) + '\t' +
+                                           str(msgs[i].coordinates[0]) + '\t' + '\t' +
+                                           str(msgs[i].coordinates[1]) + '\t' + '\t' +
+                                           str(msgs[i].speed) + '\t' +
+                                           str(msgs[i].course) + '\n')
 
             # FIXME: WTF?????????
             y0 = []
@@ -631,76 +685,81 @@ class MyWin(QtWidgets.QMainWindow):
         if FILE_WRITE:
             self.write_to_file(self.buffer_gps_msg, file_gps)
 
-        self.pl_graf_top3_y.setData(x=x0, y=y0, pen=('b'), width=10)
+        # self.pl_graf_top3_y.setData(x=x0, y=y0, pen=('b'), width=10)
 
-        self.telem_widget_speed.set_value_2(self.speed_GPS[len(self.speed_GPS) - 1])
-        self.telem_widget_coord.set_value_1(self.x[len(self.x) - 1])
-        self.telem_widget_coord.set_value_2(self.y[len(self.y) - 1])
+        if TELEM:
+            self.telem_widget_speed.set_value_2(self.speed_GPS[len(self.speed_GPS) - 1])
+            self.telem_widget_coord.set_value_1(self.x[len(self.x) - 1])
+            self.telem_widget_coord.set_value_2(self.y[len(self.y) - 1])
 
         if len(self.x) > self.lenght:
             self.x = self.x[self.cut:(self.lenght - 1)]
             self.y = self.y[self.cut:(self.lenght - 1)]
 
         self.pl_graf_top3_x.setData(x=self.x, y=self.y, pen=('r'))
-        self.pl_graf_top2_x.setData(x=time, y=self.speed_GPS)
+        self.pl_graf_top2_x.setData(x=self.time_GPS, y=self.speed_GPS, pen=('r'))
 
     #
     @QtCore.pyqtSlot(list)
     def state_msg(self, msgs):
+        print('msg_state')
         for i in range(len(msgs)):
-            self.state_time = msgs[i].time
-            self.state_mpu = msgs[i].MPU_state
-            self.state_mpu_bmp = msgs[i].IMU_BMP_state
-            self.state_sd = msgs[i].SD_state
-            self.state_nrf = msgs[i].NRF_state
-            self.state_bmp = msgs[i].BMP_state
-            self.state_gps = msgs[i].GPS_state
-            self.state_master_state = msgs[i].master_state
-            self.state_buttons = msgs[i].buttons
-            self.state_fly = msgs[i].globalStage
+            if TELEM:
+                self.state_fly = msgs[i].globalStage
 
-            self.clear_state()
+                self.telem_widget_stage.clear_values()
+                self.telem_widget_state.clear_values()
 
-            self.ui.mpu_state.setText(str(self.state_mpu))
-            self.ui.bmp_state.setText(str(self.state_bmp))
-            self.ui.sd_state.setText(str(self.state_sd))
-            self.ui.nrf_state.setText(str(self.state_nrf))
-            self.ui.gps_state.setText(str(self.state_gps))
+                self.telem_widget_state.set_value_1(msgs[i].MPU_state)
+                self.telem_widget_state.set_value_2(msgs[i].IMU_BMP_state)
+                self.telem_widget_state.set_value_3(msgs[i].SD_state)
+                self.telem_widget_state.set_value_4(msgs[i].NRF_state)
+                self.telem_widget_state.set_value_5(msgs[i].GPS_state)
+                self.telem_widget_state.set_value_6(msgs[i].BMP_state)
+                self.telem_widget_state.set_value_7(msgs[i].master_state)
+                self.telem_widget_state.set_value_8(msgs[i].buttons)
 
-        #
-        if self.state_fly == 0:
-            self.ui.init.setText(str('1'))
 
-        elif self.state_fly == 1:
-            self.ui.init_param.setText(str('1'))
+            #
+            if self.state_fly == 0:
+                self.telem_widget_stage.set_value_1(1)
 
-        elif self.state_fly == 2:
-            self.ui.in_rocket.setText(str('1'))
+            elif self.state_fly == 1:
+                self.telem_widget_stage.set_value_2(1)
 
-        elif self.state_fly == 3:
-            self.ui.falling.setText(str('1'))
+            elif self.state_fly == 2:
+                self.telem_widget_stage.set_value_3(1)
 
-        elif self.state_fly == 4:
-            self.ui.lowering.setText(str('1'))
+            elif self.state_fly == 3:
+                self.telem_widget_stage.set_value_4(1)
 
-        elif self.state_fly == 5:
-            self.ui.end.setText(str('1'))
+            elif self.state_fly == 4:
+                self.telem_widget_stage.set_value_5(1)
 
-        #
-        if self.state_buttons == 1:
-            self.telem_widget_buttons.set_color(self.telem_widget_buttons.ui.toolButton_wing_left, color_green)
+            elif self.state_fly == 5:
+                self.telem_widget_stage.set_value_6(1)
 
-        elif self.state_buttons == 2:
-            self.telem_widget_buttons.set_color(self.telem_widget_buttons.ui.toolButton_wing_right, color_green)
+            elif self.state_fly == 6:
+                self.telem_widget_stage.set_value_7(1)
 
-        elif self.state_buttons == 3:
-            self.telem_widget_buttons.set_color(self.telem_widget_buttons.ui.toolButton_go_left, color_green)
+            elif self.state_fly == 7:
+                self.telem_widget_stage.set_value_8(1)
 
-        elif self.state_buttons == 4:
-            self.telem_widget_buttons.set_color(self.telem_widget_buttons.ui.toolButton_wing_right, color_green)
+            #
+            if self.state_buttons == 1:
+                self.telem_widget_buttons.set_color(self.telem_widget_buttons.ui.toolButton_wing_left, color_green)
 
-        elif self.state_buttons == 5:
-            self.telem_widget_buttons.set_color(self.telem_widget_buttons.ui.toolButton_go_keel, color_green)
+            elif self.state_buttons == 2:
+                self.telem_widget_buttons.set_color(self.telem_widget_buttons.ui.toolButton_wing_right, color_green)
+
+            elif self.state_buttons == 3:
+                self.telem_widget_buttons.set_color(self.telem_widget_buttons.ui.toolButton_go_left, color_green)
+
+            elif self.state_buttons == 4:
+                self.telem_widget_buttons.set_color(self.telem_widget_buttons.ui.toolButton_wing_right, color_green)
+
+            elif self.state_buttons == 5:
+                self.telem_widget_buttons.set_color(self.telem_widget_buttons.ui.toolButton_go_keel, color_green)
 
     #
     @QtCore.pyqtSlot(list)
@@ -733,5 +792,19 @@ class MyWin(QtWidgets.QMainWindow):
                                                  str(msgs[i].gyro_staticShift) + '\t' +
                                                  str(msgs[i].accel_staticShift) + '\n')
 
-                if FILE_WRITE:
-                    self.write_to_file(self.buffer_zero_data, file_zero_data)
+            if FILE_WRITE:
+                self.write_to_file(self.buffer_zero_data, file_zero_data)
+
+    @QtCore.pyqtSlot(list)
+    def fc_logs_msg(self, msgs):
+        for i in range(len(msgs)):
+            if FILE_WRITE:
+                self.buffer_fc_logs.append(str(msgs[i].time) + '\t' +
+                                           str(msgs[i].fc_state) + '\t' +
+                                           str(msgs[i].angle_left) + '\t' +
+                                           str(msgs[i].angle_right) + '\t' +
+                                           str(msgs[i].angle_keel) + '\t' +
+                                           str(msgs[i].crirical_angles) + '\n')
+
+            if FILE_WRITE:
+                self.write_to_file(self.buffer_fc_logs, file_fc_logs)

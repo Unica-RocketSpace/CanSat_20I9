@@ -72,319 +72,10 @@
           <property name="sizeConstraint">
            <enum>QLayout::SetFixedSize</enum>
           </property>
-          <item>
-           <widget class="QPushButton" name="pushButton_3">
-            <property name="maximumSize">
-             <size>
-              <width>16777215</width>
-              <height>16777215</height>
-             </size>
-            </property>
-            <property name="text">
-             <string>Очистить графики</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_9">
-            <item>
-             <widget class="QLabel" name="label_6">
-              <property name="maximumSize">
-               <size>
-                <width>220</width>
-                <height>30</height>
-               </size>
-              </property>
-              <property name="text">
-               <string>Инициализация</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="init">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_8">
-            <item>
-             <widget class="QLabel" name="label_8">
-              <property name="text">
-               <string>Определение начального состояния</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="init_param">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_12">
-            <item>
-             <widget class="QLabel" name="label_15">
-              <property name="text">
-               <string>Полет в ракете</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="in_rocket">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_13">
-            <item>
-             <widget class="QLabel" name="label_9">
-              <property name="text">
-               <string>Падение</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="falling">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_14">
-            <item>
-             <widget class="QLabel" name="label_16">
-              <property name="text">
-               <string>Спуск</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="lowering">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_10">
-            <item>
-             <widget class="QLabel" name="label_17">
-              <property name="text">
-               <string>Окончание полета</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="end">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
          </layout>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_5">
-          <item>
-           <widget class="QLabel" name="label_3">
-            <property name="layoutDirection">
-             <enum>Qt::LeftToRight</enum>
-            </property>
-            <property name="text">
-             <string>STM</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_6">
-            <item>
-             <widget class="QLabel" name="label">
-              <property name="text">
-               <string>Состояние парашюта</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="state_para">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_7">
-            <item>
-             <widget class="QLabel" name="label_2">
-              <property name="text">
-               <string>Состояние мотора</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="state_atm_motor">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_15">
-            <item>
-             <widget class="QLabel" name="label_4">
-              <property name="text">
-               <string>MPU</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="mpu_state">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_16">
-            <item>
-             <widget class="QLabel" name="label_10">
-              <property name="text">
-               <string>BMP</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="bmp_state">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_17">
-            <item>
-             <widget class="QLabel" name="label_11">
-              <property name="text">
-               <string>SD</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="sd_state">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_18">
-            <item>
-             <widget class="QLabel" name="label_12">
-              <property name="text">
-               <string>NRF24L01</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="nrf_state">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_19">
-            <item>
-             <widget class="QLabel" name="label_13">
-              <property name="text">
-               <string>Состояние мотора</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="morot_stm_state">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-          <item>
-           <layout class="QHBoxLayout" name="horizontalLayout_20">
-            <item>
-             <widget class="QLabel" name="label_14">
-              <property name="text">
-               <string>GPS</string>
-              </property>
-              <property name="alignment">
-               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="gps_state">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
-         </layout>
+         <layout class="QVBoxLayout" name="verticalLayout_5"/>
         </item>
        </layout>
       </item>
@@ -393,13 +84,33 @@
         <property name="sizeConstraint">
          <enum>QLayout::SetFixedSize</enum>
         </property>
-        <item row="0" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout_telem">
+        <item row="2" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_telem_3">
           <item>
-           <layout class="QVBoxLayout" name="verticalLayout_telem_left"/>
+           <layout class="QVBoxLayout" name="verticalLayout_left_3"/>
           </item>
           <item>
-           <layout class="QVBoxLayout" name="verticalLayout_telem_right"/>
+           <layout class="QVBoxLayout" name="verticalLayout_right_3"/>
+          </item>
+         </layout>
+        </item>
+        <item row="1" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_telem_2">
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_left_2"/>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_right_2"/>
+          </item>
+         </layout>
+        </item>
+        <item row="0" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_telem_1">
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_left_1"/>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_right_1"/>
           </item>
          </layout>
         </item>

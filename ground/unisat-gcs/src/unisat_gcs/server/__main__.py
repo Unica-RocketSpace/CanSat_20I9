@@ -29,6 +29,7 @@ if __name__ == "__main__":
     thread.new_state_record.connect(myapp.state_msg)
     thread.new_servo_record.connect(myapp.servo_msg)
     thread.new_zero_data_record.connect(myapp.zero_data_msg)
+    thread.new_fc_logs_record.connect(myapp.fc_logs_msg)
     thread.start()
 
     myapp.new_send_command.connect(thread.post_msg)

@@ -8,6 +8,8 @@ from . import _log as _root_log
 
 _log = _root_log.getChild("main")
 
+ACCUM_LEN = 20
+
 # 172.16.164.211
 # ВЫБЕРИТЕ ТИП СОЕДИНЕНИЯ:
 UDP = 1
@@ -16,7 +18,7 @@ SD = 0
 
 # Файл, из которого мы читаем данные
 if SD:
-    read_file = r'C:\Users\MI\PycharmProjects\CanSat_20I9\ground\unisat-gcs\src\unisat_gcs\server\gravicapa.txt'
+    read_file = r'C:\Users\MI\PycharmProjects\CanSat_20I9\ground\unisat-gcs\src\unisat_gcs\server\U134.txt'
 
 
 class MsgAccumulator:
@@ -47,14 +49,14 @@ class MavlinkThread(QThread):
 
     def __init__(self):
         QThread.__init__(self)
-        self.bmp_accum = MsgAccumulator(10, self.new_bmp_record)
-        self.imu_isc_accum = MsgAccumulator(10, self.new_imu_isc_record)
-        self.imu_rsc_accum = MsgAccumulator(10, self.new_imu_rsc_record)
-        self.sensors_accum = MsgAccumulator(10, self.new_sensors_record)
-        self.gps_accum = MsgAccumulator(10, self.new_gps_record)
-        self.state_accum = MsgAccumulator(10, self.new_state_record)
-        self.zero_data_accum = MsgAccumulator(10, self.new_zero_data_record)
-        self.servo_accum = MsgAccumulator(10, self.new_servo_record)
+        self.bmp_accum = MsgAccumulator(ACCUM_LEN, self.new_bmp_record)
+        self.imu_isc_accum = MsgAccumulator(2, self.new_imu_isc_record)
+        self.imu_rsc_accum = MsgAccumulator(ACCUM_LEN, self.new_imu_rsc_record)
+        self.sensors_accum = MsgAccumulator(ACCUM_LEN, self.new_sensors_record)
+        self.gps_accum = MsgAccumulator(ACCUM_LEN, self.new_gps_record)
+        self.state_accum = MsgAccumulator(ACCUM_LEN, self.new_state_record)
+        self.zero_data_accum = MsgAccumulator(ACCUM_LEN, self.new_zero_data_record)
+        self.servo_accum = MsgAccumulator(ACCUM_LEN, self.new_servo_record)
         self.fc_logs_accum = MsgAccumulator(10, self.new_fc_logs_record)
         self.uplink_msgs = []
 
@@ -69,11 +71,11 @@ class MavlinkThread(QThread):
         # _log.info(msg)
         if isinstance(msg, MAVLink_bmp280_message):
             self.bmp_accum.push_message(msg)
-            print('bmp msg')
+            # print('bmp msg')
 
         elif isinstance(msg, MAVLink_state_zero_message):
             self.zero_data_accum.push_message(msg)
-            print("zero data")
+            # print("zero data")
 
         elif isinstance(msg, MAVLink_imu_rsc_message):
             self.imu_rsc_accum.push_message(msg)
@@ -89,16 +91,18 @@ class MavlinkThread(QThread):
 
         elif isinstance(msg, MAVLink_state_message):
             self.state_accum.push_message(msg)
-            # print('sensors msg')
+            # print('state msg')
 
         elif isinstance(msg, MAVLink_gps_message):
             self.gps_accum.push_message(msg)
+            # print('gps msg')
 
         elif isinstance(msg, MAVLink_servo_message):
             self.servo_accum.push_message(msg)
 
         elif isinstance(msg, MAVLink_fclogs_message):
             self.fc_logs_accum.push_message(msg)
+            print('FC_logs msg')
 
         else:
             _log.warning("неизвестный тип сообщения!")

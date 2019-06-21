@@ -163,7 +163,7 @@ int rscs_bmp280_read(rscs_bmp280_descriptor_t * bmp, int32_t * rawpress, int32_t
  *Rawpress и rawtemp - сырые данные, press_p и temp_p - указатели на переменные, куда будут
  *записаны давление и температура, выраженные в паскалях и сотых долях градуса соответственно.
  *Может вернуть RSCS_E_NULL, если произошла ошибка деления на ноль*/
-int rscs_bmp280_calculate(const rscs_bmp280_calibration_values_t * calvals , int32_t rawpress, int32_t rawtemp, float * press_p, float * temp_p);
+int rscs_bmp280_calculate(const rscs_bmp280_calibration_values_t * calvals , int32_t rawpress, int32_t rawtemp, double * press_p, float * temp_p);
 
 //Прочитать регистр статуса устройства
 uint8_t rscs_bmp280_read_status(rscs_bmp280_descriptor_t * bmp);

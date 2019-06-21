@@ -236,7 +236,7 @@ end:
 void bmp280_update() {
 	int32_t pressure = 0;
 	int32_t temp = 0;
-	float pressure_f = 0;
+	double pressure_f = 0;
 	float temp_f = 0;
 	float height = 0;
 
@@ -247,18 +247,21 @@ void bmp280_update() {
 		pressure_f += IMU_BMP_DELTA_PRESSURE;	//
 
 	taskENTER_CRITICAL();
-		float zero_pressure = state_zero.zero_pressure;
+		double zero_pressure = (double)state_zero.zero_pressure;
 	taskEXIT_CRITICAL();
-		height = 18400 * log(zero_pressure / pressure_f);
+		trace_printf("zero pressure %f\n", zero_pressure);
+
+		height = (float)(18400 * (1 + 0.003665 * temp_f) * log(zero_pressure / pressure_f));
+
 
 	taskENTER_CRITICAL();
 		stateIMUSensors_prev.height = stateIMUSensors.height;
 		stateIMUSensors_raw.pressure = pressure;
 		stateIMUSensors_raw.temp = temp;
-		stateIMUSensors.pressure = pressure_f;
+		stateIMUSensors.pressure = (float)pressure_f;
 		stateIMUSensors.temp = temp_f;
 		stateIMUSensors.height = height;
-//		trace_printf("pressure\t%f temp\t%f height\t%f\n------------------------------------------------\n", pressure_f, temp_f, height);
+		trace_printf("pressure\t%f temp\t%f height\t%f\n------------------------------------------------\n", pressure_f, temp_f, height);
 	taskEXIT_CRITICAL();
 	}
 
@@ -273,7 +276,7 @@ void bmp280_update() {
 	taskENTER_CRITICAL();
 		stateSensors_raw.pressure = pressure;
 		stateSensors_raw.temp = temp;
-		stateSensors.pressure = pressure_f;
+		stateSensors.pressure = (float)pressure_f;
 		stateSensors.temp = temp_f;
 
 		//Count speed_BMP
@@ -405,14 +408,26 @@ void IMU_Init() {
 	}
 }
 
-void zero_data(){
+void zero_data(uint8_t count){
 	taskENTER_CRITICAL();
-	state_zero.zero_pressure = stateSensors.pressure;
+	state_zero.zero_pressure += (stateSensors.pressure - 100000.0);
+	trace_printf("data %f\n", stateSensors.pressure - 100000.0);
 	for (int i = 0; i < 2; i++)
-		state_zero.zero_GPS[i] = stateGPS.coordinates[i];
+		state_zero.zero_GPS[i] += stateGPS.coordinates[i];
 	for (int i = 0; i < 4; i++)
-		state_zero.zero_quaternion[i] = stateIMU_isc.quaternion[i];
+		state_zero.zero_quaternion[i] += stateIMU_isc.quaternion[i];
 	taskEXIT_CRITICAL();
+
+	if (count == 10){
+		taskENTER_CRITICAL();
+		state_zero.zero_pressure /= 10;
+		state_zero.zero_pressure += 100000.0;
+		for (int i = 0; i < 2; i++)
+			state_zero.zero_GPS[i] /= 10;
+		for (int i = 0; i < 4; i++)
+			state_zero.zero_quaternion[i] /= 10;
+		taskEXIT_CRITICAL();
+	}
 }
 
 
@@ -420,6 +435,7 @@ uint8_t zero_state = 1;
 uint8_t get_shifts = 1;
 uint8_t my_stage_sensor = -1;
 uint8_t test_packet = 1;
+
 
 void SENSORS_task() {
 
@@ -440,6 +456,8 @@ void SENSORS_task() {
 	taskEXIT_CRITICAL();
 
 	get_staticShifts();
+	uint8_t count = 0;
+
 
 
 	for (;;) {
@@ -462,7 +480,11 @@ void SENSORS_task() {
 				IMU_updateDataAll();
 				_IMUtask_updateData();
 
-				zero_data();
+				if (count < 10){
+					count++;
+					zero_data(count);
+				}
+
 				break;
 
 			default:

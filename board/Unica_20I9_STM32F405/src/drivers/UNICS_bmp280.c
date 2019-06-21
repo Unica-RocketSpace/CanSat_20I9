@@ -238,7 +238,7 @@ end:
 }
 
 
-int rscs_bmp280_calculate(const rscs_bmp280_calibration_values_t * calvals , int32_t rawpress, int32_t rawtemp, float * press_p, float * temp_p) {
+int rscs_bmp280_calculate(const rscs_bmp280_calibration_values_t * calvals , int32_t rawpress, int32_t rawtemp, double * press_p, float * temp_p) {
 
 int32_t t_fine;
 	{
@@ -251,22 +251,22 @@ int32_t t_fine;
 	}
 
 	{
-		float var1_p, var2_p;
-		float p;
-		var1_p = (((float)t_fine) / 2 - 64000.0);
-		var2_p = (var1_p * var1_p * (((float)calvals->P6) / 32768.0));
-		var2_p = (var2_p + var1_p * ((float)calvals->P5) * 2.0);
-		var2_p = ((var2_p / 4.0) + ((float)calvals->P4) * 65536.0);
-		var1_p = ((((float)calvals->P3) * var1_p * var1_p / 524288.0 + ((float)calvals->P2) * var1_p) / 524288.0);
-		var1_p = ((1.0 + var1_p / 32768.0) * ((float)calvals->P1));
+		double var1_p, var2_p;
+		double p;
+		var1_p = (((double)t_fine) / 2 - 64000.0);
+		var2_p = (var1_p * var1_p * (((double)calvals->P6) / 32768.0));
+		var2_p = (var2_p + var1_p * ((double)calvals->P5) * 2.0);
+		var2_p = ((var2_p / 4.0) + ((double)calvals->P4) * 65536.0);
+		var1_p = ((((double)calvals->P3) * var1_p * var1_p / 524288.0 + ((double)calvals->P2) * var1_p) / 524288.0);
+		var1_p = ((1.0 + var1_p / 32768.0) * ((double)calvals->P1));
 
 		if (var1_p == 0)	return -1; // чтобы не делить на ноль
 
-		p = (1048576.0 - ((float)rawpress)) ;
+		p = (1048576.0 - ((double)rawpress)) ;
 		p = ((p -(var2_p / 4096.0)) * 6250 / var1_p);
-		var1_p = (((float)calvals->P9) * p * p / 2147483648.0);
-		var2_p = (p * ((float)calvals->P8) / 32768.0);
-		p = (p + ((var1_p + var2_p + (float)calvals->P7)) / 16.0);
+		var1_p = (((double)calvals->P9) * p * p / 2147483648.0);
+		var2_p = (p * ((double)calvals->P8) / 32768.0);
+		p = (p + ((var1_p + var2_p + (double)calvals->P7)) / 16.0);
 
 		*press_p = p;
 	}

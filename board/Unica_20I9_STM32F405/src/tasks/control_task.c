@@ -106,6 +106,7 @@ void CONTROL_task() {
 					taskENTER_CRITICAL();
 					state_system.globalStage = 4;
 					taskEXIT_CRITICAL();
+//				trace_printf("PHOTORES %d\n", (HAL_GPIO_ReadPin(PHOTORES_PORT, PHOTORES_PIN)));
 				}
 				break;
 
@@ -119,7 +120,7 @@ void CONTROL_task() {
 				break;
 
 			case 5:
-//				trace_printf("buttons %d\n", button);
+				trace_printf("buttons %d\n", button);
 				switch (button){
 				//ждем прерывания от крыльев и стабилизаторов
 					case 0:
@@ -185,11 +186,6 @@ void CONTROL_task() {
 				//тук-тук к мастеру
 				xQueueSendToBack(&handleInternalCmdQueue, (uint8_t*)COMMAND_START, 0);
 				vTaskDelay(30);
-				taskENTER_CRITICAL();
-				if (state_system.master_state == COMMAND_OK)
-					deploy_parachute();
-				taskEXIT_CRITICAL();
-
 
 				//Определяем неизменность высоты
 				if ((height_now + DELTA_HEIGHT <= height_prev) || (height_now - DELTA_HEIGHT <= height_prev)){

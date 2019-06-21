@@ -400,7 +400,7 @@ void IO_RF_task() {
 		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
 
-		led();
+//		led();
 
 		taskENTER_CRITICAL();
 		my_stage_telem = state_system.globalStage;

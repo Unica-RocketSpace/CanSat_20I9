@@ -54,7 +54,7 @@
 
         <message id="154" name="STATE_ZERO">
             <description>Zero parameters of UNISAT</description>
-            <field type="float" name="zero_pressure">pressure at zero level (on the earth)</field>
+            <field type="double" name="zero_pressure">pressure at zero level (on the earth)</field>
             <field type="float[4]" name="zero_quaternion">quaternion at zero level (on the earth)</field>
             <field type="float[3]" name="zero_GPS">GPS coordinates at zero level (on the earth)</field>
             <field type="float[3]" name="gyro_staticShift">Static shift of gyro</field>

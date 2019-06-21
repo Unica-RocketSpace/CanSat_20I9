@@ -215,13 +215,13 @@ void led(){
 void LED_task(){
 	for(;;){
 		taskENTER_CRITICAL();
-		if ((state_system.BMP_state == 0) & (state_system.IMU_BMP_state == 0) & (state_system.MPU_state == 0)){
-			if (HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_12))
+		if ((state_system.BMP_state == 0) & (state_system.IMU_BMP_state == 0) & (state_system.MPU_state == 0)
+				& (state_system.GPS_state == 0) & (state_system.NRF_state == 0) & (state_system.SD_state == 0))
 				HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
-			else
-				HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
-		}
 		taskEXIT_CRITICAL();
+		vTaskDelay(30);
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, SET);
+		vTaskDelay(250);
 	}
 }
 
@@ -260,7 +260,7 @@ int main(int argc, char* argv[])
 	state_system.MPU_state 	= 255;
 	state_system.NRF_state 	= 255;
 	state_system.SD_state 	= 255;
-	state_system.globalStage = 0;
+	state_system.globalStage = 2;
 
 
 	if (BMP || IMU_BMP || IMU)

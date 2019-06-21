@@ -33,20 +33,19 @@
 #define IMU			1
 #define IMU_BMP		1
 #define BMP			1
-#define GPS			0
-#define LED			0
-#define CONTROL 	0
-#define EXCHANGE	0
+#define GPS			1
+#define LED			1
+#define CONTROL 	1
+#define EXCHANGE	1
 
 #define GROUND		0
 #define SERVO		0
 
 
-#define HEIGHT_TO_DEPLOY_PARACHUTE 	270
+#define HEIGHT_TO_DEPLOY_PARACHUTE  3	//FIXME:270
 #define DEPLOY_PARACHUTE_PORT		GPIOC
 #define DEPLOY_PARACHUTE_PIN		GPIO_PIN_6
-#define DELTA_HEIGHT 				10
-#define ALL_BUTTONS_WORKED 			5
+#define DELTA_HEIGHT 				0
 
 #define PHOTORES_PORT				GPIOA
 #define PHOTORES_PIN				GPIO_PIN_1
@@ -176,7 +175,7 @@ typedef struct {
 
 typedef struct {
 	//	zero params; this fields should be filled when device started it`s work
-	float zero_pressure;
+	double zero_pressure;
 	float zero_quaternion[4];
 	float zero_GPS[3];
 	float gyro_staticShift[3];

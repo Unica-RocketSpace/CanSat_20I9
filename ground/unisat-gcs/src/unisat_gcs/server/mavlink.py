@@ -18,7 +18,7 @@ SD = 0
 
 # Файл, из которого мы читаем данные
 if SD:
-    read_file = r'C:\Users\MI\PycharmProjects\CanSat_20I9\ground\unisat-gcs\src\unisat_gcs\server\U134.txt'
+    read_file = r'C:\Users\MI\PycharmProjects\CanSat_20I9\ground\unisat-gcs\src\unisat_gcs\server\U238.txt'
 
 
 class MsgAccumulator:

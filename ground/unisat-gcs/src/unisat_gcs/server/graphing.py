@@ -35,7 +35,7 @@ TODO:
 '''
 
 # Запись данных в файлы
-FILE_WRITE = 0
+FILE_WRITE = 1
 
 TELEM = 1
 
@@ -67,7 +67,7 @@ if FILE_WRITE:
     f.close()
 
     f = open(file_sensors, 'w')
-    f.write("Time" + '\t' + 'Pressure' + '\t' + 'Height' + '\t' + 'Temp' + '\n')
+    f.write("Time" + '\t' + 'Pressure' + '\t' + 'Temp' + '\t' + 'Height' + '\n')
     f.close()
 
     f = open(file_imu_isc, 'w')
@@ -219,8 +219,8 @@ class MyWin(QtWidgets.QMainWindow):
 
             self.telem_widget_speed = TelemWidget2(title="Speed", layout=self.ui.verticalLayout_left_3,
                                                    name_label_1='speed bmp', name_label_2='speed GPS')
-            self.telem_widget_coord = TelemWidget2(title="Coordinates", layout=self.ui.verticalLayout_right_2,
-                                                   name_label_1='x', name_label_2='y')
+            self.telem_widget_coord = TelemWidget1(title="Coordinates", layout=self.ui.verticalLayout_right_2)
+            self.telem_widget_coord.set_name_label_1('x')
 
             self.telem_widget_buttons = TelemWidgetButtons(title="Buttons", layout=self.ui.verticalLayout_right_3)
 
@@ -403,7 +403,7 @@ class MyWin(QtWidgets.QMainWindow):
         # self.ui.pushButton_3.clicked.connect(self.remove_graf)
         self.ui.commandLinkButton.clicked.connect(self.send_command)
 
-    #
+    # функция для записи в файл
     def write_to_file(self, buffer, file):
         if len(buffer) >= 10:
             f = open(file, 'a')
@@ -412,7 +412,7 @@ class MyWin(QtWidgets.QMainWindow):
             buffer = []
             f.close()
 
-    #
+    # функция для отправки команд на борт
     def send_command(self):
         com = self.ui.textBrowser.toPlainText()
 
@@ -458,7 +458,7 @@ class MyWin(QtWidgets.QMainWindow):
         self.sc_item_large.clear()
     # FIXME: возможно не работает
 
-    #
+    # Слот для разбора пакета bmp
     @QtCore.pyqtSlot(list)
     def bmp_msg(self, msgs):   # сообщения с bmp (не с MPU)!!!!
         print('msg_bmp')
@@ -475,12 +475,13 @@ class MyWin(QtWidgets.QMainWindow):
                                         str(msgs[i].speed_bmp) + '\n')
 
         if TELEM:
-            self.telem_widget_temp.set_value_2(self.temp_bmp[len(self.temp_bmp) - 1])
-            self.telem_widget_pressure.set_value_2(self.pressure_bmp[len(self.pressure_bmp) - 1])
-            self.telem_widget_speed.set_value_1(self.speed_bmp[len(self.speed_bmp) - 1])
+            self.telem_widget_temp.set_value_2(round(self.temp_bmp[len(self.temp_bmp) - 1], 3))
+            self.telem_widget_pressure.set_value_2(round(self.pressure_bmp[len(self.pressure_bmp) - 1], 3))
+            self.telem_widget_speed.set_value_1(round(self.speed_bmp[len(self.speed_bmp) - 1], 3))
 
         if FILE_WRITE:
             self.write_to_file(self.buffer_bmp_msg, file_bmp)
+            self.buffer_bmp_msg = []
 
         if len(self.time_bmp) > self.lenght:
             self.time_bmp = self.time_bmp[self.cut:(self.lenght - 1)]
@@ -489,7 +490,7 @@ class MyWin(QtWidgets.QMainWindow):
             self.speed_bmp = self.speed_bmp[self.cut:(self.lenght - 1)]
         self.pl_graf_top4_x.setData(x=self.time_bmp, y=self.speed_bmp, pen=('r'))
 
-    #
+    # Слот для разбора пакета imu_rsc
     @QtCore.pyqtSlot(list)
     def imu_rsc_msg(self, msgs):
         for i in range(len(msgs)):
@@ -528,10 +529,10 @@ class MyWin(QtWidgets.QMainWindow):
             last_x = self.vmf_x[len(self.vmf_x) - 1]
             last_y = self.vmf_y[len(self.vmf_y) - 1]
             last_z = self.vmf_z[len(self.vmf_z) - 1]
-            self.telem_widget_magnetometer.set_value_1(last_x)
-            self.telem_widget_magnetometer.set_value_2(last_y)
-            self.telem_widget_magnetometer.set_value_3(last_z)
-            self.telem_widget_magnetometer.set_value_4(result(last_x, last_y, last_z))
+            self.telem_widget_magnetometer.set_value_1(round(last_x, 3))
+            self.telem_widget_magnetometer.set_value_2(round(last_y, 3))
+            self.telem_widget_magnetometer.set_value_3(round(last_z, 3))
+            self.telem_widget_magnetometer.set_value_4(round(result(last_x, last_y, last_z), 3))
 
             last_x = self.a_RSC_x[len(self.a_RSC_x) - 1]
             last_y = self.a_RSC_y[len(self.a_RSC_y) - 1]
@@ -543,6 +544,7 @@ class MyWin(QtWidgets.QMainWindow):
 
         if FILE_WRITE:
             self.write_to_file(self.buffer_imu_rsc_msg, file_imu_rsc)
+            self.buffer_imu_rsc_msg = []
 
         if len(self.time_RSC) > self.lenght:
             self.time_RSC = self.time_RSC[self.cut:(self.lenght - 1)]
@@ -570,16 +572,12 @@ class MyWin(QtWidgets.QMainWindow):
         self.pl_graf_middle2_y.setData(x=self.time_RSC, y=self.vmf_y, pen=('g'), width=0.5)
         self.pl_graf_middle2_z.setData(x=self.time_RSC, y=self.vmf_z, pen=('b'), width=0.5)
 
-    #
+    # Слот для разбора пакета imu_isc
     @QtCore.pyqtSlot(list)
     def imu_isc_msg(self, msgs):
         print('msg_imu_isc')
         for i in range(len(msgs)):
-            # self.a_ISC_x.append(msgs[i].accel[0])
-            # self.a_ISC_y.append(msgs[i].accel[1])
-            # self.a_ISC_z.append(msgs[i].accel[2])
-            #
-            # self.time_ISC.append(msgs[i].time)
+            self.quat.append(msgs[i].quaternion)
 
             if FILE_WRITE:
                 self.buffer_imu_isc_msg.append(str(msgs[i].time) + '\t' + '\t' +
@@ -591,51 +589,25 @@ class MyWin(QtWidgets.QMainWindow):
             self.plane_widget._update_rotation(quat)
 
         if TELEM:
-            pass
-            # self.telem_widget_accel.set_value_1(self.a_ISC_x[len(self.a_ISC_x) - 1])
-            # self.telem_widget_accel.set_value_2(self.a_ISC_y[len(self.a_ISC_y) - 1])
-            # self.telem_widget_accel.set_value_3(self.a_ISC_z[len(self.a_ISC_z) - 1])
-            # self.telem_widget_accel.set_value_4()
+            self.telem_widget_quat.set_value_1(round(self.quat[len(self.quat) - 1][0], 3))
+            self.telem_widget_quat.set_value_2(round(self.quat[len(self.quat) - 1][1], 3))
+            self.telem_widget_quat.set_value_3(round(self.quat[len(self.quat) - 1][2], 3))
+            self.telem_widget_quat.set_value_4(round(self.quat[len(self.quat) - 1][3], 3))
 
         if FILE_WRITE:
             self.write_to_file(self.buffer_imu_isc_msg, file_imu_isc)
+            self.buffer_imu_isc_msg = []
 
-        # if len(self.time_ISC) > self.lenght:
-            # self.a_ISC_x = self.a_ISC_x[self.cut:(self.lenght - 1)]
-            # self.a_ISC_y = self.a_ISC_y[self.cut:(self.lenght - 1)]
-            # self.a_ISC_z = self.a_ISC_z[self.cut:(self.lenght - 1)]
-            # self.time_ISC = self.time_ISC[self.cut:(self.lenght - 1)]
-            # self.vmf_x = self.vmf_x[self.cut:(self.lenght - 1)]
-            # self.vmf_y = self.vmf_y[self.cut:(self.lenght - 1)]
-            # self.vmf_z = self.vmf_z[self.cut:(self.lenght - 1)]
-
-        # self.plt.setData(pos=self.GPS, color=(1.0, 1.0, 1.0, 1.0))
-        # m = len(self.mov_x)
-        # if m != 0:
-        #     delta_x = self.mov_x[m - 1] - self.mov_x[m - self.cut]
-        #     delta_y = self.mov_y[m - 1] - self.mov_y[m - self.cut]
-        #     delta_z = self.mov_z[m - 1] - self.mov_z[m - self.cut]
-        #     self.rsc_coord.translate(delta_x, delta_y, delta_z)
-        # else:
-        #     self.rsc_coord.translate(self.mov_x, self.mov_y, self.mov_z)
-        # Цвета в pg.glColor
-
-        # self.pl_graf_top1_x.setData(x=self.time_ISC, y=self.a_ISC_x, pen=('r'))
-        # self.pl_graf_top1_y.setData(x=self.time_ISC, y=self.a_ISC_y, pen=('g'))
-        # self.pl_graf_top1_z.setData(x=self.time_ISC, y=self.a_ISC_z, pen=('b'))
-
-        # self.pl_graf_middle2_x.setData(x=self.time_ISC, y=self.vmf_x, pen=('r'))
-        # self.pl_graf_middle2_y.setData(x=self.time_ISC, y=self.vmf_y, pen=('g'))
-        # self.pl_graf_middle2_z.setData(x=self.time_ISC, y=self.vmf_z, pen=('b'))
-
-    #
+    # Слот для разбора пакета IMUbmp
     @QtCore.pyqtSlot(list)
     def sens_msg(self, msgs):
         print('msg_sensors')
+        height= 0
         for i in range(len(msgs)):
             self.time_bmpIMU.append(msgs[i].time)
             self.pressure_bmpIMU.append(msgs[i].pressure)
             self.temp_bmpIMU.append(msgs[i].temp)
+            height = msgs[i].height
 
             if FILE_WRITE:
                 self.buffer_sensors_msg.append(str(msgs[i].time) + '\t' + '\t' +
@@ -644,11 +616,13 @@ class MyWin(QtWidgets.QMainWindow):
                                                str(msgs[i].height) + '\n')
 
         if TELEM:
-            self.telem_widget_temp.set_value_1(self.temp_bmpIMU[len(self.temp_bmpIMU) - 1])
-            self.telem_widget_pressure.set_value_1(self.pressure_bmpIMU[len(self.pressure_bmpIMU) - 1])
+            self.telem_widget_temp.set_value_1(round(self.temp_bmpIMU[len(self.temp_bmpIMU) - 1], 3))
+            self.telem_widget_pressure.set_value_1(round(self.pressure_bmpIMU[len(self.pressure_bmpIMU) - 1], 3))
+            self.telem_widget_coord.set_value_3(height)
 
         if FILE_WRITE:
             self.write_to_file(self.buffer_sensors_msg, file_sensors)
+            self.buffer_sensors_msg = []
 
         if len(self.time_bmpIMU) > self.lenght:
             self.time_bmpIMU = self.time_bmpIMU[self.cut:(self.lenght - 1)]
@@ -658,7 +632,7 @@ class MyWin(QtWidgets.QMainWindow):
         self.pl_graf_down1_x.setData(x=self.time_bmpIMU, y=self.temp_bmpIMU, pen=('r'))
         self.pl_graf_down2_x.setData(x=self.time_bmpIMU, y=self.pressure_bmpIMU, pen=('r'))
 
-    #
+    # Слот для разбора пакета GPS
     @QtCore.pyqtSlot(list)
     def gps_msg(self, msgs):
         print('msg_gps')
@@ -684,13 +658,12 @@ class MyWin(QtWidgets.QMainWindow):
 
         if FILE_WRITE:
             self.write_to_file(self.buffer_gps_msg, file_gps)
-
-        # self.pl_graf_top3_y.setData(x=x0, y=y0, pen=('b'), width=10)
+            self.buffer_gps_msg = []
 
         if TELEM:
-            self.telem_widget_speed.set_value_2(self.speed_GPS[len(self.speed_GPS) - 1])
-            self.telem_widget_coord.set_value_1(self.x[len(self.x) - 1])
-            self.telem_widget_coord.set_value_2(self.y[len(self.y) - 1])
+            self.telem_widget_speed.set_value_2(round(self.speed_GPS[len(self.speed_GPS) - 1], 3))
+            self.telem_widget_coord.set_value_1(round(self.x[len(self.x) - 1], 3))
+            self.telem_widget_coord.set_value_2(round(self.y[len(self.y) - 1], 3))
 
         if len(self.x) > self.lenght:
             self.x = self.x[self.cut:(self.lenght - 1)]
@@ -699,13 +672,14 @@ class MyWin(QtWidgets.QMainWindow):
         self.pl_graf_top3_x.setData(x=self.x, y=self.y, pen=('r'))
         self.pl_graf_top2_x.setData(x=self.time_GPS, y=self.speed_GPS, pen=('r'))
 
-    #
+    # Слот для разбора пакета state
     @QtCore.pyqtSlot(list)
     def state_msg(self, msgs):
         print('msg_state')
         for i in range(len(msgs)):
             if TELEM:
                 self.state_fly = msgs[i].globalStage
+                self.state_buttons = msgs[i].buttons
 
                 self.telem_widget_stage.clear_values()
                 self.telem_widget_state.clear_values()
@@ -718,7 +692,6 @@ class MyWin(QtWidgets.QMainWindow):
                 self.telem_widget_state.set_value_6(msgs[i].BMP_state)
                 self.telem_widget_state.set_value_7(msgs[i].master_state)
                 self.telem_widget_state.set_value_8(msgs[i].buttons)
-
 
             #
             if self.state_fly == 0:
@@ -756,12 +729,12 @@ class MyWin(QtWidgets.QMainWindow):
                 self.telem_widget_buttons.set_color(self.telem_widget_buttons.ui.toolButton_go_left, color_green)
 
             elif self.state_buttons == 4:
-                self.telem_widget_buttons.set_color(self.telem_widget_buttons.ui.toolButton_wing_right, color_green)
+                self.telem_widget_buttons.set_color(self.telem_widget_buttons.ui.toolButton_go_right, color_green)
 
             elif self.state_buttons == 5:
                 self.telem_widget_buttons.set_color(self.telem_widget_buttons.ui.toolButton_go_keel, color_green)
 
-    #
+    # Слот для разбора пакета servo
     @QtCore.pyqtSlot(list)
     def servo_msg(self, msgs):
         for i in range(len(msgs)):
@@ -773,13 +746,16 @@ class MyWin(QtWidgets.QMainWindow):
 
         if FILE_WRITE:
             self.write_to_file(self.buffer_servo_msg, file_servo)
+            self.buffer_servo_msg = []
 
-    #
+    # Слот для разбора пакета zero_data
     @QtCore.pyqtSlot(list)
     def zero_data_msg(self, msgs):
         if self.zero_data:
-            self.zero_data = 0
+            zero_pressure = []
             for i in range(len(msgs)):
+                zero_pressure.append(msgs[i].zero_pressure)
+
                 if FILE_WRITE:
                     self.buffer_zero_data.append(str(msgs[i].time) + '\t' +
                                                  str(msgs[i].zero_pressure) + '\t' +
@@ -794,7 +770,12 @@ class MyWin(QtWidgets.QMainWindow):
 
             if FILE_WRITE:
                 self.write_to_file(self.buffer_zero_data, file_zero_data)
+                self.buffer_zero_data = []
 
+            if TELEM:
+                self.telem_widget_coord.set_value_3(zero_pressure[len(zero_pressure) - 1])
+
+    # Слот для разбора пакета fc_logs
     @QtCore.pyqtSlot(list)
     def fc_logs_msg(self, msgs):
         for i in range(len(msgs)):
@@ -808,3 +789,4 @@ class MyWin(QtWidgets.QMainWindow):
 
             if FILE_WRITE:
                 self.write_to_file(self.buffer_fc_logs, file_fc_logs)
+                self.buffer_fc_logs = []

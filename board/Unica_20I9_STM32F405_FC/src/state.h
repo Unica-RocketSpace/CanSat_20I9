@@ -76,9 +76,16 @@ typedef struct {
 	float coordinates[2];
 	float quaternion[4];
 	float accel_isc[3];
+	float height;
 
 	float speed_GPS;
 	float speed_BMP;
+
+	float roll;
+	float pitch;
+	float yaw;
+
+	float omega;
 
 	float course;
 
@@ -106,19 +113,39 @@ typedef struct {
 	float angle_left;
 	float angle_right;
 	float angle_keel;
+	uint8_t critical_angles;
 } FC_logs_t;
 
-
+typedef struct {
+	float alpha;
+	float beta; //угол по курсу
+} Predictor_Angles_t;
 
 void led();
+
+typedef struct {
+	servo_id_t id;
+	float speed;
+	float start_angle;
+	float finish_angle;
+	xTaskHandle handle;
+} servo_task_param_t;
+
+typedef struct {
+	float angle_left;
+	float angle_right;
+	float angle_keel;
+} state_servo_t;
 
 
 /*##################################################*/
 /*################### ПЕРЕМЕННЫЕ ###################*/
 /*##################################################*/
 
+extern TaskHandle_t handleControlTask;
 extern QueueHandle_t handleInternalCmdQueue;
-
+extern uint8_t FLAG_SoAR;
+extern Predictor_Angles_t Predictor_Angles;
 
 // глобальные структуры
 extern state_system_t 		state_system;
@@ -128,5 +155,8 @@ extern FC_logs_t			FC_logs;
 
 extern state_system_t		state_system_prev;
 
+extern TIM_HandleTypeDef htimServo;
+extern 	servo_task_param_t servo_param_left, servo_param_right, servo_param_keel;
+extern state_servo_t	stateServo;
 
 #endif /* STATE_H_ */

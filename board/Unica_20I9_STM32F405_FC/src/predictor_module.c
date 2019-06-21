@@ -107,13 +107,12 @@ void direction_predictor() {
 	double first_vector[3] = {0, 1, 0};
 	double second_vector[3] = {vx, 0, vz};
 	double temporary_vector[3];
-//	FIXME: !!!!! Переделать используемые функции под тип double или поменять у себя тип на float
-//	iauPxp(first_vector, second_vector, center_left);
-//	iauPxp(second_vector, first_vector, center_right);
-//	iauSxp(r / v, center_left, temporary_vector);
-//	iauPpp(temporary_vector, coordinates_SC, center_left);
-//	iauSxp(r / v, center_right, temporary_vector);
-//	iauPpp(temporary_vector, coordinates_SC, center_right);
+	iauPxp(first_vector, second_vector, center_left);
+	iauPxp(second_vector, first_vector, center_right);
+	iauSxp(r / v, center_left, temporary_vector);
+	iauPpp(temporary_vector, coordinates_SC, center_left);
+	iauSxp(r / v, center_right, temporary_vector);
+	iauPpp(temporary_vector, coordinates_SC, center_right);
 	double target_length_left, target_length_right;
 	double access_radius;
 	access_radius = r + DELTA_R;
@@ -124,8 +123,6 @@ void direction_predictor() {
 	} else if (((c < 0) && (flag)) || ((c > 0) && (!flag))){
 		turn = 'R';
 	}
-	//FIXME: !!!!!
-	else turn = 'R';
 	if ((target_length_left > access_radius) && (target_length_right > access_radius)) {
 		turn_flight(z0, x0, turn);
 		return;

@@ -112,7 +112,7 @@ void parse_command(uint8_t uplink_command){
 }
 
 
-void init_EX(){
+void init_EX(void){
 	init_exchange_command_UART();
 	init_exchange_data_UART();
 

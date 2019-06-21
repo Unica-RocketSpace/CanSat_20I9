@@ -43,14 +43,34 @@ state_zero_t		state_zero;
 state_master_t		state_master;
 state_system_t		state_system_prev;
 FC_logs_t			FC_logs;
+Predictor_Angles_t	Predictor_Angles;
 
 QueueHandle_t handleInternalCmdQueue;
+TaskHandle_t handleControlTask;
 
 
-//	параметры IO_RF_task
+//servo
+servo_task_param_t servo_param_left, servo_param_right, servo_param_keel;
+TaskHandle_t handleLeft, handleRight, handleKeel;
+state_servo_t		stateServo;
+
 #define EXCHANGE_TASK_STACK_SIZE (50*configMINIMAL_STACK_SIZE)
 static StackType_t	_exchangeTaskStack[EXCHANGE_TASK_STACK_SIZE];
 static StaticTask_t	_exchangeTaskObj;
+
+//	параметры SERVO_task
+#define SERVO_TASK_STACK_SIZE (10*configMINIMAL_STACK_SIZE)
+static StackType_t	_servoTaskStack[SERVO_TASK_STACK_SIZE];
+static StaticTask_t	_servoTaskObj;
+
+static StackType_t	_servoTaskStackLeft[SERVO_TASK_STACK_SIZE];
+static StaticTask_t	_servoTaskObjLeft;
+
+static StackType_t	_servoTaskStackRight[SERVO_TASK_STACK_SIZE];
+static StaticTask_t	_servoTaskObjRight;
+
+static StackType_t	_servoTaskStackKeel[SERVO_TASK_STACK_SIZE];
+static StaticTask_t	_servoTaskObjKeel;
 
 #define INTERNAL_QUEUE_LENGHT  sizeof( uint8_t )
 #define INTERNAL_QUEUE_ITEM_SIZE  5
@@ -95,6 +115,17 @@ int main(int argc, char* argv[]) {
 	xTaskCreateStatic(EXCHANGE_task, 	"EXCHANGE", 	EXCHANGE_TASK_STACK_SIZE, 	NULL, 3, _exchangeTaskStack, 	&_exchangeTaskObj);
 
 	handleInternalCmdQueue = xQueueCreateStatic(INTERNAL_QUEUE_LENGHT, INTERNAL_QUEUE_ITEM_SIZE, internal_queue_storage_area, &internal_queue_static);
+
+	xTaskCreateStatic(SCHEDULE_SERVO_task, "SERVO", SERVO_TASK_STACK_SIZE, NULL, 3, _servoTaskStack, &_servoTaskObj);
+	handleLeft = xTaskCreateStatic(speedRot, "left", SERVO_TASK_STACK_SIZE, &servo_param_left, 2, _servoTaskStackLeft, &_servoTaskObjLeft);
+	handleRight = xTaskCreateStatic(speedRot, "right", SERVO_TASK_STACK_SIZE, &servo_param_right, 2, _servoTaskStackRight, &_servoTaskObjRight);
+	handleKeel = xTaskCreateStatic(speedRot, "keel", SERVO_TASK_STACK_SIZE, &servo_param_keel, 2, _servoTaskStackKeel, &_servoTaskObjKeel);
+	servo_param_left.handle = handleLeft;
+	servo_param_right.handle = handleRight;
+	servo_param_keel.handle = handleKeel;
+	servo_param_left.id = 0;
+	servo_param_right.id = 1;
+	servo_param_keel.id = 2;
 
 
 	init_EX();

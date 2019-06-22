@@ -5,10 +5,8 @@
  *      Author: developer
  */
 
-#ifndef SERVO_H_
-#define SERVO_H_
-
-//FIXME: DELETE this!!!
+#ifndef SERVO_TASK_H_
+#define SERVO_TASK_H_
 
 #include "state.h"
 

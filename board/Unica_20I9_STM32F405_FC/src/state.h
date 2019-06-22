@@ -146,6 +146,7 @@ extern TaskHandle_t handleControlTask;
 extern QueueHandle_t handleInternalCmdQueue;
 extern uint8_t FLAG_SoAR;
 extern Predictor_Angles_t Predictor_Angles;
+extern TaskHandle_t handleLeft, handleRight, handleKeel;
 
 // глобальные структуры
 extern state_system_t 		state_system;

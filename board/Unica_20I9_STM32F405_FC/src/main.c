@@ -16,7 +16,7 @@
 #include "queue.h"
 
 #include "state.h"
-#include "Servo.h"
+#include "tasks/servo_task.h"
 #include "tasks/exchange_task.h"
 
 // ----- Timing definitions -------------------------------------------------

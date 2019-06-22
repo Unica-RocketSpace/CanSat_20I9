@@ -83,7 +83,7 @@ void SoAR_task() {
 	float omega_x;
 
 	//запрашиваем данные с SC
-	ui8 tmp = COMMAND_DATA;
+	tmp = COMMAND_DATA;
 	xQueueSendToBack(handleInternalCmdQueue, &tmp, 5);
 
 	speed_last = speed;
@@ -98,7 +98,7 @@ void SoAR_task() {
 	while (omega_x * omega_x / abs(omega_x) >= EPS_omega) {
 		vTaskDelay(200 / portTICK_RATE_MS);
 		//запрашиваем данные с SC
-		ui8 tmp = COMMAND_DATA;
+		tmp = COMMAND_DATA;
 		xQueueSendToBack(handleInternalCmdQueue, &tmp, 5);
 		omega_x = state_master.omega;
 		speed_last = speed;
@@ -122,7 +122,7 @@ void SoAR_task() {
 		}
 		vTaskDelay(500 / portTICK_RATE_MS);
 		//запрашиваем данные с SC
-		ui8 tmp = COMMAND_DATA;
+		tmp = COMMAND_DATA;
 		xQueueSendToBack(handleInternalCmdQueue, &tmp, 5);
 		speed_last = speed;
 		speed = state_master.speed_BMP;
@@ -135,7 +135,7 @@ void SoAR_task() {
 
 	while (true) {
 		//запрашиваем данные с SC
-		ui8 tmp = COMMAND_DATA;
+		tmp = COMMAND_DATA;
 		xQueueSendToBack(handleInternalCmdQueue, &tmp, 5);
 
 		alpha = Predictor_Angles.alpha;
@@ -225,14 +225,14 @@ void SoAR_task() {
 				FC_logs.angle_keel = keel_yaw;
 				vTaskDelay(200 / portTICK_RATE_MS);
 				//запрашиваем данные с SC
-				ui8 tmp = COMMAND_DATA;
+				tmp = COMMAND_DATA;
 				xQueueSendToBack(handleInternalCmdQueue, &tmp, 5);
 				roll = state_master.roll;
 			}
 			time = HAL_GetTick() / 1000;
 			FC_logs.time = time;
 			FC_logs.angle_keel = keel_yaw;
-			ui8 tmp = COMMAND_LOGS;
+			tmp = COMMAND_LOGS;
 			xQueueSendToBack(handleInternalCmdQueue, &tmp, 5);
 
 		} else {
@@ -256,7 +256,7 @@ void SoAR_task() {
 				FC_logs.angle_right = delta_nominal;
 				vTaskDelay(200 / portTICK_RATE_MS);
 				//запрашиваем данные с SC
-				ui8 tmp = COMMAND_DATA;
+				tmp = COMMAND_DATA;
 				xQueueSendToBack(handleInternalCmdQueue, &tmp, 5);
 				roll = state_master.roll;
 			}
@@ -272,12 +272,12 @@ void SoAR_task() {
 
 				//Управление килем
 				if (abs(yaw - course) >= EPS_yaw) {
-					keel_yaw = keel_from_yaw[((- (yaw - course) / 2) * 2) + SHIFT_YAW];
+					keel_yaw = keel_from_yaw[((- (ui8)round(yaw - course) / 2) * 2) + SHIFT_YAW];
 				}
 
 				vTaskDelay(500 / portTICK_RATE_MS);
 				//запрашиваем данные с SC
-				ui8 tmp = COMMAND_DATA;
+				tmp = COMMAND_DATA;
 				xQueueSendToBack(handleInternalCmdQueue, &tmp, 5);
 				course = state_master.course;
 				yaw = state_master.yaw;
@@ -307,7 +307,7 @@ void SoAR_task() {
 				FC_logs.angle_right = delta_nominal;
 				vTaskDelay(200 / portTICK_RATE_MS);
 				//запрашиваем данные с SC
-				ui8 tmp = COMMAND_DATA;
+				tmp = COMMAND_DATA;
 				xQueueSendToBack(handleInternalCmdQueue, &tmp, 5);
 				roll = state_master.roll;
 			}

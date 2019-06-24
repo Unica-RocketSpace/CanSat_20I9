@@ -48,7 +48,7 @@ int mpu9255_init(I2C_HandleTypeDef* hi2c)
 	PROCESS_ERROR(mpu9255_writeRegister(GYRO_AND_ACCEL,	25,		0b00000001));	//Sample Rate Divider
 	PROCESS_ERROR(mpu9255_writeRegister(GYRO_AND_ACCEL,	26,		0b00000101));	//config (DLPF = 101)
 	PROCESS_ERROR(mpu9255_writeRegister(GYRO_AND_ACCEL,	28,		(0b00000000 | (ACCEL_RANGE << 3)))); 	//accel config (rate 4g = 01)
-	PROCESS_ERROR(mpu9255_writeRegister(GYRO_AND_ACCEL,	29,		0b00000100));	//accel config 2 (Fch_b = 0, DLPF = 100)
+	PROCESS_ERROR(mpu9255_writeRegister(GYRO_AND_ACCEL,	29,		0b00000000));	//accel config 2 (Fch_b = 0, DLPF = 100)
 	PROCESS_ERROR(mpu9255_writeRegister(GYRO_AND_ACCEL,	35,		0b00000000));	//FIFO enable (not enabled)
 	PROCESS_ERROR(mpu9255_writeRegister(GYRO_AND_ACCEL,	56,		0b00000000));	//interrupt enable (int disable = 0)
 	PROCESS_ERROR(mpu9255_writeRegister(GYRO_AND_ACCEL,	106,	0b00000000));	//user control
@@ -56,10 +56,20 @@ int mpu9255_init(I2C_HandleTypeDef* hi2c)
 	PROCESS_ERROR(mpu9255_writeRegister(GYRO_AND_ACCEL,	108,	0b00000000));	//power managment 2
 	PROCESS_ERROR(mpu9255_writeRegister(GYRO_AND_ACCEL,	27,		(0b00000000 | (GYRO_RANGE << 4)) ));	//gyro config (rate 500dps = 01, Fch_b = 00)
 
-	//compass init
-	PROCESS_ERROR(mpu9255_writeRegister(GYRO_AND_ACCEL,	55,		0b00000010));	//режим bypass on
-	PROCESS_ERROR(mpu9255_writeRegister(COMPASS,		0x0A,	0b00010110));	//control 1
-	PROCESS_ERROR(mpu9255_writeRegister(GYRO_AND_ACCEL,	55,		0b00000000));	//режим bypass off
+	//  Magnetometer init
+	static int8_t ASAX, ASAY, ASAZ;
+	PROCESS_ERROR(mpu9255_writeRegister(GYRO_AND_ACCEL, 55,     0b00000010));   //режим bypass on
+	PROCESS_ERROR(mpu9255_writeRegister(COMPASS,        0x0A,   0b00010110));   //control 1
+	PROCESS_ERROR(mpu9255_readRegister(COMPASS,        0x10,   (uint8_t*)&ASAX, 1));   //ASAX
+	PROCESS_ERROR(mpu9255_readRegister(COMPASS,        0x11,   (uint8_t*)&ASAY, 1));   //ASAY
+	PROCESS_ERROR(mpu9255_readRegister(COMPASS,        0x12,   (uint8_t*)&ASAZ, 1));   //ASAZ
+	PROCESS_ERROR(mpu9255_writeRegister(GYRO_AND_ACCEL, 55,     0b00000000));   //режим bypass off
+
+	//  Recalc magnetometer sensitivity adjustment values to floats to store them
+	state_system.magnASA[0] = (float)(ASAX + 128) / (256);
+	state_system.magnASA[1] = (float)(ASAY + 128) / (256);
+	state_system.magnASA[2] = (float)(ASAZ + 128) / (256);
+
 
 end:
 	return error;
@@ -125,10 +135,15 @@ end:
 void mpu9255_recalcAccel(const int16_t * raw_accelData, float * accelData)
 {
 	float _accelData[3] = {0, 0, 0};
-
-	_accelData[0] =   (float)(raw_accelData[1]) * MPU9255_ACCEL_SCALE_FACTOR * 2;//* pow(2, ACCEL_RANGE);
-	_accelData[1] =   (float)(raw_accelData[0]) * MPU9255_ACCEL_SCALE_FACTOR * 2;//* pow(2, ACCEL_RANGE);
+//аппарат
+	_accelData[0] = - (float)(raw_accelData[1]) * MPU9255_ACCEL_SCALE_FACTOR * 2;//* pow(2, ACCEL_RANGE);
+	_accelData[1] = - (float)(raw_accelData[0]) * MPU9255_ACCEL_SCALE_FACTOR * 2;//* pow(2, ACCEL_RANGE);
 	_accelData[2] = - (float)(raw_accelData[2]) * MPU9255_ACCEL_SCALE_FACTOR * 2;//* pow(2, ACCEL_RANGE);
+
+//	_accelData[0] =   (float)(raw_accelData[1]) * MPU9255_ACCEL_SCALE_FACTOR * 2;//* pow(2, ACCEL_RANGE);
+//	_accelData[1] = - (float)(raw_accelData[0]) * MPU9255_ACCEL_SCALE_FACTOR * 2;//* pow(2, ACCEL_RANGE);
+//	_accelData[2] =   (float)(raw_accelData[2]) * MPU9255_ACCEL_SCALE_FACTOR * 2;//* pow(2, ACCEL_RANGE);
+
 
 	float offset_vector[3] = {X_ACCEL_OFFSET, Y_ACCEL_OFFSET, Z_ACCEL_OFFSET};
 	float transform_matrix[3][3] =	{{XX_ACCEL_TRANSFORM_MATIX, XY_ACCEL_TRANSFORM_MATIX, XZ_ACCEL_TRANSFORM_MATIX},
@@ -147,9 +162,14 @@ void mpu9255_recalcGyro(const int16_t * raw_gyroData, float * gyroData)
 {
 	float _gyroData[3] = {0, 0, 0};
 
-	_gyroData[0] =   (float)(raw_gyroData[1]) * MPU9255_GYRO_SCALE_FACTOR * pow(2, GYRO_RANGE);
-	_gyroData[1] =   (float)(raw_gyroData[0]) * MPU9255_GYRO_SCALE_FACTOR * pow(2, GYRO_RANGE);
+	_gyroData[0] = - (float)(raw_gyroData[1]) * MPU9255_GYRO_SCALE_FACTOR * pow(2, GYRO_RANGE);
+	_gyroData[1] = - (float)(raw_gyroData[0]) * MPU9255_GYRO_SCALE_FACTOR * pow(2, GYRO_RANGE);
 	_gyroData[2] = - (float)(raw_gyroData[2]) * MPU9255_GYRO_SCALE_FACTOR * pow(2, GYRO_RANGE);
+
+//	_gyroData[0] =   (float)(raw_gyroData[1]) * MPU9255_GYRO_SCALE_FACTOR * pow(2, GYRO_RANGE);
+//	_gyroData[1] = - (float)(raw_gyroData[0]) * MPU9255_GYRO_SCALE_FACTOR * pow(2, GYRO_RANGE);
+//	_gyroData[2] =   (float)(raw_gyroData[2]) * MPU9255_GYRO_SCALE_FACTOR * pow(2, GYRO_RANGE);
+
 
 	float offset_vector[3] = {X_GYRO_OFFSET, Y_GYRO_OFFSET, Z_GYRO_OFFSET};
 
@@ -166,7 +186,11 @@ void mpu9255_recalcCompass(const int16_t * raw_compassData, float * compassData)
 	//переводим систему координат магнетометра в систему координат MPU
 	float raw_data[3] = {	  (float)raw_compassData[0],
 							- (float)raw_compassData[1],
-							  (float)raw_compassData[2]};
+							- (float)raw_compassData[2]};
+
+//	float raw_data[3] = {  -  (float)raw_compassData[0],
+//						   -  (float)raw_compassData[1],
+//						      (float)raw_compassData[2]};
 
 	float offset_vector[3] = {X_COMPAS_OFFSET, Y_COMPAS_OFFSET, Z_COMPAS_OFFSET};
 	float transform_matrix[3][3] =	{	{XX_COMPAS_TRANSFORM_MATIX, XY_COMPAS_TRANSFORM_MATIX, XZ_COMPAS_TRANSFORM_MATIX},

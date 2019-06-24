@@ -26,7 +26,7 @@
 #include "UNICS_bmp280.h"
 #include "nRF24L01.h"
 #include "exchange_task.h"
-//#include "servo.h"
+#include "servo.h"
 
 // ----- Timing definitions -------------------------------------------------
 
@@ -68,9 +68,9 @@ TaskHandle_t		handleRF;
 QueueHandle_t		handleInternalCmdQueue;
 
 //servo
-//servo_task_param_t servo_param_left, servo_param_right, servo_param_keel;
-//TaskHandle_t handleLeft, handleRight, handleKeel;
-//state_servo_t		stateServo;
+servo_task_param_t servo_param_left, servo_param_right, servo_param_keel;
+TaskHandle_t handleLeft, handleRight, handleKeel;
+state_servo_t		stateServo;
 
 
 
@@ -113,18 +113,18 @@ static StaticTask_t _ExchangeTaskObj;
 
 //FIXME: DELETE
 //	параметры SERVO_task
-//#define SERVO_TASK_STACK_SIZE (10*configMINIMAL_STACK_SIZE)
-//static StackType_t	_servoTaskStack[SERVO_TASK_STACK_SIZE];
-//static StaticTask_t	_servoTaskObj;
-//
-//static StackType_t	_servoTaskStackLeft[SERVO_TASK_STACK_SIZE];
-//static StaticTask_t	_servoTaskObjLeft;
-//
-//static StackType_t	_servoTaskStackRight[SERVO_TASK_STACK_SIZE];
-//static StaticTask_t	_servoTaskObjRight;
-//
-//static StackType_t	_servoTaskStackKeel[SERVO_TASK_STACK_SIZE];
-//static StaticTask_t	_servoTaskObjKeel;
+#define SERVO_TASK_STACK_SIZE (10*configMINIMAL_STACK_SIZE)
+static StackType_t	_servoTaskStack[SERVO_TASK_STACK_SIZE];
+static StaticTask_t	_servoTaskObj;
+
+static StackType_t	_servoTaskStackLeft[SERVO_TASK_STACK_SIZE];
+static StaticTask_t	_servoTaskObjLeft;
+
+static StackType_t	_servoTaskStackRight[SERVO_TASK_STACK_SIZE];
+static StaticTask_t	_servoTaskObjRight;
+
+static StackType_t	_servoTaskStackKeel[SERVO_TASK_STACK_SIZE];
+static StaticTask_t	_servoTaskObjKeel;
 
 
 #define INTERNAL_QUEUE_LENGHT  sizeof( uint8_t )
@@ -215,8 +215,8 @@ void led(){
 void LED_task(){
 	for(;;){
 		taskENTER_CRITICAL();
-		if ((state_system.BMP_state == 0) & (state_system.IMU_BMP_state == 0) & (state_system.MPU_state == 0)
-				& (state_system.GPS_state == 0) & (state_system.NRF_state == 0) & (state_system.SD_state == 0))
+		if (/*(state_system.BMP_state == 0) & */(state_system.IMU_BMP_state == 0) & (state_system.MPU_state == 0)
+				& /*(state_system.GPS_state == 0) & (state_system.NRF_state == 0) & */ (state_system.SD_state == 0))
 				HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
 		taskEXIT_CRITICAL();
 		vTaskDelay(30);
@@ -249,10 +249,10 @@ int main(int argc, char* argv[])
 	memset(&stateSensors_prev,		0x00, sizeof(stateSensors_prev));
 	memset(&state_system_prev, 		0x00, sizeof(state_system_prev));
 
-//	memset(&servo_param_keel,	0x00, sizeof(servo_param_keel));
-//	memset(&servo_param_left,	0x00, sizeof(servo_param_left));
-//	memset(&servo_param_right,	0x00, sizeof(servo_param_right));
-//	memset(&stateServo,			0x00, sizeof(stateServo));
+	memset(&servo_param_keel,	0x00, sizeof(servo_param_keel));
+	memset(&servo_param_left,	0x00, sizeof(servo_param_left));
+	memset(&servo_param_right,	0x00, sizeof(servo_param_right));
+	memset(&stateServo,			0x00, sizeof(stateServo));
 
 	state_system.BMP_state 	= 255;
 	state_system.GPS_state 	= 255;
@@ -260,7 +260,7 @@ int main(int argc, char* argv[])
 	state_system.MPU_state 	= 255;
 	state_system.NRF_state 	= 255;
 	state_system.SD_state 	= 255;
-	state_system.globalStage = 2;
+	state_system.globalStage = 0;
 
 
 	if (BMP || IMU_BMP || IMU)
@@ -271,7 +271,7 @@ int main(int argc, char* argv[])
 /*
 	if (GROUND)
 		xTaskCreateStatic(GROUND_task, 	"GROUND", 	GROUND_TASK_STACK_SIZE,	NULL, 2, _groundTaskStack, 	&_groundTaskObj);
-
+*/
 	if (SERVO){
 		xTaskCreateStatic(SCHEDULE_SERVO_task, "SERVO", SERVO_TASK_STACK_SIZE, NULL, 3, _servoTaskStack, &_servoTaskObj);
 		handleLeft = xTaskCreateStatic(speedRot, "left", SERVO_TASK_STACK_SIZE, &servo_param_left, 2, _servoTaskStackLeft, &_servoTaskObjLeft);
@@ -285,7 +285,7 @@ int main(int argc, char* argv[])
 		servo_param_left.id = 0;
 		servo_param_right.id = 1;
 		servo_param_keel.id = 2;
-	}*/
+	}
 
 	if (LED)
 		xTaskCreateStatic(LED_task, "LED", LED_TASK_STACK_SIZE, NULL, 1, _ledTaskStack, &_ledfTaskObj);
@@ -314,12 +314,16 @@ int main(int argc, char* argv[])
 	__GPIOH_CLK_ENABLE();
 
 	Init_led();
+//	for (int i = 0; i <= 168000000; i++){
+//		volatile int x = 0;
+//	}
 
 	if (IMU || BMP || IMU_BMP) IMU_Init();
 	if (RF || SD) IO_RF_Init();
 	if (GPS) GPS_Init();
 	if (CONTROL) init_pins();
 	if (EXCHANGE) init_EX();
+	if (SERVO) allServosInit();
 
 	__enable_irq();
 

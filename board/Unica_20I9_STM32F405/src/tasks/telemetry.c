@@ -244,7 +244,7 @@ taskENTER_CRITICAL();
 	msg_state_zero.zero_pressure = state_zero.zero_pressure;
 	for (int i = 0; i < 4; i++)
 		msg_state_zero.zero_quaternion[i] = state_zero.zero_quaternion[i];
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 2; i++) {
 		msg_state_zero.zero_GPS[i] = state_zero.zero_GPS[i];
 		msg_state_zero.gyro_staticShift[i] = state_zero.gyro_staticShift[i];
 		msg_state_zero.accel_staticShift[i] = state_zero.accel_staticShift[i];

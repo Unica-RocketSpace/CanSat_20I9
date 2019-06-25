@@ -30,19 +30,19 @@ TIM_HandleTypeDef htimServo;
 
 const fl pulseMin = 3000;
 const fl pulseMax = 6000;
-const fl k1 = -36.69725;
+const fl k1 = 36.69725;
 const fl b1 = 5070;
-const fl k2 = 38.24384;
+const fl k2 = -38.2429;
 const fl b2 = 5000;
 const fl k3 = 40.0;
-const fl b3 = 5820;
+const fl b3 = 5720;
 
 const fl speed = 0.1;
 const fl fast_speed = 1;
 
 //some constants
-const fl angleMin = -20;
-const fl angleMax = 10;
+const fl angleMin = -40;
+const fl angleMax = 40;
 const fl angleKeelMax = 45;
 const fl angleKeelMin = -45;
 
@@ -288,20 +288,22 @@ void SCHEDULE_SERVO_task(){
 		resume_servos(1, 1, 0);
 		vTaskDelay(10000);
 */
-		//0 to min
-		to_angle(1, 1, 0, fast_speed, angleMin, angleMin, 0);
-		resume_servos(1, 1, 0);
-		vTaskDelay(10000);
 
-		//min to max
+		to_angle(1, 1, 0, 0.05, angleMin, angleMin, 0);
+		resume_servos(1, 1, 0);
+		vTaskDelay(30000);
+
+		to_angle(1, 1, 0, fast_speed, 0, 0, 0);
+		resume_servos(1, 1, 0);
+		vTaskDelay(20000);
+
 		to_angle(1, 1, 0, 0.05, angleMax, angleMax, 0);
 		resume_servos(1, 1, 0);
 		vTaskDelay(30000);
 
-		//max to 0
 		to_angle(1, 1, 0, fast_speed, 0, 0, 0);
 		resume_servos(1, 1, 0);
-		vTaskDelay(10000);
+		vTaskDelay(20000);
 
 /*
 		//to -9

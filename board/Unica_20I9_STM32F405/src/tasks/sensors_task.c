@@ -31,8 +31,8 @@
 
 #define SPEED_COEF		1.0				//FIXME: Посчитать
 
-#define BMP_DELTA_PRESSURE		/*0.0*/ 	490
-#define	IMU_BMP_DELTA_PRESSURE	/*-2870*/ 	-8300
+#define BMP_DELTA_PRESSURE		0.0 //490
+#define	IMU_BMP_DELTA_PRESSURE	-2870 	//-8300
 
 I2C_HandleTypeDef 	i2c_mpu9255;
 USART_HandleTypeDef usart_dbg;
@@ -167,6 +167,7 @@ static int IMU_updateDataAll() {
 	////////////////////////////////////////////////////
 
 	//считаем углы
+	quat_normalize(quaternion, quaternion);
 	angles = quat_to_angles(quaternion);
 	taskENTER_CRITICAL();
 	state_master.angles = angles;
@@ -264,7 +265,7 @@ void bmp280_update() {
 		stateIMUSensors.temp = temp_f;
 		stateIMUSensors.height = height;
 	taskEXIT_CRITICAL();
-	trace_printf("pressure1\t%f temp1\t%f height1\t%f\n------------------------------------------------\n", pressure_f, temp_f, height);
+//	trace_printf("pressure1\t%f temp1\t%f height1\t%f\n------------------------------------------------\n", pressure_f, temp_f, height);
 	}
 
 	pressure = 0; temp = 0; pressure_f = 0;	temp_f = 0; height = 0;
@@ -286,7 +287,7 @@ void bmp280_update() {
 		stateSensors.speed_bmp = state_master.speed_BMP;
 
 	taskEXIT_CRITICAL();
-	trace_printf("pressure\t%f temp\t%f height\t%f\n------------------------------------------------\n", pressure_f, temp_f, height);
+//	trace_printf("pressure\t%f temp\t%f height\t%f\n------------------------------------------------\n", pressure_f, temp_f, height);
 	}
 }
 

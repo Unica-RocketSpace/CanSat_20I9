@@ -184,6 +184,7 @@ void CONTROL_task() {
 							taskENTER_CRITICAL();
 							state_system.buttons = (++button);
 							taskEXIT_CRITICAL();
+							vTaskDelay(500 / portTICK_RATE_MS);
 							HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_GOL, GPIO_PIN_RESET);
 							count = 1;
 						}
@@ -207,6 +208,7 @@ void CONTROL_task() {
 							taskENTER_CRITICAL();
 							state_system.buttons = (++button);
 							taskEXIT_CRITICAL();
+							vTaskDelay(500 / portTICK_RATE_MS);
 							HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_GOR, GPIO_PIN_RESET);
 							count = 1;
 						}

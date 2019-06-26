@@ -44,8 +44,10 @@ MESH_PATH = r'C:\Users\MI\PycharmProjects\CanSat_20I9\ground\unisat-gcs\src\unis
 color_red = QtGui.QColor(255, 0, 0).name()
 color_green = QtGui.QColor(0, 255, 0).name()
 
+
 def result(x, y, z):
     return sqrt(x*x + y*y + z*z)
+
 
 if FILE_WRITE:
 
@@ -147,7 +149,7 @@ class PlaneWidget(gl.GLViewWidget):
     def _transform_object(self, target, move=True, rotate=True, scale=1 / 50):
         target.resetTransform()
         target.scale(scale, scale, scale)
-        if move: target.translate(0, 0, -3)
+        if move: target.translate(0, 0, 0.1)
         if rotate:
             target.rotate(degrees(self.rotation.angle), self.rotation.axis[0], self.rotation.axis[1],
                           self.rotation.axis[2])
@@ -157,7 +159,7 @@ class PlaneWidget(gl.GLViewWidget):
         self.rotation = quat
 
         self._transform_object(self.mesh)
-        self.mesh.translate(0, 0, 5)
+        # self.mesh.translate(0, 0, 3)
         # self.mesh.rotate(90, 1, 0, 0)
         # self.mesh.rotate(90, 1, 0, 0)
         # self.mesh.translate(0, 1, 0)
@@ -405,12 +407,10 @@ class MyWin(QtWidgets.QMainWindow):
 
     # функция для записи в файл
     def write_to_file(self, buffer, file):
-        if len(buffer) >= 10:
-            f = open(file, 'a')
-            for foo in range(len(buffer)):
-                f.write(buffer[foo])
-            buffer = []
-            f.close()
+        f = open(file, 'a')
+        for foo in range(len(buffer)):
+            f.write(buffer[foo])
+        f.close()
 
     # функция для отправки команд на борт
     def send_command(self):
@@ -636,11 +636,13 @@ class MyWin(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot(list)
     def gps_msg(self, msgs):
         print('msg_gps')
+        course = []
         for i in range(len(msgs)):
             self.x.append(msgs[i].coordinates[0])
             self.y.append(msgs[i].coordinates[1])
             self.speed_GPS.append(msgs[i].speed)
             self.time_GPS.append(msgs[i].time)
+            course.append(msgs[i].course)
             print(msgs[i].course)
 
             if FILE_WRITE:
@@ -664,6 +666,7 @@ class MyWin(QtWidgets.QMainWindow):
             self.telem_widget_speed.set_value_2(round(self.speed_GPS[len(self.speed_GPS) - 1], 3))
             self.telem_widget_coord.set_value_1(round(self.x[len(self.x) - 1], 3))
             self.telem_widget_coord.set_value_2(round(self.y[len(self.y) - 1], 3))
+            self.telem_widget_coord.set_value_4(course[len(course) - 1])
 
         if len(self.x) > self.lenght:
             self.x = self.x[self.cut:(self.lenght - 1)]

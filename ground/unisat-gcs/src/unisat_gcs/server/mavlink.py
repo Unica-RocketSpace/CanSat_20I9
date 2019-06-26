@@ -8,17 +8,17 @@ from . import _log as _root_log
 
 _log = _root_log.getChild("main")
 
-ACCUM_LEN = 20
+ACCUM_LEN = 10
 
 # 172.16.164.211
 # ВЫБЕРИТЕ ТИП СОЕДИНЕНИЯ:
-UDP = 1
+UDP = 0
 UART = 0
-SD = 0
+SD = 1
 
 # Файл, из которого мы читаем данные
 if SD:
-    read_file = r'C:\Users\MI\PycharmProjects\CanSat_20I9\ground\unisat-gcs\src\unisat_gcs\server\U238.txt'
+    read_file = r'C:\Users\MI\PycharmProjects\CanSat_20I9\ground\unisat-gcs\src\unisat_gcs\server\U318.txt'
 
 
 class MsgAccumulator:
@@ -57,7 +57,7 @@ class MavlinkThread(QThread):
         self.state_accum = MsgAccumulator(ACCUM_LEN, self.new_state_record)
         self.zero_data_accum = MsgAccumulator(ACCUM_LEN, self.new_zero_data_record)
         self.servo_accum = MsgAccumulator(ACCUM_LEN, self.new_servo_record)
-        self.fc_logs_accum = MsgAccumulator(10, self.new_fc_logs_record)
+        self.fc_logs_accum = MsgAccumulator(ACCUM_LEN, self.new_fc_logs_record)
         self.uplink_msgs = []
 
 

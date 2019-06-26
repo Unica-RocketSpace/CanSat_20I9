@@ -25,6 +25,9 @@ float height_now, height_prev;
 uint8_t button;
 uint8_t command;
 uint8_t master;
+float start_tick = 0;
+float delta = 5000.0;
+uint8_t count = 1;
 
 
 void init_pins(){
@@ -42,13 +45,13 @@ void init_pins(){
 
 	engine_pin.Mode = GPIO_MODE_INPUT;
 	engine_pin.Pin = BUTTON_PIN_GOR | BUTTON_PIN_GOL;
-	engine_pin.Pull = GPIO_PULLUP;
+	engine_pin.Pull = GPIO_NOPULL;
 	engine_pin.Speed = GPIO_SPEED_MEDIUM;
 	HAL_GPIO_Init(BUTTON_PORT, &engine_pin);
 
 	engine_pin.Mode = GPIO_MODE_INPUT;
 	engine_pin.Pin = BUTTON_PIN_KEEL | BUTTON_PIN_WL | BUTTON_PIN_WR;
-	engine_pin.Pull = GPIO_PULLUP;
+	engine_pin.Pull = GPIO_NOPULL;
 	engine_pin.Speed = GPIO_SPEED_MEDIUM;
 	HAL_GPIO_Init(BUTTON_PORT_2, &engine_pin);
 }
@@ -90,7 +93,6 @@ void CONTROL_task() {
 		taskEXIT_CRITICAL();
 
 //		trace_printf("mas_state %d\n", master);
-
 //		trace_printf("stage %d\n", global_stage);
 
 
@@ -106,14 +108,16 @@ void CONTROL_task() {
 					taskENTER_CRITICAL();
 					state_system.globalStage = 4;
 					taskEXIT_CRITICAL();
-//				trace_printf("PHOTORES %d\n", (HAL_GPIO_ReadPin(PHOTORES_PORT, PHOTORES_PIN)));
 				}
 				break;
 
 			case 4:
 				if (height_now <= HEIGHT_TO_DEPLOY_PARACHUTE){
+					HAL_GPIO_WritePin(DEPLOY_PARACHUTE_PORT, DEPLOY_PARACHUTE_PIN, GPIO_PIN_SET);
+					vTaskDelay(3000/portTICK_RATE_MS);
+					HAL_GPIO_WritePin(DEPLOY_PARACHUTE_PORT, DEPLOY_PARACHUTE_PIN, GPIO_PIN_RESET);
+
 					taskENTER_CRITICAL();
-					deploy_parachute();
 					state_system.globalStage = 5;
 					taskEXIT_CRITICAL();
 				}
@@ -124,46 +128,105 @@ void CONTROL_task() {
 				switch (button){
 				//ждем прерывания от крыльев и стабилизаторов
 					case 0:
+						if (count){
+							start_tick = (float)HAL_GetTick() + delta;
+							count = 0;
+						}
+
 						HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_WL, GPIO_PIN_SET);
 						if (!HAL_GPIO_ReadPin(BUTTON_PORT_2, BUTTON_PIN_WL)){
 							taskENTER_CRITICAL();
 							state_system.buttons = (++button);
 							taskEXIT_CRITICAL();
 							HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_WL, GPIO_PIN_RESET);
+							count = 1;
+						}
+						else if (start_tick <= (float)HAL_GetTick()){
+							HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_WL, GPIO_PIN_RESET);
+							count = 1;
+							taskENTER_CRITICAL();
+							state_system.globalStage = 1;
+							taskEXIT_CRITICAL();
 						}
 						break;
 
 					case 1:
+						if (count){
+							start_tick = (float)HAL_GetTick() + delta;
+							count = 0;
+						}
+
 						HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_WR, GPIO_PIN_SET);
 						if (!HAL_GPIO_ReadPin(BUTTON_PORT_2, BUTTON_PIN_WR)){
 							taskENTER_CRITICAL();
 							state_system.buttons = (++button);
 							taskEXIT_CRITICAL();
 							HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_WR, GPIO_PIN_RESET);
+							count = 1;
+						}
+						else if (start_tick <= (float)HAL_GetTick()){
+							HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_WL, GPIO_PIN_RESET);
+							count = 1;
+							taskENTER_CRITICAL();
+							state_system.globalStage = 1;
+							taskEXIT_CRITICAL();
 						}
 						break;
 
 					case 2:
+						if (count){
+							start_tick = (float)HAL_GetTick() + delta;
+							count = 0;
+						}
+
 						HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_GOL, GPIO_PIN_SET);
 						if (!HAL_GPIO_ReadPin(BUTTON_PORT, BUTTON_PIN_GOL)){
 							taskENTER_CRITICAL();
 							state_system.buttons = (++button);
 							taskEXIT_CRITICAL();
+							vTaskDelay(500 / portTICK_RATE_MS);
 							HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_GOL, GPIO_PIN_RESET);
+							count = 1;
+						}
+						else if (start_tick <= (float)HAL_GetTick()){
+							HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_WL, GPIO_PIN_RESET);
+							count = 1;
+							taskENTER_CRITICAL();
+							state_system.globalStage = 1;
+							taskEXIT_CRITICAL();
 						}
 						break;
 
 					case 3:
+						if (count){
+							start_tick = (float)HAL_GetTick() + delta;
+							count = 0;
+						}
+
 						HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_GOR, GPIO_PIN_SET);
 						if (!HAL_GPIO_ReadPin(BUTTON_PORT, BUTTON_PIN_GOR)){
 							taskENTER_CRITICAL();
 							state_system.buttons = (++button);
 							taskEXIT_CRITICAL();
+							vTaskDelay(500 / portTICK_RATE_MS);
 							HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_GOR, GPIO_PIN_RESET);
+							count = 1;
+						}
+						else if (start_tick <= (float)HAL_GetTick()){
+							HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_WL, GPIO_PIN_RESET);
+							count = 1;
+							taskENTER_CRITICAL();
+							state_system.globalStage = 1;
+							taskEXIT_CRITICAL();
 						}
 						break;
 
 					case 4:
+						if (count){
+							start_tick = (float)HAL_GetTick() + delta;
+							count = 0;
+						}
+
 						vTaskDelay(100/portTICK_RATE_MS);
 						HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_KEEL, GPIO_PIN_SET);
 						if (!HAL_GPIO_ReadPin(BUTTON_PORT_2, BUTTON_PIN_KEEL)){
@@ -171,6 +234,14 @@ void CONTROL_task() {
 							state_system.buttons = (++button);
 							taskEXIT_CRITICAL();
 							HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_KEEL, GPIO_PIN_RESET);
+							count = 1;
+						}
+						else if (start_tick <= (float)HAL_GetTick()){
+							HAL_GPIO_WritePin(ENGINE_PORT, ENGINE_PIN_WL, GPIO_PIN_RESET);
+							count = 1;
+							taskENTER_CRITICAL();
+							state_system.globalStage = 1;
+							taskEXIT_CRITICAL();
 						}
 						break;
 
@@ -188,7 +259,7 @@ void CONTROL_task() {
 				vTaskDelay(30);
 
 				//Определяем неизменность высоты
-				if ((height_now + DELTA_HEIGHT <= height_prev) || (height_now - DELTA_HEIGHT <= height_prev)){
+				if ((height_now + DELTA_HEIGHT >= height_prev) & (height_now - DELTA_HEIGHT <= height_prev)){
 					taskENTER_CRITICAL();
 					state_system.globalStage = 7;
 					taskEXIT_CRITICAL();

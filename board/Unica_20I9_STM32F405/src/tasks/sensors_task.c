@@ -31,8 +31,8 @@
 
 #define SPEED_COEF		1.0				//FIXME: Посчитать
 
-#define BMP_DELTA_PRESSURE		490
-#define	IMU_BMP_DELTA_PRESSURE	-8300
+#define BMP_DELTA_PRESSURE		0.0 //490
+#define	IMU_BMP_DELTA_PRESSURE	-2870 	//-8300
 
 I2C_HandleTypeDef 	i2c_mpu9255;
 USART_HandleTypeDef usart_dbg;
@@ -153,7 +153,9 @@ static int IMU_updateDataAll() {
 //			MadgwickAHRSupdateIMU(quaternion, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], dt, 0.033);
 	//	if (state_system.globalStage >= 3)
 
-			MadgwickAHRSupdate(quaternion, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], compass[0], compass[1], compass[2], dt, 0.3);
+	float  beta = 1;
+	MadgwickAHRSupdate(quaternion, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], compass[0], compass[1], compass[2], dt, beta);
+//	MadgwickAHRSupdateIMU(quaternion, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], dt, 0.033);
 
 		//	копируем кватернион в глобальную структуру
 	taskENTER_CRITICAL();
@@ -165,6 +167,7 @@ static int IMU_updateDataAll() {
 	////////////////////////////////////////////////////
 
 	//считаем углы
+	quat_normalize(quaternion, quaternion);
 	angles = quat_to_angles(quaternion);
 	taskENTER_CRITICAL();
 	state_master.angles = angles;
@@ -247,9 +250,9 @@ void bmp280_update() {
 		pressure_f += IMU_BMP_DELTA_PRESSURE;	//
 
 	taskENTER_CRITICAL();
-		double zero_pressure = (double)state_zero.zero_pressure;
+		double zero_pressure = state_zero.zero_pressure;
 	taskEXIT_CRITICAL();
-		trace_printf("zero pressure %f\n", zero_pressure);
+//		trace_printf("zero pressure %f\n", zero_pressure);
 
 		height = (float)(18400 * (1 + 0.003665 * temp_f) * log(zero_pressure / pressure_f));
 
@@ -261,8 +264,8 @@ void bmp280_update() {
 		stateIMUSensors.pressure = (float)pressure_f;
 		stateIMUSensors.temp = temp_f;
 		stateIMUSensors.height = height;
-		trace_printf("pressure\t%f temp\t%f height\t%f\n------------------------------------------------\n", pressure_f, temp_f, height);
 	taskEXIT_CRITICAL();
+//	trace_printf("pressure1\t%f temp1\t%f height1\t%f\n------------------------------------------------\n", pressure_f, temp_f, height);
 	}
 
 	pressure = 0; temp = 0; pressure_f = 0;	temp_f = 0; height = 0;
@@ -283,8 +286,8 @@ void bmp280_update() {
 		state_master.speed_BMP = (stateSensors.pressure - stateIMUSensors.pressure) * SPEED_COEF;
 		stateSensors.speed_bmp = state_master.speed_BMP;
 
-//		trace_printf("pressure\t%f temp\t%f height\t%f\n------------------------------------------------\n", pressure_f, temp_f, height);
 	taskEXIT_CRITICAL();
+//	trace_printf("pressure\t%f temp\t%f height\t%f\n------------------------------------------------\n", pressure_f, temp_f, height);
 	}
 }
 
@@ -410,8 +413,8 @@ void IMU_Init() {
 
 void zero_data(uint8_t count){
 	taskENTER_CRITICAL();
-	state_zero.zero_pressure += (stateSensors.pressure - 100000.0);
-	trace_printf("data %f\n", stateSensors.pressure - 100000.0);
+	state_zero.zero_pressure += (stateIMUSensors.pressure);
+//	trace_printf("data %f\n", stateIMUSensors.pressure);
 	for (int i = 0; i < 2; i++)
 		state_zero.zero_GPS[i] += stateGPS.coordinates[i];
 	for (int i = 0; i < 4; i++)
@@ -421,7 +424,6 @@ void zero_data(uint8_t count){
 	if (count == 10){
 		taskENTER_CRITICAL();
 		state_zero.zero_pressure /= 10;
-		state_zero.zero_pressure += 100000.0;
 		for (int i = 0; i < 2; i++)
 			state_zero.zero_GPS[i] /= 10;
 		for (int i = 0; i < 4; i++)

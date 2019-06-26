@@ -108,12 +108,13 @@ void vect_rotate(float* vect, float* quat, float* res_vect) {
 Euler_angles_t quat_to_angles(float* quat){
 	Euler_angles_t angles;
 
-	angles.roll = (float)atan((double)((2 * (quat[0] * quat[1] + quat[2] * quat[3])) / (1 - 2 * (quat[1] * quat[1] + quat[2] * quat[2]))));
-//	trace_printf("roll   %d\n", angles.roll);
+	angles.roll = (float)atan2((double)(2 * (quat[0] * quat[1] + quat[2] * quat[3])) , (double)(1 - 2 * (quat[1] * quat[1] + quat[2] * quat[2])));
+
 	angles.pitch = (float)asin((double)(2 * (quat[0] * quat[2] - quat[3] * quat[1])));
-//	trace_printf("pitch   %d\n", angles.pitch);
-	angles.yaw = (float)atan((double)((2 * (quat[0] * quat[3] + quat[1] * quat[2])) / (1 - 2 * (quat[2] * quat[2] + quat[3] * quat[3]))));
-//	trace_printf("yaw   %d\n", angles.yaw);
+
+	angles.yaw = (float)atan2((double)(2 * (quat[0] * quat[3] + quat[1] * quat[2])) , (double)(1 - 2 * (quat[2] * quat[2] + quat[3] * quat[3])));
+//	trace_printf("roll 		%f	pitch		%f	yaw   %f\n---------------------------------------------------\n", angles.roll / M_PI * 180, angles.pitch / M_PI * 180, angles.yaw / M_PI * 180);
+//	trace_printf("quat_0 %f	quat_1 %f quat_2 %f	quat_3 %f\n--------------------------------------------------\n", quat[0], quat[1], quat[2], quat[3]);
 	return angles;
 }
 

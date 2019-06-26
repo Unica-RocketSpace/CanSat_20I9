@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include "math.h"
 
 #include "diag/Trace.h"
 
@@ -159,9 +160,9 @@ void GPS_task()	{
 		float _time = minmea_tofloat((struct minmea_float *)(&frame.time));
 
 		taskENTER_CRITICAL();
-		stateGPS.coordinates[0] = _lon;
-		stateGPS.coordinates[1] = _lat;
-		stateGPS.speed = _speed;
+		stateGPS.coordinates[0] = (_lon  - state_zero.zero_GPS[0]) / 180 * M_PI * 6371200;
+		stateGPS.coordinates[1] = (_lat - state_zero.zero_GPS[1]) / 180 * M_PI * 6371200;
+		stateGPS.speed = (_speed * 0.51444); //перевод из узлов в м/с
 		stateGPS.course = _course;
 		stateGPS.time = _time;
 		taskEXIT_CRITICAL();

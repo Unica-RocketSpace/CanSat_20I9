@@ -29,23 +29,23 @@
 #include "quaternion.h"
 
 #define SD 			1
-#define RF			1 	//Влияет на отправку телеметрии
+#define RF			0 	//Влияет на отправку телеметрии
 #define IMU			1
 #define IMU_BMP		1
 #define BMP			1
-#define GPS			1
+#define GPS			0
 #define LED			1
-#define CONTROL 	1
-#define EXCHANGE	1
+#define CONTROL 	0
+#define EXCHANGE	0
 
 #define GROUND		0
-#define SERVO		0
+#define SERVO		1
 
 
 #define HEIGHT_TO_DEPLOY_PARACHUTE  3	//FIXME:270
 #define DEPLOY_PARACHUTE_PORT		GPIOC
 #define DEPLOY_PARACHUTE_PIN		GPIO_PIN_6
-#define DELTA_HEIGHT 				0
+#define DELTA_HEIGHT 				5.0
 
 #define PHOTORES_PORT				GPIOA
 #define PHOTORES_PIN				GPIO_PIN_1
@@ -155,6 +155,7 @@ typedef struct {
 	uint8_t globalCommand;	// entering command
 
 	float time;				//	current time
+	float magnASA[3];
 } state_system_t;
 
 
@@ -169,6 +170,8 @@ typedef struct {
 
 	Euler_angles_t angles;
 
+	float omega;
+
 	float course;
 } state_master_t;
 
@@ -177,7 +180,7 @@ typedef struct {
 	//	zero params; this fields should be filled when device started it`s work
 	double zero_pressure;
 	float zero_quaternion[4];
-	float zero_GPS[3];
+	float zero_GPS[2];
 	float gyro_staticShift[3];
 	float accel_staticShift[3];
 } state_zero_t;

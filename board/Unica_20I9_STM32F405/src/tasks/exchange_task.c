@@ -116,6 +116,7 @@ void parse_command(uint8_t uplink_command){
 		state_master.height = stateIMUSensors.height;
 
 		state_master.speed_GPS = stateGPS.speed;
+		state_master.omega = stateIMU_rsc.gyro[0];
 		state_master.course = stateGPS.course;
 		taskEXIT_CRITICAL();
 

@@ -31,9 +31,9 @@ TIM_HandleTypeDef htimServo;
 const fl pulseMin = 3000;
 const fl pulseMax = 6000;
 const fl k1 = 36.69725;
-const fl b1 = 5070;
+const fl b1 = 5270;
 const fl k2 = -38.2429;
-const fl b2 = 5000;
+const fl b2 = 5130;
 const fl k3 = 40.0;
 const fl b3 = 5720;
 

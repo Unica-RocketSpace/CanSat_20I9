@@ -259,11 +259,11 @@ void CONTROL_task() {
 				vTaskDelay(30);
 
 				//Определяем неизменность высоты
-				if ((height_now + DELTA_HEIGHT >= height_prev) & (height_now - DELTA_HEIGHT <= height_prev)){
-					taskENTER_CRITICAL();
-					state_system.globalStage = 7;
-					taskEXIT_CRITICAL();
-				}
+//				if ((height_now + DELTA_HEIGHT >= height_prev) & (height_now - DELTA_HEIGHT <= height_prev)){
+//					taskENTER_CRITICAL();
+//					state_system.globalStage = 7;
+//					taskEXIT_CRITICAL();
+//				}
 				break;
 
 			case 7:

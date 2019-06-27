@@ -29,10 +29,8 @@
 #define BETA_2	0.3
 #define BETA_3	0.25
 
-#define SPEED_COEF		1.0				//FIXME: Посчитать
-
-#define BMP_DELTA_PRESSURE		0.0 //490
-#define	IMU_BMP_DELTA_PRESSURE	-2870 	//-8300
+#define BMP_DELTA_PRESSURE		/*0.0*/ 490
+#define	IMU_BMP_DELTA_PRESSURE	/*-2870*/ 	-12551 //-8300
 
 I2C_HandleTypeDef 	i2c_mpu9255;
 USART_HandleTypeDef usart_dbg;
@@ -283,7 +281,7 @@ void bmp280_update() {
 		stateSensors.temp = temp_f;
 
 		//Count speed_BMP
-		state_master.speed_BMP = (stateSensors.pressure - stateIMUSensors.pressure) * SPEED_COEF;
+		state_master.speed_BMP = sqrt(2 * (stateSensors.pressure - stateIMUSensors.pressure) / 1.225);
 		stateSensors.speed_bmp = state_master.speed_BMP;
 
 	taskEXIT_CRITICAL();

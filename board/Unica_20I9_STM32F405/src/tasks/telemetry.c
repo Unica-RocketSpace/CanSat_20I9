@@ -25,6 +25,7 @@
 #include "drivers/sd/dump.h"
 
 #include "mavlink/UNISAT/mavlink.h"
+#include "math.h"
 
 
 
@@ -285,7 +286,7 @@ static uint8_t mavlink_msg_get_command(){
 	return -1;
 }
 
-static uint8_t mavlink_msg_servo(){
+static uint8_t mavlink_msg_servo_send(){
 	mavlink_servo_t msg_servo;
 	msg_servo.time = (float)HAL_GetTick() / 1000;
 	taskENTER_CRITICAL();
@@ -390,7 +391,7 @@ int8_t msg_state = 1;
 int8_t msg_state_zero = 1;
 uint8_t my_stage_telem = 0;
 int8_t command = 0;
-uint8_t Timeout = 10 / portTICK_RATE_MS;
+uint8_t Timeout = 5 / portTICK_RATE_MS;
 
 
 void IO_RF_task() {
@@ -434,6 +435,7 @@ void IO_RF_task() {
 					vTaskDelay(Timeout);
 					mavlink_msg_imu_rsc_send();
 
+
 					taskENTER_CRITICAL();
 					command = state_system.globalCommand;
 					taskEXIT_CRITICAL();
@@ -460,6 +462,7 @@ void IO_RF_task() {
 					mavlink_msg_imu_isc_send();
 					vTaskDelay(Timeout);
 					mavlink_msg_imu_rsc_send();
+
 					taskENTER_CRITICAL();
 					command = state_system.globalCommand;
 					taskEXIT_CRITICAL();

@@ -9,32 +9,114 @@
 #include "quaternion.h"
 
 #define double float
+#define ui8 uint8_t
 
-void straight_flight(double alpha) {
-	//set angle of incidence equal to alpha
-	servo_id_t serv;
-	serv = 0;
-	servoRotate(serv, alpha);
-	serv = 1;
-	servoRotate(serv, alpha);
-	return;
+typedef struct {
+	float x, y;
+	float r;
+} Circle_t;
+
+typedef struct {
+	float x, y;
+	float mod;
+} Vector;
+
+float polar_angle(float x, float y) {
+    float p = 2 * M_PI;
+    if (y < 0) {
+        return p - acos(x / sqrt(x * x + y * y));
+    } else {
+        return acos(x / sqrt(x * x + y * y));
+    }
 }
 
-
-
-void turn_flight(double z, double x, char turn) {
-	if (turn == 'L') {
-		//do rotation using the left turn circle
-
-	} else if (turn == 'R') {
-		//do rotation using the right turn circle
+float to_point(float x1, float y1, float x2, float y2, float x, float y, char flag) {
+    float p = 2 * M_PI;
+	float angle_f, angle_s, angle;
+    angle = polar_angle(x, y);
+	angle_f = polar_angle(x1, y1);
+	angle_s = polar_angle(x2, y2);
+	float d_angle_f, d_angle_s;
+	d_angle_f = angle_f - angle;
+	d_angle_s = angle_s - angle;
+	if (flag == 'L') {
+		if (d_angle_f < 0) {
+			d_angle_f = p + d_angle_f;
+		}
+		if (d_angle_s < 0) {
+			d_angle_s = p + d_angle_s;
+		}
+		if (d_angle_f < d_angle_s) {
+			return d_angle_f;
+		}
+		return d_angle_s;
+	} else {
+		if (d_angle_f > 0) {
+			d_angle_f = d_angle_f - p;
+		}
+		if (d_angle_s < 0) {
+			d_angle_s = d_angle_s - p;
+		}
+		if (d_angle_f < d_angle_s) {
+			return d_angle_s;
+		}
+		return d_angle_f;
 	}
 }
 
-bool check_tube_target(double a, double b, double c, double z, double x, bool flag) {
+float kasat(float x1, float y1, float r1, float xa, float ya, char flag) {
+    double x, y, x2 = 0.0, y2 = 0.0, r2, a = 0, b = 0, c = 0;
+    double d;
+    d = sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+    r2 = sqrt(d * d - r1 * r1);
+
+    if (d == r1) {
+    	//1 точка касательной в точке 0, 0;
+        return 0.0;
+    }
+    x = x1;
+    y = y1;
+    x1 = 0; y1 = 0;
+    x2 -= x;
+    y2 -= y;
+    a = - 2 * x2;
+    b = - 2 * y2;
+    c = x2 * x2 + y2 * y2 + r1 * r1 - r2 * r2;
+    double x0, y0;
+    x0 = - a * c / (a * a + b * b);
+    y0 = - b * c / (a * a + b * b);
+    d = r1 * r1 - c * c / (a * a + b * b);
+    double mult = sqrt(d / (a * a + b * b));
+    double ax, ay, bx, by;
+    ax = x0 + b * mult;
+    bx = x0 - b * mult;
+    ay = y0 - a * mult;
+    by = y0 + a * mult;
+    // две касательные и нам нужно выбрать
+    float p1x = ax + x;
+    float p1y = ay + y;
+    float p2x = bx + x;
+    float p2y = by + y;
+    return to_point(p1x, p1y, p2x, p2y, xa, ya, flag);
+}
+
+
+void straight_flight(double alpha) {
+	//set angle of incidence equal to alpha
+	Predictor_Angles.alpha = alpha;
+	Predictor_Angles.beta = 0;
+	return;
+}
+
+void turn_flight(double z, double x, char turn) {
+	Predictor_Angles.alpha = 0.0;
+	Predictor_Angles.beta = kas(turn);
+}
+
+bool check_tube_target(float a, float b, float c, float x, float y) {
 	double dist = abs(c) / sqrt(a * a + b * b);
-	double target_dist = sqrt(z * z + x * x);
-	if ((asin(dist / target_dist) < 0.17) && (flag)) {
+	double target_dist = sqrt(x * x + y * y);
+	if (asin(dist / target_dist) < 0.17) {
 		return true;
 	}
 	return false;
@@ -69,67 +151,72 @@ void calculating_distance_of_linear_further_motion(double R, double r, double vz
 	double quat[4] = {0, 0, 0, 0};
 
 //	FIXME: !!!!! Переделать используемые функции под тип double или поменять у себя тип на float
-//	quat_invert(&state_master.quaternion, quat);
-//	vect_rotate(state_master.coordinates, quat, &coordinates);
+	quat_invert(&state_master.quaternion, quat);
+	vect_rotate(&state_master.coordinates, quat, coordinates);
 	double z = coordinates[0];
 	double x = coordinates[1];
 	double y = coordinates[2];
 	dist = sqrt(R * R - (z - r) * (z - r));
 	z += dist + vz * SPARE_TIME;
-//	vect_rotate(coordinates, state_master.quaternion, &new_coordinates);
+	vect_rotate(coordinates, state_master.quaternion, &new_coordinates);
 	turn_flight(new_coordinates[0], new_coordinates[1], turn);
     return;
 }
 
 
 void direction_predictor() {
-	char turn;
-	double x, y, z;
-	double coordinates_SC[3] = {x, y, z};
-	double vz, vx;
-	double z0 = z + vz * SPARE_TIME;
-	double x0 = x + vx * SPARE_TIME;
-	double v = sqrt(vx * vx + vz * vz);
-	double a, b, c;
-	a = x0 - x;
-	b = z - z0;
-	c = z0 * x - z * x0;
-	bool flag = 1;
-	if (sqrt(z0 * z0 + x0 * x0) > sqrt(z * z + x * x)) {
-		flag = 0;
+	float x, y, z;
+	x = state_master.coordinates[0];
+	y = state_master.coordinates[1];
+	z = state_master.height;
+	float vx, vy;
+	float course;
+	course = state_master.course;
+	vx = 1 * cos(course);
+	vy = 1 * sin(course);
+	float x_next, y_next;
+	x_next = x + vx;
+	y_next = y + vy;
+	float a, b, c;
+	a = y_next - y;
+	b = x - x_next;
+	c = x_next * y - x * y_next;
+	bool flag = 0;
+	if (dist(x_next, y_next) <= dist(x, y)) {
+		if (check_tube_target(a, b, c, x, y)) {
+			height_predictor(x, y, z);
+			return;
+		}
 	}
-	if (check_tube_target(a, b, c, z, x, flag)) {
-		height_predictor(x, y, z);
-		return;
-	}
-	double center_left[3], center_right[3];
-	double r = RADIUS_OF_TURN_CIRCLE;
-	double first_vector[3] = {0, 1, 0};
-	double second_vector[3] = {vx, 0, vz};
-	double temporary_vector[3];
-	iauPxp(first_vector, second_vector, center_left);
-	iauPxp(second_vector, first_vector, center_right);
-	iauSxp(r / v, center_left, temporary_vector);
-	iauPpp(temporary_vector, coordinates_SC, center_left);
-	iauSxp(r / v, center_right, temporary_vector);
-	iauPpp(temporary_vector, coordinates_SC, center_right);
-	double target_length_left, target_length_right;
-	double access_radius;
-	access_radius = r + DELTA_R;
-	target_length_left = sqrt(center_left[0] * center_left[0] + center_left[2] * center_left[2]);
-	target_length_right = sqrt(center_right[0] * center_right[0] + center_right[2] * center_right[2]);
-	if (((c > 0) && (flag)) || ((c < 0) && (!flag))) {
-		turn = 'L';
-	} else if (((c < 0) && (flag)) || ((c > 0) && (!flag))){
-		turn = 'R';
-	}
-	if ((target_length_left > access_radius) && (target_length_right > access_radius)) {
-		turn_flight(z0, x0, turn);
-		return;
-	} else {
-		calculating_distance_of_linear_further_motion(access_radius, r, vz, vx, turn);
-		return;
-	}
+	Circle_t left_turn_circle;
+	Circle_t right_turn_circle;
+	Circle_t left_access_circle;
+	Circle_t right_access_circle;
+	left_turn_circle.r = RADIUS_OF_TURN_CIRCLE;
+	right_turn_circle.r = RADIUS_OF_TURN_CIRCLE;
+	left_access_circle.r = RADIUS_OF_TURN_CIRCLE + DELTA_R;
+	right_access_circle.r = RADIUS_OF_TURN_CIRCLE + DELTA_R;
+	Vector vex;
+	vex.x = x_next - x;
+	vex.y = y_next - y;
+	vex.mod = sqrt(vex.x * vex.x + vex.y * vex.y);
+	float temp = vex.x;
+	vex.x = -vex.y;
+	vex.y = temp;
+	vex.x /= vex.mod;
+	vex.y /= vex.mod;
+	vex.x *= RADIUS_OF_TURN_CIRCLE;
+	vex.y *= RADIUS_OF_TURN_CIRCLE;
+	left_turn_circle.x = x + vex.x;
+	left_access_circle.x = x + vex.x;
+	left_turn_circle.y = y + vex.y;
+	left_access_circle.y = y + vex.y;
+	vex.x *= -1.0;
+	vex.y *= -1.0;
+	right_turn_circle.x = x + vex.x;
+	right_access_circle.x = x + vex.x;
+	right_turn_circle.y = y + vex.y;
+	right_access_circle.y = y + vex.y;
 	return;
 }
 

@@ -25,7 +25,7 @@ void init_exchange_data_UART(void){
 	uint8_t error = 0;
 
 	uartExchangeData.Instance = USART1;
-	uartExchangeData.Init.BaudRate = 9600;
+	uartExchangeData.Init.BaudRate = 115200;
 	uartExchangeData.Init.WordLength = UART_WORDLENGTH_8B;
 	uartExchangeData.Init.StopBits = UART_STOPBITS_1;
 	uartExchangeData.Init.Parity = UART_PARITY_NONE;
@@ -46,7 +46,7 @@ void init_exchange_command_UART(void){
 
 	__HAL_RCC_USART3_CLK_ENABLE();
 	uartExchangeCommand.Instance = USART3;
-	uartExchangeCommand.Init.BaudRate = 9600;
+	uartExchangeCommand.Init.BaudRate = 115200;
 	uartExchangeCommand.Init.WordLength = UART_WORDLENGTH_8B;
 	uartExchangeCommand.Init.StopBits = UART_STOPBITS_1;
 	uartExchangeCommand.Init.Parity = UART_PARITY_NONE;
@@ -87,6 +87,7 @@ void parse_command(uint8_t uplink_command){
 			tmp = COMMAND_DATA;
 			do HAL_UART_Transmit(&uartExchangeCommand, &tmp, sizeof(tmp), 10);
 			while(HAL_UART_Receive(&uartExchangeData, (uint8_t*)&state_master, sizeof(state_master), 200) == HAL_TIMEOUT);
+			led();
 			break;
 
 		case COMMAND_LOGS:
@@ -94,12 +95,11 @@ void parse_command(uint8_t uplink_command){
 			break;
 
 		case COMMAND_START:
-			tmp = COMMAND_DATA;
-			parse_command(tmp);
 //			start predictor task
-//			vTaskResume();
 			tmp = COMMAND_OK;
 			HAL_UART_Transmit(&uartExchangeCommand, &tmp, sizeof(tmp), 10);
+			//vTaskResume(handleControlTask);
+			vTaskResume(handleSoARTask);
 			break;
 
 		case COMMAND_SLEEP:
@@ -129,6 +129,9 @@ void init_EX(void){
 
 
 void EXCHANGE_task(void){
+
+	vTaskSuspend(handleControlTask);
+	vTaskSuspend(handleSoARTask);
 
 	for(;;){
 		//Проверка очереди на наличие в ней элементов

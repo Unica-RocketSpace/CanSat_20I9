@@ -12,13 +12,63 @@
 #include <stdlib.h>
 #include <stm32f4xx_hal.h>
 #include <task.h>
-
+#include "SoAR_task.h"
+#include "servo_task.h"
 
 
 #define ui8 uint8_t
 #define deg * M_PI / 180;
-#define gfa_len	20
-#define kfy_len 20
+#define rad / M_PI * 180;
+#define gfa_len	58
+#define kfy_len 21
+#define fl float
+
+void servoRotate(servo_id_t servo_id, fl angle_rad) {
+	u32 pulse;
+	fl angle_deg = angle_rad rad;
+	//trace_printf("angle_deg = %d\t pulse1 = %lf\n pulse = %d\n", (uint16_t)angle_deg, pulse1, pulse);
+	switch (servo_id) {
+		case servo_go_left:
+			taskENTER_CRITICAL();
+			stateServo.angle_left = angle_deg;
+			taskEXIT_CRITICAL();
+
+			pulse = (u32)round(k1 * angle_deg + b1);
+			_timerPWMChangePulse(&htimServo, TIM_CHANNEL_1, pulse);
+			break;
+		case servo_go_right:
+			taskENTER_CRITICAL();
+			stateServo.angle_right = angle_deg;
+			taskEXIT_CRITICAL();
+
+			pulse = (u32)round(k2 * angle_deg + b2);
+			_timerPWMChangePulse(&htimServo, TIM_CHANNEL_2, pulse);
+			break;
+		case servo_keel:
+			taskENTER_CRITICAL();
+			stateServo.angle_keel = angle_deg;
+			taskEXIT_CRITICAL();
+
+			pulse = (u32)round(k3 * angle_deg + b3);
+			_timerPWMChangePulse(&htimServo, TIM_CHANNEL_3, pulse);
+			break;
+		default:
+			break;
+	}
+	//автогенерация программы которая будет отклонять наши сервы туда-сюда, и быстро пожалуйста
+}
+
+servo_id_t serv;
+
+void multiRot(fl angle_go_left, fl angle_go_right, fl angle_keel) {
+	serv = 0;
+	servoRotate(serv, angle_go_left);
+	serv = 1;
+	servoRotate(serv, angle_go_right);
+	serv = 2;
+	servoRotate(serv, angle_keel);
+	return;
+}
 
 void SoAR_task() {
 	const float EPS_alpha = 3 deg; 			//Погрешность даблов в сравнении
@@ -30,7 +80,7 @@ void SoAR_task() {
 	const float EPS_pitch = 5 deg;
 	const float EPS_speed = 0.5;
 
-	const ui8 SHIFT_PITCH = 10;				//СМЕЩЕНИЕ ИНДЕКСАЦИИ МАССИВА go_from_alpha
+	const ui8 SHIFT_PITCH = 48;				//СМЕЩЕНИЕ ИНДЕКСАЦИИ МАССИВА go_from_alpha
 	const ui8 SHIFT_YAW = 10;				//СМЕЩЕНИЕ ИНДЕКСАЦИИ МАССИВА keel_from_yaw
 
 	const float PITCH_MIN = -90;
@@ -40,8 +90,12 @@ void SoAR_task() {
 
 	const float alpha_nominal = 5 deg;
 
-	float go_from_alpha[gfa_len] = {0};
+	float go_from_alpha[gfa_len] = {-38.8997, -37.3664, -35.3997, -33.4081, -31.4331, -30.3248, -29.65, -28.9748, -28.35, -27.9, -27.03, -24.1849, 21.525, -20.85, -20.175, -19.75, -19.325, -19.1, -18.65, -18.25, -17.8, -17.35, -16.7, -15.57, -14.7, -14.05, -13.18, -12.33, -11.65, -11.2, -10.8, -10.58, -10.35, -10.10, -9.85, -9.65, -9.45, -9.23, -9.0, -8.78, -8.55, -8.38, -8.15, -7.93, -7.7, -7.48, -7.25, -6.8, -6.6, -6.4, -5.73, -5.05, -4.6, -4.15, -3.75, -2.6, -1.03, -0.15};
 	float keel_from_yaw[kfy_len] = {0};
+
+	for (int i = 0; i < kfy_len; ++i) {
+		keel_from_yaw[i] = (i - SHIFT_YAW) * 2;
+	}
 
 	float alpha_memory = 1e8;
 	float yaw_memory = 1e8;
@@ -58,7 +112,6 @@ void SoAR_task() {
 
 	float time;
 	float go_pitch;
-	float go_roll;
 	float keel_yaw;
 
 	const float roll_slow = 5 deg;
@@ -74,6 +127,9 @@ void SoAR_task() {
 
 	//ВЫХОД ИЗ БОЧКИ
 
+	Predictor_Angles.alpha = 10 deg;
+	Predictor_Angles.beta = 0.0;
+
 	//запрашиваем данные с SC
 	ui8 tmp = COMMAND_DATA;
 	xQueueSendToBack(handleInternalCmdQueue, &tmp, 5);
@@ -86,6 +142,7 @@ void SoAR_task() {
 	tmp = COMMAND_DATA;
 	xQueueSendToBack(handleInternalCmdQueue, &tmp, 5);
 
+	omega_x = state_master.omega;
 	speed_last = speed;
 	pitch_last = pitch;
 	speed = state_master.speed_BMP;
@@ -94,8 +151,9 @@ void SoAR_task() {
 	FC_logs.angle_left =  go_from_alpha[SHIFT_PITCH] - omega_x / abs(omega_x) * delta_roll_rot;
 	FC_logs.angle_right = go_from_alpha[SHIFT_PITCH] + omega_x / abs(omega_x) * delta_roll_rot;
 	FC_logs.angle_keel =  0 deg;
-
-	while (omega_x * omega_x / abs(omega_x) >= EPS_omega) {
+	multiRot(FC_logs.angle_left, FC_logs.angle_right, FC_logs.angle_keel);
+	float omega_start = omega_x;
+	while (omega_start / omega_x > 0) {
 		vTaskDelay(200 / portTICK_RATE_MS);
 		//запрашиваем данные с SC
 		tmp = COMMAND_DATA;
@@ -108,17 +166,20 @@ void SoAR_task() {
 	}
 	FC_logs.angle_left =  go_from_alpha[SHIFT_PITCH];
 	FC_logs.angle_right = go_from_alpha[SHIFT_PITCH];
+	multiRot(FC_logs.angle_left, FC_logs.angle_right, FC_logs.angle_keel);
 
 	while (abs(pitch - pitch_last) >= EPS_pitch && abs(speed - speed_last) >= EPS_speed) {
 		if (speed_last - speed > DELTA_SPEED) {
 			FC_logs.angle_left =  go_from_alpha[0];
 			FC_logs.angle_right = go_from_alpha[0];
+			multiRot(FC_logs.angle_left, FC_logs.angle_right, FC_logs.angle_keel);
 		} else {
 			float k = ((- SHIFT_PITCH / 2) - (gfa_len - SHIFT_PITCH) / 2) / (PITCH_MAX - PITCH_MIN);
 			float b = (gfa_len - SHIFT_PITCH) / 2 - k * PITCH_MIN;
 			alpha = k * pitch + b;
 			FC_logs.angle_left =  go_from_alpha[(ui8)round(alpha * 2) + SHIFT_PITCH];
 			FC_logs.angle_right = go_from_alpha[(ui8)round(alpha * 2) + SHIFT_PITCH];
+			multiRot(FC_logs.angle_left, FC_logs.angle_right, FC_logs.angle_keel);
 		}
 		vTaskDelay(500 / portTICK_RATE_MS);
 		//запрашиваем данные с SC
@@ -132,6 +193,7 @@ void SoAR_task() {
 	vTaskDelay(500 / portTICK_RATE_MS);
 	FC_logs.angle_left =  go_from_alpha[(ui8)round(alpha_nominal * 2) + SHIFT_PITCH];
 	FC_logs.angle_right = go_from_alpha[(ui8)round(alpha_nominal * 2) + SHIFT_PITCH];
+	multiRot(FC_logs.angle_left, FC_logs.angle_right, FC_logs.angle_keel);
 
 	while (true) {
 		//запрашиваем данные с SC
@@ -189,6 +251,7 @@ void SoAR_task() {
 			 *
 			 */
 
+			keel_yaw = 0 deg;
 			yaw = state_master.yaw;
 			if (abs(yaw - course) >= EPS_yaw) {
 				keel_yaw = keel_from_yaw[(ui8)round(yaw - course) + SHIFT_YAW];
@@ -208,6 +271,7 @@ void SoAR_task() {
 					FC_logs.angle_left =  go_pitch - roll_slow;
 					FC_logs.angle_right = go_pitch + roll_slow;
 					FC_logs.angle_keel = keel_yaw;
+					multiRot(FC_logs.angle_left, FC_logs.angle_right, FC_logs.angle_keel);
 				} else {
 					//присваиваем значения углов тангажа, рысканья, крена в структуру
 					time = HAL_GetTick() / 1000;
@@ -215,6 +279,7 @@ void SoAR_task() {
 					FC_logs.angle_left =  go_pitch + roll_slow;
 					FC_logs.angle_right = go_pitch - roll_slow;
 					FC_logs.angle_keel = keel_yaw;
+					multiRot(FC_logs.angle_left, FC_logs.angle_right, FC_logs.angle_keel);
 				}
 				vTaskDelay(50 / portTICK_RATE_MS);
 				//присваиваем значения углов тангажа, рысканья, крена в структуру
@@ -223,6 +288,7 @@ void SoAR_task() {
 				FC_logs.angle_left =  go_pitch;
 				FC_logs.angle_right = go_pitch;
 				FC_logs.angle_keel = keel_yaw;
+				multiRot(FC_logs.angle_left, FC_logs.angle_right, FC_logs.angle_keel);
 				vTaskDelay(200 / portTICK_RATE_MS);
 				//запрашиваем данные с SC
 				tmp = COMMAND_DATA;
@@ -232,8 +298,7 @@ void SoAR_task() {
 			time = HAL_GetTick() / 1000;
 			FC_logs.time = time;
 			FC_logs.angle_keel = keel_yaw;
-			tmp = COMMAND_LOGS;
-			xQueueSendToBack(handleInternalCmdQueue, &tmp, 5);
+			multiRot(FC_logs.angle_left, FC_logs.angle_right, FC_logs.angle_keel);
 
 		} else {
 			beta = Predictor_Angles.beta;
@@ -250,10 +315,12 @@ void SoAR_task() {
 				//присваиваем значения углов тангажа, рысканья, крена в структуру
 				FC_logs.angle_left = delta_nominal - sign * delta_roll_turn;
 				FC_logs.angle_right = delta_nominal + sign * delta_roll_turn;
+				multiRot(FC_logs.angle_left, FC_logs.angle_right, FC_logs.angle_keel);
 				vTaskDelay(50 / portTICK_RATE_MS);
 				//присваиваем значения углов тангажа, рысканья, крена в структуру
 				FC_logs.angle_left = delta_nominal;
 				FC_logs.angle_right = delta_nominal;
+				multiRot(FC_logs.angle_left, FC_logs.angle_right, FC_logs.angle_keel);
 				vTaskDelay(200 / portTICK_RATE_MS);
 				//запрашиваем данные с SC
 				tmp = COMMAND_DATA;
@@ -288,6 +355,10 @@ void SoAR_task() {
 					beta = Predictor_Angles.beta;
 					yaw_memory = course + beta;
 				}
+				time = HAL_GetTick() / 1000;
+				FC_logs.time = time;
+				tmp = COMMAND_LOGS;
+				xQueueSendToBack(handleInternalCmdQueue, &tmp, 5);
 			}
 
 			//КРЕН НА ДНО
@@ -299,12 +370,14 @@ void SoAR_task() {
 				FC_logs.time = time;
 				FC_logs.angle_left = delta_nominal + sign * delta_roll_turn;
 				FC_logs.angle_right = delta_nominal - sign * delta_roll_turn;
+				multiRot(FC_logs.angle_left, FC_logs.angle_right, FC_logs.angle_keel);
 				vTaskDelay(50 / portTICK_RATE_MS);
 				//присваиваем значения углов тангажа, рысканья, крена в структуру
 				time = HAL_GetTick() / 1000;
 				FC_logs.time = time;
 				FC_logs.angle_left = delta_nominal;
 				FC_logs.angle_right = delta_nominal;
+				multiRot(FC_logs.angle_left, FC_logs.angle_right, FC_logs.angle_keel);
 				vTaskDelay(200 / portTICK_RATE_MS);
 				//запрашиваем данные с SC
 				tmp = COMMAND_DATA;
@@ -312,12 +385,11 @@ void SoAR_task() {
 				roll = state_master.roll;
 			}
 		}
-			//присваиваем значения углов тангажа, рысканья, крена в структуру
-			time = HAL_GetTick() / 1000;
-			FC_logs.time = time;
-			FC_logs.angle_left =  go_pitch - go_roll;
-			FC_logs.angle_right = go_pitch + go_roll;
-			FC_logs.angle_keel = keel_yaw;
-			vTaskDelay(1000 / portTICK_RATE_MS);
-	}
+		//присваиваем значения углов тангажа, рысканья, крена в структуру
+		time = HAL_GetTick() / 1000;
+		FC_logs.time = time;
+		tmp = COMMAND_LOGS;
+		xQueueSendToBack(handleInternalCmdQueue, &tmp, 5);
+		vTaskDelay(1000 / portTICK_RATE_MS);
+}
 }

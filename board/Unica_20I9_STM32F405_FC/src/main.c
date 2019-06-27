@@ -18,6 +18,8 @@
 #include "state.h"
 #include "tasks/servo_task.h"
 #include "tasks/exchange_task.h"
+#include "tasks/control_task.h"
+#include "tasks/SoAR_task.h"
 
 // ----- Timing definitions -------------------------------------------------
 
@@ -47,7 +49,7 @@ Predictor_Angles_t	Predictor_Angles;
 
 QueueHandle_t handleInternalCmdQueue;
 TaskHandle_t handleControlTask;
-
+TaskHandle_t handleSoARTask;
 
 //servo
 servo_task_param_t servo_param_left, servo_param_right, servo_param_keel;
@@ -57,6 +59,15 @@ state_servo_t		stateServo;
 #define EXCHANGE_TASK_STACK_SIZE (50*configMINIMAL_STACK_SIZE)
 static StackType_t	_exchangeTaskStack[EXCHANGE_TASK_STACK_SIZE];
 static StaticTask_t	_exchangeTaskObj;
+
+
+#define CONTROL_TASK_STACK_SIZE (10*configMINIMAL_STACK_SIZE)
+static StackType_t	_controlTaskStack[CONTROL_TASK_STACK_SIZE];
+static StaticTask_t	_controlTaskObj;
+
+#define SoAR_TASK_STACK_SIZE (50*configMINIMAL_STACK_SIZE)
+static StackType_t	_SoARTaskStack[SoAR_TASK_STACK_SIZE];
+static StaticTask_t	_SoARTaskObj;
 
 //	параметры SERVO_task
 #define SERVO_TASK_STACK_SIZE (10*configMINIMAL_STACK_SIZE)
@@ -113,10 +124,12 @@ int main(int argc, char* argv[]) {
 
 
 	xTaskCreateStatic(EXCHANGE_task, 	"EXCHANGE", 	EXCHANGE_TASK_STACK_SIZE, 	NULL, 3, _exchangeTaskStack, 	&_exchangeTaskObj);
+	//handleControlTask = xTaskCreateStatic(CONTROL_task, "CONTROL", CONTROL_TASK_STACK_SIZE, NULL, 2, _controlTaskStack, &_controlTaskObj);
+	handleSoARTask = xTaskCreateStatic(SoAR_task, "SoAR", SoAR_TASK_STACK_SIZE, NULL, 1, _SoARTaskStack, &_SoARTaskObj);
 
 	handleInternalCmdQueue = xQueueCreateStatic(INTERNAL_QUEUE_LENGHT, INTERNAL_QUEUE_ITEM_SIZE, internal_queue_storage_area, &internal_queue_static);
 
-	xTaskCreateStatic(SCHEDULE_SERVO_task, "SERVO", SERVO_TASK_STACK_SIZE, NULL, 3, _servoTaskStack, &_servoTaskObj);
+	/*xTaskCreateStatic(SCHEDULE_SERVO_task, "SERVO", SERVO_TASK_STACK_SIZE, NULL, 1, _servoTaskStack, &_servoTaskObj);
 	handleLeft = xTaskCreateStatic(speedRot, "left", SERVO_TASK_STACK_SIZE, &servo_param_left, 2, _servoTaskStackLeft, &_servoTaskObjLeft);
 	handleRight = xTaskCreateStatic(speedRot, "right", SERVO_TASK_STACK_SIZE, &servo_param_right, 2, _servoTaskStackRight, &_servoTaskObjRight);
 	handleKeel = xTaskCreateStatic(speedRot, "keel", SERVO_TASK_STACK_SIZE, &servo_param_keel, 2, _servoTaskStackKeel, &_servoTaskObjKeel);
@@ -126,10 +139,11 @@ int main(int argc, char* argv[]) {
 	servo_param_left.id = 0;
 	servo_param_right.id = 1;
 	servo_param_keel.id = 2;
-
+	 */
 
 	init_EX();
 	Init_led();
+	allServosInit();
 
 	HAL_Delay(300);
 

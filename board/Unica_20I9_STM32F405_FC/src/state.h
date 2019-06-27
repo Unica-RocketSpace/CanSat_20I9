@@ -143,6 +143,7 @@ typedef struct {
 /*##################################################*/
 
 extern TaskHandle_t handleControlTask;
+extern TaskHandle_t handleSoARTask;
 extern QueueHandle_t handleInternalCmdQueue;
 extern uint8_t FLAG_SoAR;
 extern Predictor_Angles_t Predictor_Angles;

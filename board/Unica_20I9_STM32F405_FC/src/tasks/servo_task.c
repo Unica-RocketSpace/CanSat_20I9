@@ -17,6 +17,7 @@
 #include "diag/Trace.h"
 #include "FreeRTOS.h"
 #include "task.h"
+#include "SoAR_task.h"
 #include "servo_task.h"
 
 
@@ -30,12 +31,6 @@ TIM_HandleTypeDef htimServo;
 
 const fl pulseMin = 3000;
 const fl pulseMax = 6000;
-const fl k1 = -36.69725;
-const fl b1 = 5070;
-const fl k2 = 38.24384;
-const fl b2 = 5000;
-const fl k3 = 40.0;
-const fl b3 = 5820;
 
 const fl speed = 0.1;
 const fl fast_speed = 1;
@@ -147,39 +142,6 @@ void allServosInit() {
 //	_timerPWMChanelInit(&htimServo, TIM_CHANNEL_2);
 //	_timerPWMChanelInit(&htimServo, TIM_CHANNEL_3);
 }
-void servoRotate(servo_id_t servo_id, fl angle_deg) {
-	u32 pulse;
-	//trace_printf("angle_deg = %d\t pulse1 = %lf\n pulse = %d\n", (uint16_t)angle_deg, pulse1, pulse);
-	switch (servo_id) {
-		case servo_go_left:
-			taskENTER_CRITICAL();
-			stateServo.angle_left = angle_deg;
-			taskEXIT_CRITICAL();
-
-			pulse = (u32)round(k1 * angle_deg + b1);
-			_timerPWMChangePulse(&htimServo, TIM_CHANNEL_1, pulse);
-			break;
-		case servo_go_right:
-			taskENTER_CRITICAL();
-			stateServo.angle_right = angle_deg;
-			taskEXIT_CRITICAL();
-
-			pulse = (u32)round(k2 * angle_deg + b2);
-			_timerPWMChangePulse(&htimServo, TIM_CHANNEL_2, pulse);
-			break;
-		case servo_keel:
-			taskENTER_CRITICAL();
-			stateServo.angle_keel = angle_deg;
-			taskEXIT_CRITICAL();
-
-			pulse = (u32)round(k3 * angle_deg + b3);
-			_timerPWMChangePulse(&htimServo, TIM_CHANNEL_3, pulse);
-			break;
-		default:
-			break;
-	}
-	//автогенерация программы которая будет отклонять наши сервы туда-сюда, и быстро пожалуйста
-}
 
 void update_struct(servo_task_param_t * str, float speed, float start_angle, float finish_angle){
 	str->speed = speed;
@@ -220,157 +182,27 @@ void SCHEDULE_SERVO_task(){
 
 	trace_printf("Hi!\n");
 
-	for(;;){
-
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, GPIO_PIN_SET);
-		servoRotate(servo_go_left, 0);
-		servoRotate(servo_go_right, 0);
-		servoRotate(servo_keel, 0);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, GPIO_PIN_SET);
+	servoRotate(servo_go_left, 0);
+	servoRotate(servo_go_right, 0);
+	servoRotate(servo_keel, 0);
 
 
-		vTaskDelay(10000);
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, GPIO_PIN_RESET);
+	vTaskDelay(10000);
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, GPIO_PIN_RESET);
+
+	float angle_go_left;
+	float angle_go_right;
+	float angle_keel;
+
+	for(;;) {
 		//начало техасской резни
 
-
-		//поворот левой сервы
-/*		update_struct(&servo_param_left, fast_speed, 0, angleMax);
-		vTaskResume(servo_param_left.handle);
-		vTaskDelay(10000);
-		update_struct(&servo_param_left, speed, angleMax, angleMin);
-		vTaskResume(servo_param_left.handle);
-		vTaskDelay(10000);
-		update_struct(&servo_param_left, fast_speed, angleMin, 0);
-		vTaskResume(servo_param_left.handle);
-		vTaskDelay(1000);
-		//поворот правой сервы
-		update_struct(&servo_param_right, fast_speed, 0, angleMax);
-		vTaskResume(servo_param_right.handle);
-		vTaskDelay(10000);
-		update_struct(&servo_param_right, speed, angleMax, angleMin);
-		vTaskResume(servo_param_right.handle);
-		vTaskDelay(10000);
-		update_struct(&servo_param_right, fast_speed, angleMin, 0);
-		vTaskResume(servo_param_right.handle);
-		vTaskDelay(1000);
-		//поворот киля
-		update_struct(&servo_param_keel, fast_speed, 0, angleKeelMax);
-		vTaskResume(servo_param_keel.handle);
-		vTaskDelay(10000);
-		update_struct(&servo_param_keel, speed, angleKeelMax, angleKeelMin);
-		vTaskResume(servo_param_keel.handle);
-		vTaskDelay(10000);
-		update_struct(&servo_param_keel, fast_speed, angleKeelMin, 0);
-		vTaskResume(servo_param_keel.handle);
-		vTaskDelay(1000);
-		//to -9
-		to_angle(1, 1, 0, fast_speed, -9, -9, 0);
-		resume_servos(1, 1, 0);
-		vTaskDelay(10000);
-		//крен го
-		to_angle(1, 1, 0, speed, 21, -39, 0);
-		resume_servos(1, 1, 0);
-		vTaskDelay(10000);
-		to_angle(1, 1, 0, speed, -39, 21, 0);
-		resume_servos(1, 1, 0);
-		vTaskDelay(10000);
-		//to 0
-		to_angle(1, 1, 0, fast_speed, 0, 0, 0);
-		resume_servos(1, 1, 0);
-		vTaskDelay(10000);
-*/
 		//0 to min
-		to_angle(1, 1, 0, fast_speed, angleMin, angleMin, 0);
-		resume_servos(1, 1, 0);
-		vTaskDelay(10000);
 
-		//min to max
-		to_angle(1, 1, 0, 0.05, angleMax, angleMax, 0);
-		resume_servos(1, 1, 0);
-		vTaskDelay(30000);
-
-		//max to 0
-		to_angle(1, 1, 0, fast_speed, 0, 0, 0);
-		resume_servos(1, 1, 0);
-		vTaskDelay(10000);
-
-/*
-		//to -9
-		to_angle(1, 1, 0, fast_speed, -9, -9, 0);
-		resume_servos(1, 1, 0);
-		vTaskDelay(10000);
-		//all
-		to_angle(1, 1, 1, speed, 21, -39, -30);
-		resume_servos(1, 1, 1);
-		vTaskDelay(10000);
-		//to -9
-		to_angle(1, 1, 1, fast_speed, -9, -9, 0);
-		resume_servos(1, 1, 1);
-		vTaskDelay(10000);
-		//all
-		to_angle(1, 1, 1, speed, -39, 21, -30);
-		resume_servos(1, 1, 1);
-		vTaskDelay(10000);
-		//to -9
-		to_angle(1, 1, 1, fast_speed, -9, -9, 0);
-		resume_servos(1, 1, 1);
-		vTaskDelay(10000);
-		//all
-		to_angle(1, 1, 1, speed, 21, -39, 30);
-		resume_servos(1, 1, 1);
-		vTaskDelay(10000);
-		//to -9
-		to_angle(1, 1, 1, fast_speed, -9, -9, 0);
-		resume_servos(1, 1, 1);
-		vTaskDelay(10000);
-		//all
-		to_angle(1, 1, 1, speed, -39, 21, 30);
-		resume_servos(1, 1, 1);
-		vTaskDelay(10000);
-*/
-/*
-		update_struct(&servo_param_left, fast_speed, 0, angleMax);
-		update_struct(&servo_param_right, fast_speed, 0, angleMin);
-		update_struct(&servo_param_keel, fast_speed, 0, angleKeelMax);
-		resume_servos();
-		vTaskDelay(10000);
-		update_struct(&servo_param_left, speed, angleMax, angleMin);
-		update_struct(&servo_param_right, speed, angleMin, angleMax);
-		update_struct(&servo_param_keel, speed, angleKeelMax, angleKeelMin);
-		resume_servos();
-		vTaskDelay(10000);
-		update_struct(&servo_param_left, fast_speed, angleMin, 0);
-		update_struct(&servo_param_right, fast_speed, angleMax, 0);
-		update_struct(&servo_param_keel, fast_speed, angleKeelMin, 0);
-		resume_servos();
-		vTaskDelay(10000);
-		update_struct(&servo_param_left, fast_speed, 0, angleMin);
-		update_struct(&servo_param_right, fast_speed, 0, angleMax);
-		update_struct(&servo_param_keel, fast_speed, 0, angleKeelMin);
-		resume_servos();
-		vTaskDelay(10000);
-		update_struct(&servo_param_left, speed, angleMin, angleMax);
-		update_struct(&servo_param_right, speed, angleMax, angleMin);
-		update_struct(&servo_param_keel, speed, angleKeelMin, angleKeelMax);
-		resume_servos();
-		vTaskDelay(10000);
-		update_struct(&servo_param_left, fast_speed, angleMax, 0);
-		update_struct(&servo_param_right, fast_speed, angleMin, 0);
-		update_struct(&servo_param_keel, fast_speed, angleKeelMax, 0);
-		resume_servos();
-		vTaskDelay(10000);
-		update_struct(&servo_param_left, fast_speed, 0, angleMax);
-		update_struct(&servo_param_right, fast_speed, 0, angleMax);
-		resume_servos(1, 1, 0);
-		vTaskDelay(10000);
-		update_struct(&servo_param_left, speed, angleMin, angleMin);
-		update_struct(&servo_param_right, speed, angleMin, angleMin);
-		resume_servos(1, 1, 0);
-		vTaskDelay(10000);
-		update_struct(&servo_param_left, fast_speed, angleMin, 0);
-		update_struct(&servo_param_right, fast_speed, angleMin, 0);
-		resume_servos(1, 1, 0);
-		vTaskDelay(10000);
-*/
+		angle_go_left = FC_logs.angle_left;
+		angle_go_right = FC_logs.angle_right;
+		angle_keel = FC_logs.angle_keel;
+		to_angle(1, 1, 1, fast_speed, angle_go_left, angle_go_right, angle_keel);
 	}
 }

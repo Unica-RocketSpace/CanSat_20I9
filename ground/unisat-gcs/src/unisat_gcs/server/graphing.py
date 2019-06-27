@@ -159,10 +159,7 @@ class PlaneWidget(gl.GLViewWidget):
         self.rotation = quat
 
         self._transform_object(self.mesh)
-        # self.mesh.translate(0, 0, 3)
-        # self.mesh.rotate(90, 1, 0, 0)
-        # self.mesh.rotate(90, 1, 0, 0)
-        # self.mesh.translate(0, 1, 0)
+
         self._transform_object(self.plane_axis, move=False)
 
 
@@ -181,7 +178,7 @@ class MyWin(QtWidgets.QMainWindow):
 
         if TELEM:
             # Инициализация виджетов для телеметрии
-            self.telem_widget_stage = TelemWidgetState(title="Global Stage", layout=self.ui.verticalLayout_2)
+            self.telem_widget_stage = TelemWidgetState(layout=self.ui.verticalLayout_2)
             self.telem_widget_stage.set_name_label_1('Инициализация')
             self.telem_widget_stage.set_name_label_2('Погрузка в ракету')
             self.telem_widget_stage.set_name_label_3('Определение нач. состояния')
@@ -205,8 +202,8 @@ class MyWin(QtWidgets.QMainWindow):
 
             self.telem_widget_magnetometer = TelemWidget1(title="Magnetometer", layout=self.ui.verticalLayout_left_1)
 
-            self.telem_widget_temp = TelemWidget2(title="Temp", layout=self.ui.verticalLayout_left_2,
-                                                  name_label_1='temp imu bmp', name_label_2='temp bmp')
+            # self.telem_widget_temp = TelemWidget2(title="Temp", layout=self.ui.verticalLayout_left_3,\
+            #                                       name_label_1='temp imu bmp', name_label_2='temp bmp')
             self.telem_widget_pressure = TelemWidget2(title="Pressure", layout=self.ui.verticalLayout_left_3,
                                                       name_label_1='pressure imu bmp', name_label_2='pressure bmp')
 
@@ -221,8 +218,8 @@ class MyWin(QtWidgets.QMainWindow):
 
             self.telem_widget_speed = TelemWidget2(title="Speed", layout=self.ui.verticalLayout_left_3,
                                                    name_label_1='speed bmp', name_label_2='speed GPS')
-            self.telem_widget_coord = TelemWidget1(title="Coordinates", layout=self.ui.verticalLayout_right_2)
-            self.telem_widget_coord.set_name_label_1('x')
+            self.telem_widget_coord = TelemWidget3(title="Coordinates", layout=self.ui.verticalLayout_right_2, name_label_1='x', name_label_2='y', name_label_3='height')
+            self.telem_widget_angles = TelemWidget3(title="Angles", layout=self.ui.verticalLayout_left_2, name_label_1='left', name_label_2='right', name_label_3='keel')
 
             self.telem_widget_buttons = TelemWidgetButtons(title="Buttons", layout=self.ui.verticalLayout_right_3)
 
@@ -475,7 +472,7 @@ class MyWin(QtWidgets.QMainWindow):
                                         str(msgs[i].speed_bmp) + '\n')
 
         if TELEM:
-            self.telem_widget_temp.set_value_2(round(self.temp_bmp[len(self.temp_bmp) - 1], 3))
+            # self.telem_widget_temp.set_value_2(round(self.temp_bmp[len(self.temp_bmp) - 1], 3))
             self.telem_widget_pressure.set_value_2(round(self.pressure_bmp[len(self.pressure_bmp) - 1], 3))
             self.telem_widget_speed.set_value_1(round(self.speed_bmp[len(self.speed_bmp) - 1], 3))
 
@@ -616,7 +613,7 @@ class MyWin(QtWidgets.QMainWindow):
                                                str(msgs[i].height) + '\n')
 
         if TELEM:
-            self.telem_widget_temp.set_value_1(round(self.temp_bmpIMU[len(self.temp_bmpIMU) - 1], 3))
+            # self.telem_widget_temp.set_value_1(round(self.temp_bmpIMU[len(self.temp_bmpIMU) - 1], 3))
             self.telem_widget_pressure.set_value_1(round(self.pressure_bmpIMU[len(self.pressure_bmpIMU) - 1], 3))
             self.telem_widget_coord.set_value_3(height)
 
@@ -781,7 +778,14 @@ class MyWin(QtWidgets.QMainWindow):
     # Слот для разбора пакета fc_logs
     @QtCore.pyqtSlot(list)
     def fc_logs_msg(self, msgs):
+        left = []
+        right = []
+        keel = []
         for i in range(len(msgs)):
+            left.append(msgs[i].angle_left)
+            right.append(msgs[i].angle_right)
+            keel.append(msgs[i].angle_keel)
+
             if FILE_WRITE:
                 self.buffer_fc_logs.append(str(msgs[i].time) + '\t' +
                                            str(msgs[i].fc_state) + '\t' +
@@ -793,3 +797,8 @@ class MyWin(QtWidgets.QMainWindow):
             if FILE_WRITE:
                 self.write_to_file(self.buffer_fc_logs, file_fc_logs)
                 self.buffer_fc_logs = []
+
+        if TELEM:
+            self.telem_widget_angles.set_value_1(left[len(left) - 1])
+            self.telem_widget_angles.set_value_2(right[len(right) - 1])
+            self.telem_widget_angles.set_value_3(keel[len(keel) - 1])

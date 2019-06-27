@@ -11,8 +11,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_DockWidget_telem_buttons(object):
     def setupUi(self, DockWidget_telem_buttons):
         DockWidget_telem_buttons.setObjectName("DockWidget_telem_buttons")
-        DockWidget_telem_buttons.resize(238, 184)
-        DockWidget_telem_buttons.setMaximumSize(QtCore.QSize(238, 184))
+        DockWidget_telem_buttons.resize(238, 172)
+        DockWidget_telem_buttons.setMaximumSize(QtCore.QSize(238, 172))
         DockWidget_telem_buttons.setWindowTitle("")
         self.dockWidgetContents = QtWidgets.QWidget()
         self.dockWidgetContents.setObjectName("dockWidgetContents")

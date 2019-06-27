@@ -1,10 +1,11 @@
-from PyQt5.QtWidgets import QDockWidget, QLabel
+from PyQt5.QtWidgets import QDockWidget
 from PyQt5.QtGui import *
 
 from .gcs_wid_telem_1 import *
 from .gcs_wid_telem_2 import *
 from.gcs_wid_telem_buttons import *
 from .gcs_wid_telem_state import *
+from .gcs_wid_telem_3 import *
 
 
 class TelemWidgetParent(QDockWidget):
@@ -139,6 +140,32 @@ class TelemWidgetState(TelemWidgetParent):
         self.set_value_6('')
         self.set_value_7('')
         self.set_value_8('')
+
+
+class TelemWidget3(TelemWidgetParent):
+    def __init__(self, parent=None, title=None, layout=None, name_label_1=None, name_label_2=None, name_label_3=None):
+        TelemWidgetParent.__init__(self, parent, my_ui=Ui_DockWidget_telem3(), title=title, layout=layout)
+        self.set_name_label_1(name_label_1)
+        self.set_name_label_2(name_label_2)
+        self.set_name_label_3(name_label_3)
+
+    def set_value_1(self, value):
+        self.set_label_value(self.ui.label_1_value, value)
+
+    def set_value_2(self, value):
+        self.set_label_value(self.ui.label_2_value, value)
+
+    def set_value_3(self, value):
+        self.set_label_value(self.ui.label_3_value, value)
+
+    def set_name_label_1(self, name):
+        self.set_label_name(self.ui.label_1, name)
+
+    def set_name_label_2(self, name):
+        self.set_label_name(self.ui.label_2, name)
+
+    def set_name_label_3(self, name):
+        self.set_label_name(self.ui.label_3, name)
 
 
 class TelemWidgetButtons(QDockWidget):

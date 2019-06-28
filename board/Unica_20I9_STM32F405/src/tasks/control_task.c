@@ -98,8 +98,10 @@ void CONTROL_task() {
 
 		switch (global_stage){
 			case 0:
-				if (master != 4)
-					xQueueSendToBack(handleInternalCmdQueue, (uint8_t*)2, 10);
+				if (master != 4){
+					uint8_t tmp = COMMAND_TEST;
+					xQueueSendToBack(handleInternalCmdQueue, &tmp, 10);
+				}
 				//				xQueueSendToBack(handleInternalCmdQueue, &global_command, 0);
 				break;
 
@@ -248,6 +250,7 @@ void CONTROL_task() {
 					case 5:
 						taskENTER_CRITICAL();
 						state_system.globalStage = 6;
+						state_system.master_state = 0;
 						taskEXIT_CRITICAL();
 						break;
 				}
@@ -255,8 +258,12 @@ void CONTROL_task() {
 
 			case 6:
 				//тук-тук к мастеру
-				xQueueSendToBack(&handleInternalCmdQueue, (uint8_t*)COMMAND_START, 0);
-				vTaskDelay(30);
+				if (master != 4){
+					uint8_t tmp = COMMAND_START;
+					xQueueSendToBack(handleInternalCmdQueue, &tmp, 10);
+//					vTaskDelay(10);
+				}
+//				vTaskDelay(30);
 
 				//Определяем неизменность высоты
 //				if ((height_now + DELTA_HEIGHT >= height_prev) & (height_now - DELTA_HEIGHT <= height_prev)){
@@ -268,7 +275,10 @@ void CONTROL_task() {
 
 			case 7:
 				//Переходим в режим ожидания
-				xQueueSendToBack(&handleInternalCmdQueue, (uint8_t*)COMMAND_SLEEP_MODE, 0);
+				while(master != 4){
+					uint8_t tmp = COMMAND_SLEEP_MODE;
+					xQueueSendToBack(handleInternalCmdQueue, &tmp, 10);
+				}
 				break;
 		}
 

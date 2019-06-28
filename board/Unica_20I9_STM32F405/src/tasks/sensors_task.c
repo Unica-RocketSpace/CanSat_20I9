@@ -29,8 +29,8 @@
 #define BETA_2	0.3
 #define BETA_3	0.25
 
-#define BMP_DELTA_PRESSURE		/*0.0*/ 490
-#define	IMU_BMP_DELTA_PRESSURE	/*-2870*/ 	-12551 //-8300
+#define BMP_DELTA_PRESSURE		/*0.0*/ -270
+#define	IMU_BMP_DELTA_PRESSURE	/*-2870*/ 	-13262 //-8300
 
 I2C_HandleTypeDef 	i2c_mpu9255;
 USART_HandleTypeDef usart_dbg;

@@ -35,7 +35,7 @@ void init_exchange_data_UART(){
 	uint8_t error = 0;
 
 	uartExchangeData.Instance = USART1;
-	uartExchangeData.Init.BaudRate = 9600;
+	uartExchangeData.Init.BaudRate = 115200;
 	uartExchangeData.Init.WordLength = UART_WORDLENGTH_8B;
 	uartExchangeData.Init.StopBits = UART_STOPBITS_1;
 	uartExchangeData.Init.Parity = UART_PARITY_NONE;
@@ -52,7 +52,7 @@ void init_exchange_command_UART(){
 
 	__HAL_RCC_USART3_CLK_ENABLE();
 	uartExchangeCommand.Instance = USART3;
-	uartExchangeCommand.Init.BaudRate = 9600;
+	uartExchangeCommand.Init.BaudRate = 115200;
 	uartExchangeCommand.Init.WordLength = UART_WORDLENGTH_8B;
 	uartExchangeCommand.Init.StopBits = UART_STOPBITS_1;
 	uartExchangeCommand.Init.Parity = UART_PARITY_NONE;
@@ -103,6 +103,7 @@ void init_exchange_DMA_logs(){
 void parse_command(uint8_t uplink_command){
 	trace_printf("EX cmd %d\n", uplink_command);
 	if (uplink_command == COMMAND_DATA){
+		led();
 		//copy_data for FC
 		taskENTER_CRITICAL();
 		for (int i = 0; i < 2; i++){
@@ -121,7 +122,7 @@ void parse_command(uint8_t uplink_command){
 		taskEXIT_CRITICAL();
 
 		//отправка данных на FC
-		HAL_UART_Transmit(&uartExchangeData, (uint8_t*)&state_master, sizeof(state_master), 10);
+		HAL_UART_Transmit(&uartExchangeData, (uint8_t*)&state_master, sizeof(state_master), 10 / portTICK_RATE_MS);
 
 	}
 
@@ -129,6 +130,10 @@ void parse_command(uint8_t uplink_command){
 		taskENTER_CRITICAL();
 		state_system.master_state = 4;
 		taskEXIT_CRITICAL();
+	}
+
+	else if (uplink_command == COMMAND_LOGS){
+		HAL_UART_Receive(&uartExchangeData, (uint8_t*)&FCLogs, sizeof(FCLogs), 5 / portTICK_RATE_MS);
 	}
 
 	else HAL_UART_Transmit(&uartExchangeCommand, &uplink_command, uplink_command, 10);
@@ -147,12 +152,12 @@ void USART3_IRQHandler(void){
 }
 
 
-void USART1_IRQHandler(void){
-	//Проверка флага о приеме байтика по USART
-	if ((USART3->SR & USART_SR_RXNE) != 0){
-		HAL_UART_Receive_IT(&uartExchangeData, (uint8_t *)&FCLogs, sizeof(FCLogs));
-	}
-}
+//void USART1_IRQHandler(void){
+//	//Проверка флага о приеме байтика по USART
+//	if ((USART3->SR & USART_SR_RXNE) != 0){
+//		HAL_UART_Receive_IT(&uartExchangeData, (uint8_t *)&FCLogs, sizeof(FCLogs));
+//	}
+//}
 
 /*
 void DMA2_Stream5_IRQHandler(void){
@@ -182,9 +187,9 @@ void init_EX(void){
 	HAL_NVIC_EnableIRQ(USART3_IRQn);
 
 	//Включение прерывания USART: RXNE
-	USART1->CR1 |= USART_CR1_RXNEIE;
-	HAL_NVIC_SetPriority(USART1_IRQn, 6, 0);
-	HAL_NVIC_EnableIRQ(USART1_IRQn);
+//	USART1->CR1 |= USART_CR1_RXNEIE;
+//	HAL_NVIC_SetPriority(USART1_IRQn, 6, 0);
+//	HAL_NVIC_EnableIRQ(USART1_IRQn);
 
 
 /*	//Включение прерывания DMA: TC, HT

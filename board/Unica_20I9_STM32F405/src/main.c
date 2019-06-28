@@ -256,7 +256,7 @@ int main(int argc, char* argv[])
 
 	state_system.BMP_state 	= 255;
 	state_system.GPS_state 	= 255;
-	state_system.buttons 	= 0;
+	state_system.buttons 	= 5;
 	state_system.MPU_state 	= 255;
 	state_system.NRF_state 	= 255;
 	state_system.SD_state 	= 255;
@@ -272,20 +272,20 @@ int main(int argc, char* argv[])
 	if (GROUND)
 		xTaskCreateStatic(GROUND_task, 	"GROUND", 	GROUND_TASK_STACK_SIZE,	NULL, 2, _groundTaskStack, 	&_groundTaskObj);
 */
-	if (SERVO){
-		xTaskCreateStatic(SCHEDULE_SERVO_task, "SERVO", SERVO_TASK_STACK_SIZE, NULL, 3, _servoTaskStack, &_servoTaskObj);
-		handleLeft = xTaskCreateStatic(speedRot, "left", SERVO_TASK_STACK_SIZE, &servo_param_left, 2, _servoTaskStackLeft, &_servoTaskObjLeft);
-		handleRight = xTaskCreateStatic(speedRot, "right", SERVO_TASK_STACK_SIZE, &servo_param_right, 2, _servoTaskStackRight, &_servoTaskObjRight);
-		handleKeel = xTaskCreateStatic(speedRot, "keel", SERVO_TASK_STACK_SIZE, &servo_param_keel, 2, _servoTaskStackKeel, &_servoTaskObjKeel);
-
-		servo_param_left.handle = handleLeft;
-		servo_param_right.handle = handleRight;
-		servo_param_keel.handle = handleKeel;
-
-		servo_param_left.id = 0;
-		servo_param_right.id = 1;
-		servo_param_keel.id = 2;
-	}
+//	if (SERVO){
+//		xTaskCreateStatic(SCHEDULE_SERVO_task, "SERVO", SERVO_TASK_STACK_SIZE, NULL, 3, _servoTaskStack, &_servoTaskObj);
+//		handleLeft = xTaskCreateStatic(speedRot, "left", SERVO_TASK_STACK_SIZE, &servo_param_left, 2, _servoTaskStackLeft, &_servoTaskObjLeft);
+//		handleRight = xTaskCreateStatic(speedRot, "right", SERVO_TASK_STACK_SIZE, &servo_param_right, 2, _servoTaskStackRight, &_servoTaskObjRight);
+//		handleKeel = xTaskCreateStatic(speedRot, "keel", SERVO_TASK_STACK_SIZE, &servo_param_keel, 2, _servoTaskStackKeel, &_servoTaskObjKeel);
+//
+//		servo_param_left.handle = handleLeft;
+//		servo_param_right.handle = handleRight;
+//		servo_param_keel.handle = handleKeel;
+//
+//		servo_param_left.id = 0;
+//		servo_param_right.id = 1;
+//		servo_param_keel.id = 2;
+//	}
 
 	if (LED)
 		xTaskCreateStatic(LED_task, "LED", LED_TASK_STACK_SIZE, NULL, 1, _ledTaskStack, &_ledfTaskObj);

@@ -408,12 +408,6 @@ void IO_RF_task() {
 		command = state_system.globalCommand;
 		taskEXIT_CRITICAL();
 
-			taskENTER_CRITICAL();
-
-//			if (command != -1)
-	//			xQueueSendToBack(handleInternalCmdQueue, &command, 0);
-			taskEXIT_CRITICAL();
-
 		switch (my_stage_telem){
 			// Этап 0. Подтверждение инициализации отправкой пакета состояния и ожидание ответа от НС
 			case 0:
@@ -507,6 +501,7 @@ void IO_RF_task() {
 				mavlink_msg_imu_rsc_send();
 				vTaskDelay(Timeout);
 				mavlink_msg_FCLogs();
+				vTaskDelay(Timeout);
 
 				taskENTER_CRITICAL();
 				command = state_system.globalCommand;

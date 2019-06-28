@@ -34,7 +34,7 @@
 #define IMU_BMP		1
 #define BMP			1
 #define GPS			1
-#define LED			1
+#define LED			0
 #define CONTROL 	1
 #define EXCHANGE	1
 
@@ -71,6 +71,7 @@
 #define COMMAND_START 		1
 #define COMMAND_DATA 		3
 #define COMMAND_OK			4
+#define COMMAND_LOGS		5
 
 
 // if error set value and go to end

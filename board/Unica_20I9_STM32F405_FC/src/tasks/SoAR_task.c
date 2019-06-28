@@ -361,6 +361,7 @@ void SoAR_task() {
 				}
 				time = HAL_GetTick() / 1000;
 				FC_logs.time = time;
+				trace_printf("KEK2");
 				tmp = COMMAND_LOGS;
 				xQueueSendToBack(handleInternalCmdQueue, &tmp, 5);
 			}
@@ -392,8 +393,9 @@ void SoAR_task() {
 		//присваиваем значения углов тангажа, рысканья, крена в структуру
 		time = HAL_GetTick() / 1000;
 		FC_logs.time = time;
+		trace_printf("KEK1");
 		tmp = COMMAND_LOGS;
 		xQueueSendToBack(handleInternalCmdQueue, &tmp, 5);
 		vTaskDelay(1000 / portTICK_RATE_MS);
-}
+	}
 }

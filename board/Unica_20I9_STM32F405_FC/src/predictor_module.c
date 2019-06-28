@@ -112,7 +112,7 @@ void straight_flight(float alpha) {
 
 void turn_flight(float xc, float yc,float r, float x, float y, char turn) {
 	Predictor_Angles.alpha = 0.0;
-	Predictor_Angles.beta = kas(xc, yc, y, x, y, turn);
+	Predictor_Angles.beta = kasat(xc, yc, y, x, y, turn);
 }
 
 bool check_tube_target(float a, float b, float c, float x, float y) {
@@ -209,7 +209,9 @@ void direction_predictor() {
 		if (right_target_dist - EPS > right_access_circle.r) {
 			if (turn == "L") {
 				turn_flight(left_turn_circle.x, left_turn_circle.y, left_turn_circle.r, x, y, turn);
+				return;
 			}
+			turn_flight(right_turn_circle.x, right_turn_circle.y, right_turn_circle.r, x, y, turn);
 			return;
 		}
 	}

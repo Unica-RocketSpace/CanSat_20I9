@@ -86,19 +86,21 @@ void parse_command(uint8_t uplink_command){
 		case COMMAND_DATA:
 			tmp = COMMAND_DATA;
 			do HAL_UART_Transmit(&uartExchangeCommand, &tmp, sizeof(tmp), 10);
-			while(HAL_UART_Receive(&uartExchangeData, (uint8_t*)&state_master, sizeof(state_master), 200) == HAL_TIMEOUT);
-//			trace_printf("data hal_timeout");
+			while(HAL_UART_Receive(&uartExchangeData, (uint8_t*)&state_master, sizeof(state_master), 10 / portTICK_RATE_MS) == HAL_TIMEOUT);
 			led();
 			break;
 
 		case COMMAND_LOGS:
-			HAL_UART_Transmit(&uartExchangeData, (uint8_t*)&FC_logs, sizeof(FC_logs), 10);
+			tmp = COMMAND_LOGS;
+			HAL_UART_Transmit(&uartExchangeCommand, &tmp, sizeof(tmp), 20);
+			HAL_UART_Transmit(&uartExchangeData, (uint8_t*)&FC_logs, sizeof(FC_logs), 3 / portTICK_RATE_MS);
 			break;
 
 		case COMMAND_START:
 //			start predictor task
 			tmp = COMMAND_OK;
 			HAL_UART_Transmit(&uartExchangeCommand, &tmp, sizeof(tmp), 10);
+			led();
 			//vTaskResume(handleControlTask);
 			vTaskResume(handleSoARTask);
 			break;

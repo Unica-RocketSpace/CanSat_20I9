@@ -21,6 +21,8 @@ typedef struct {
 	float mod;
 } Vector;
 
+const float EPS = 1e-6;
+
 float polar_angle(float x, float y) {
     float p = 2 * M_PI;
     if (y < 0) {
@@ -101,16 +103,16 @@ float kasat(float x1, float y1, float r1, float xa, float ya, char flag) {
 }
 
 
-void straight_flight(double alpha) {
+void straight_flight(float alpha) {
 	//set angle of incidence equal to alpha
 	Predictor_Angles.alpha = alpha;
 	Predictor_Angles.beta = 0;
 	return;
 }
 
-void turn_flight(double z, double x, char turn) {
+void turn_flight(float xc, float yc,float r, float x, float y, char turn) {
 	Predictor_Angles.alpha = 0.0;
-	Predictor_Angles.beta = kas(turn);
+	Predictor_Angles.beta = kas(xc, yc, y, x, y, turn);
 }
 
 bool check_tube_target(float a, float b, float c, float x, float y) {
@@ -122,14 +124,14 @@ bool check_tube_target(float a, float b, float c, float x, float y) {
 	return false;
 }
 
-void height_predictor(double x, double y, double z) {
-	double target_dist = sqrt(z * z + x * x);
-	y -= DELTA_H;
-	double distmin, distmax;
-	distmin = y / tan(DESCENT_ANGLE_MAX);
-	distmax = y / tan(DESCENT_ANGLE_MIN);
+void height_predictor(float x, float y, float z) {
+	float target_dist = sqrt(y * y + x * x);
+	z -= DELTA_H;
+	float distmin, distmax;
+	distmin = z / tan(DESCENT_ANGLE_MAX);
+	distmax = z / tan(DESCENT_ANGLE_MIN);
 	if ((target_dist > distmin) && (target_dist < distmax)) {
-		double good_angle = atan2(y, target_dist);
+		float good_angle = atan2(z, target_dist);
 		straight_flight(good_angle);
 		return;
 	}
@@ -143,26 +145,6 @@ void height_predictor(double x, double y, double z) {
 	}
 	return;
 }
-
-void calculating_distance_of_linear_further_motion(double R, double r, double vz, double vx, char turn) {
-	double dist;
-	double coordinates[3] = {0};
-	double new_coordinates[3] = {0};
-	double quat[4] = {0, 0, 0, 0};
-
-//	FIXME: !!!!! Переделать используемые функции под тип double или поменять у себя тип на float
-	quat_invert(&state_master.quaternion, quat);
-	vect_rotate(&state_master.coordinates, quat, coordinates);
-	double z = coordinates[0];
-	double x = coordinates[1];
-	double y = coordinates[2];
-	dist = sqrt(R * R - (z - r) * (z - r));
-	z += dist + vz * SPARE_TIME;
-	vect_rotate(coordinates, state_master.quaternion, &new_coordinates);
-	turn_flight(new_coordinates[0], new_coordinates[1], turn);
-    return;
-}
-
 
 void direction_predictor() {
 	float x, y, z;
@@ -217,6 +199,21 @@ void direction_predictor() {
 	right_access_circle.x = x + vex.x;
 	right_turn_circle.y = y + vex.y;
 	right_access_circle.y = y + vex.y;
+	float left_target_dist = sqrt(left_access_circle.x * left_access_circle.x + left_access_circle.y * left_access_circle.y);
+	float right_target_dist = sqrt(right_access_circle.x * right_access_circle.x + right_access_circle.y * right_access_circle.y);
+	char turn = "R";
+	if (left_target_dist < right_target_dist) {
+		turn = "L";
+	}
+	if (left_target_dist - EPS > left_access_circle.r) {
+		if (right_target_dist - EPS > right_access_circle.r) {
+			if (turn == "L") {
+				turn_flight(left_turn_circle.x, left_turn_circle.y, left_turn_circle.r, x, y, turn);
+			}
+			return;
+		}
+	}
+	straight_flight(DESCENT_ANGLE_MIN);
 	return;
 }
 

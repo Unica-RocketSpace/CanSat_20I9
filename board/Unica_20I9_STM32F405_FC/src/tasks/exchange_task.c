@@ -87,6 +87,7 @@ void parse_command(uint8_t uplink_command){
 			tmp = COMMAND_DATA;
 			do HAL_UART_Transmit(&uartExchangeCommand, &tmp, sizeof(tmp), 10);
 			while(HAL_UART_Receive(&uartExchangeData, (uint8_t*)&state_master, sizeof(state_master), 200) == HAL_TIMEOUT);
+//			trace_printf("data hal_timeout");
 			led();
 			break;
 
@@ -130,8 +131,9 @@ void init_EX(void){
 
 void EXCHANGE_task(void){
 
-	vTaskSuspend(handleControlTask);
+//	vTaskSuspend(handleControlTask);
 	vTaskSuspend(handleSoARTask);
+	trace_printf("START");
 
 	for(;;){
 		//Проверка очереди на наличие в ней элементов

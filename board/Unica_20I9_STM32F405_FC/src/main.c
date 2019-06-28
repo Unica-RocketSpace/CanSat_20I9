@@ -141,9 +141,10 @@ int main(int argc, char* argv[]) {
 	servo_param_keel.id = 2;
 	 */
 
+	allServosInit();
 	init_EX();
 	Init_led();
-	allServosInit();
+
 
 	HAL_Delay(300);
 

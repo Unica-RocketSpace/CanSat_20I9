@@ -15,6 +15,8 @@
 #include "SoAR_task.h"
 #include "servo_task.h"
 
+#include <diag/Trace.h>
+
 
 #define ui8 uint8_t
 #define deg * M_PI / 180;
@@ -137,6 +139,7 @@ void SoAR_task() {
 	pitch = state_master.pitch;
 	speed = state_master.speed_BMP;
 	float omega_x;
+	vTaskDelay(20 / portTICK_RATE_MS);
 
 	//запрашиваем данные с SC
 	tmp = COMMAND_DATA;
@@ -151,6 +154,7 @@ void SoAR_task() {
 	FC_logs.angle_left =  go_from_alpha[SHIFT_PITCH] - omega_x / abs(omega_x) * delta_roll_rot;
 	FC_logs.angle_right = go_from_alpha[SHIFT_PITCH] + omega_x / abs(omega_x) * delta_roll_rot;
 	FC_logs.angle_keel =  0 deg;
+	trace_printf("this");
 	multiRot(FC_logs.angle_left, FC_logs.angle_right, FC_logs.angle_keel);
 	float omega_start = omega_x;
 	while (omega_start / omega_x > 0) {

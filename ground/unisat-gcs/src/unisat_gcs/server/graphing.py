@@ -320,7 +320,7 @@ class MyWin(QtWidgets.QMainWindow):
         self.ui.plot_middle = pg.GraphicsLayout()
         self.ui.glv_middle.addItem(self.ui.plot_middle)
 
-        self.sc_item_middle1 = pg.PlotItem(title='Angles velosity')
+        self.sc_item_middle1 = pg.PlotItem(title='Angular speed')
         self.ui.plot_middle.addItem(self.sc_item_middle1)
         self.graf_middle1 = pg.PlotCurveItem()
         self.sc_item_middle1.addItem(self.graf_middle1)
@@ -663,7 +663,7 @@ class MyWin(QtWidgets.QMainWindow):
             self.telem_widget_speed.set_value_2(round(self.speed_GPS[len(self.speed_GPS) - 1], 3))
             self.telem_widget_coord.set_value_1(round(self.x[len(self.x) - 1], 3))
             self.telem_widget_coord.set_value_2(round(self.y[len(self.y) - 1], 3))
-            self.telem_widget_coord.set_value_4(course[len(course) - 1])
+            # self.telem_widget_coord.set_value_4(course[len(course) - 1])
 
         if len(self.x) > self.lenght:
             self.x = self.x[self.cut:(self.lenght - 1)]
@@ -778,6 +778,7 @@ class MyWin(QtWidgets.QMainWindow):
     # Слот для разбора пакета fc_logs
     @QtCore.pyqtSlot(list)
     def fc_logs_msg(self, msgs):
+        print("Fc_logs")
         left = []
         right = []
         keel = []
@@ -788,15 +789,15 @@ class MyWin(QtWidgets.QMainWindow):
 
             if FILE_WRITE:
                 self.buffer_fc_logs.append(str(msgs[i].time) + '\t' +
-                                           str(msgs[i].fc_state) + '\t' +
+                                           str(msgs[i].FC_stage) + '\t' +
                                            str(msgs[i].angle_left) + '\t' +
                                            str(msgs[i].angle_right) + '\t' +
                                            str(msgs[i].angle_keel) + '\t' +
-                                           str(msgs[i].crirical_angles) + '\n')
-
-            if FILE_WRITE:
-                self.write_to_file(self.buffer_fc_logs, file_fc_logs)
-                self.buffer_fc_logs = []
+                                           str(msgs[i].critical_angles) + '\n')
+        #
+        if FILE_WRITE:
+            self.write_to_file(self.buffer_fc_logs, file_fc_logs)
+            self.buffer_fc_logs = []
 
         if TELEM:
             self.telem_widget_angles.set_value_1(left[len(left) - 1])

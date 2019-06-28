@@ -102,7 +102,7 @@ class MavlinkThread(QThread):
 
         elif isinstance(msg, MAVLink_fclogs_message):
             self.fc_logs_accum.push_message(msg)
-            print('FC_logs msg')
+            # print('FC_logs msg')
 
         else:
             _log.warning("неизвестный тип сообщения!")

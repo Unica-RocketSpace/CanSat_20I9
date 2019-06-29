@@ -28,7 +28,7 @@
 void servoRotate(servo_id_t servo_id, fl angle_rad) {
 	u32 pulse;
 	fl angle_deg = angle_rad rad;
-	//trace_printf("angle_deg = %d\t pulse1 = %lf\n pulse = %d\n", (uint16_t)angle_deg, pulse1, pulse);
+	trace_printf("angle_deg = %f\n", angle_deg);
 	switch (servo_id) {
 		case servo_go_left:
 			taskENTER_CRITICAL();
@@ -96,7 +96,7 @@ void SoAR_task() {
 	float keel_from_yaw[kfy_len] = {0};
 
 	for (int i = 0; i < kfy_len; ++i) {
-		keel_from_yaw[i] = (i - SHIFT_YAW) * 2;
+		keel_from_yaw[i] = (i - SHIFT_YAW) * 2 deg;
 	}
 
 	float alpha_memory = 1e8;
@@ -136,24 +136,28 @@ void SoAR_task() {
 	ui8 tmp = COMMAND_DATA;
 	xQueueSendToBack(handleInternalCmdQueue, &tmp, 5);
 
-	pitch = state_master.pitch;
-	speed = state_master.speed_BMP;
+	pitch_last = state_master.pitch;
+	speed_last = state_master.speed_BMP;
 	float omega_x;
-	vTaskDelay(20 / portTICK_RATE_MS);
+	vTaskDelay(100 / portTICK_RATE_MS);
 
 	//запрашиваем данные с SC
 	tmp = COMMAND_DATA;
 	xQueueSendToBack(handleInternalCmdQueue, &tmp, 5);
 
 	omega_x = state_master.omega;
-	speed_last = speed;
-	pitch_last = pitch;
 	speed = state_master.speed_BMP;
 	pitch = state_master.pitch;
+	int8_t sign;
+	sign = 1;
+	if (omega_x < 0) {
+		sign = -1;
+	}
 	//присваиваем значения углов тангажа, рысканья, крена в структуру
-	FC_logs.angle_left =  go_from_alpha[SHIFT_PITCH] - omega_x / abs(omega_x) * delta_roll_rot;
-	FC_logs.angle_right = go_from_alpha[SHIFT_PITCH] + omega_x / abs(omega_x) * delta_roll_rot;
+	FC_logs.angle_left =  go_from_alpha[SHIFT_PITCH] deg - sign * delta_roll_rot;
+	FC_logs.angle_right = go_from_alpha[SHIFT_PITCH] deg + sign * delta_roll_rot;
 	FC_logs.angle_keel =  0 deg;
+	trace_printf("Омега sign: %d \n", sign);
 	trace_printf("this");
 	multiRot(FC_logs.angle_left, FC_logs.angle_right, FC_logs.angle_keel);
 	float omega_start = omega_x;
@@ -167,22 +171,24 @@ void SoAR_task() {
 		speed = state_master.speed_BMP;
 		pitch_last = pitch;
 		pitch = state_master.pitch;
+		trace_printf("Lol ");
 	}
-	FC_logs.angle_left =  go_from_alpha[SHIFT_PITCH];
-	FC_logs.angle_right = go_from_alpha[SHIFT_PITCH];
+	FC_logs.angle_left =  go_from_alpha[SHIFT_PITCH] deg;
+	FC_logs.angle_right = go_from_alpha[SHIFT_PITCH] deg;
 	multiRot(FC_logs.angle_left, FC_logs.angle_right, FC_logs.angle_keel);
 
 	while (abs(pitch - pitch_last) >= EPS_pitch && abs(speed - speed_last) >= EPS_speed) {
 		if (speed_last - speed > DELTA_SPEED) {
-			FC_logs.angle_left =  go_from_alpha[0];
-			FC_logs.angle_right = go_from_alpha[0];
+			FC_logs.angle_left =  go_from_alpha[0] deg;
+			FC_logs.angle_right = go_from_alpha[0] deg;
+			trace_printf("trash");
 			multiRot(FC_logs.angle_left, FC_logs.angle_right, FC_logs.angle_keel);
 		} else {
 			float k = ((- SHIFT_PITCH / 2) - (gfa_len - SHIFT_PITCH) / 2) / (PITCH_MAX - PITCH_MIN);
 			float b = (gfa_len - SHIFT_PITCH) / 2 - k * PITCH_MIN;
 			alpha = k * pitch + b;
-			FC_logs.angle_left =  go_from_alpha[(ui8)round(alpha * 2) + SHIFT_PITCH];
-			FC_logs.angle_right = go_from_alpha[(ui8)round(alpha * 2) + SHIFT_PITCH];
+			FC_logs.angle_left =  go_from_alpha[(ui8)round(alpha * 2) + SHIFT_PITCH] deg;
+			FC_logs.angle_right = go_from_alpha[(ui8)round(alpha * 2) + SHIFT_PITCH] deg;
 			multiRot(FC_logs.angle_left, FC_logs.angle_right, FC_logs.angle_keel);
 		}
 		vTaskDelay(500 / portTICK_RATE_MS);
@@ -193,10 +199,11 @@ void SoAR_task() {
 		speed = state_master.speed_BMP;
 		pitch_last = pitch;
 		pitch = state_master.pitch;
+		trace_printf("Fck ");
 	}
 	vTaskDelay(500 / portTICK_RATE_MS);
-	FC_logs.angle_left =  go_from_alpha[(ui8)round(alpha_nominal * 2) + SHIFT_PITCH];
-	FC_logs.angle_right = go_from_alpha[(ui8)round(alpha_nominal * 2) + SHIFT_PITCH];
+	FC_logs.angle_left =  go_from_alpha[(ui8)round(alpha_nominal * 2) + SHIFT_PITCH] deg;
+	FC_logs.angle_right = go_from_alpha[(ui8)round(alpha_nominal * 2) + SHIFT_PITCH] deg;
 	multiRot(FC_logs.angle_left, FC_logs.angle_right, FC_logs.angle_keel);
 
 	while (true) {
@@ -229,7 +236,7 @@ void SoAR_task() {
 			if (abs(alpha - alpha_memory) >= EPS_alpha) {
 				alpha_memory = alpha;
 				//мы должны поставить на движках go_from_alpha[alpha_memory]
-				go_pitch = go_from_alpha[(ui8)round(alpha * 2) + SHIFT_PITCH];
+				go_pitch = go_from_alpha[(ui8)round(alpha * 2) + SHIFT_PITCH] deg;
 			} else {
 				//alpha_now - now-time angle of attack
 				float alpha_now = atan2(((speed_gps / speed_bmp) - cos(pitch)), sin(pitch));
@@ -237,15 +244,15 @@ void SoAR_task() {
 				float dif = alpha_now - alpha;
 				//мы должны поставить на движках go_from_alpha[alpha_memory - (dif / 2)]
 				if ((ui8)round((alpha - (dif / 2)) * 2) + SHIFT_PITCH > gfa_len) {
-					go_pitch = go_from_alpha[gfa_len];
+					go_pitch = go_from_alpha[gfa_len] deg;
 					FC_logs.critical_angles |= (1 << 0);
 					//предельный угол атаки
 				} else if ((ui8)round((alpha - (dif / 2)) * 2) + SHIFT_PITCH < 0) {
-					go_pitch = go_from_alpha[0];
+					go_pitch = go_from_alpha[0] deg;
 					FC_logs.critical_angles |= (1 << 0);
 					//предельный угол атаки
 				} else {
-					go_pitch = go_from_alpha[(ui8)round((alpha - (dif / 2)) * 2) + SHIFT_PITCH];
+					go_pitch = go_from_alpha[(ui8)round((alpha - (dif / 2)) * 2) + SHIFT_PITCH] deg;
 					FC_logs.critical_angles &= ~(1 << 0);
 				}
 			}
@@ -314,7 +321,10 @@ void SoAR_task() {
 			 */
 
 			roll = state_master.roll;
-			float sign = beta / abs(beta);
+			sign = 1.0;
+			if (beta < 0) {
+				sign = -1.0;
+			}
 			while (abs(roll - sign * roll_turn) >= EPS_roll_turn) {
 				//присваиваем значения углов тангажа, рысканья, крена в структуру
 				FC_logs.angle_left = delta_nominal - sign * delta_roll_turn;

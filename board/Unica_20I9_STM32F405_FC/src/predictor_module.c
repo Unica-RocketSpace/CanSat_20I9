@@ -56,8 +56,14 @@ float to_point(float x1, float y1, float x2, float y2, float x, float y, char fl
 		if (d_angle_f > 0) {
 			d_angle_f = d_angle_f - p;
 		}
-		if (d_angle_s < 0) {
+		if (d_angle_s > 0) {
 			d_angle_s = d_angle_s - p;
+		}
+		if (abs(d_angle_s - 0) <= EPS) {
+			return d_angle_f;
+		}
+		if (abs(d_angle_f - 0) <= EPS) {
+			return d_angle_s;
 		}
 		if (d_angle_f < d_angle_s) {
 			return d_angle_s;
@@ -202,7 +208,7 @@ void direction_predictor() {
 	float left_target_dist = sqrt(left_access_circle.x * left_access_circle.x + left_access_circle.y * left_access_circle.y);
 	float right_target_dist = sqrt(right_access_circle.x * right_access_circle.x + right_access_circle.y * right_access_circle.y);
 	char turn = "R";
-	if (left_target_dist < right_target_dist) {
+	if (left_target_dist + EPS < right_target_dist) {
 		turn = "L";
 	}
 	if (left_target_dist - EPS > left_access_circle.r) {

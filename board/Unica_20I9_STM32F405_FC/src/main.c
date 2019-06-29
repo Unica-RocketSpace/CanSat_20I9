@@ -118,13 +118,13 @@ int main(int argc, char* argv[]) {
 	// Инициализация структур глобального состояния (в нашем случае просто заполняем их нулями)
 	memset(&state_system, 			0x00, sizeof(state_system));
 	memset(&state_zero, 			0x00, sizeof(state_zero));
-	memset(&state_master, 			0x00, sizeof(state_master));
+	memset(&state_master, 	        0x00, sizeof(state_master));
 	memset(&FC_logs, 				0x00, sizeof(FC_logs));
 	memset(&state_system_prev, 		0x00, sizeof(state_system_prev));
 
 
 	xTaskCreateStatic(EXCHANGE_task, 	"EXCHANGE", 	EXCHANGE_TASK_STACK_SIZE, 	NULL, 3, _exchangeTaskStack, 	&_exchangeTaskObj);
-	//handleControlTask = xTaskCreateStatic(CONTROL_task, "CONTROL", CONTROL_TASK_STACK_SIZE, NULL, 2, _controlTaskStack, &_controlTaskObj);
+//	handleControlTask = xTaskCreateStatic(CONTROL_task, "CONTROL", CONTROL_TASK_STACK_SIZE, NULL, 2, _controlTaskStack, &_controlTaskObj);
 	handleSoARTask = xTaskCreateStatic(SoAR_task, "SoAR", SoAR_TASK_STACK_SIZE, NULL, 1, _SoARTaskStack, &_SoARTaskObj);
 
 	handleInternalCmdQueue = xQueueCreateStatic(INTERNAL_QUEUE_LENGHT, INTERNAL_QUEUE_ITEM_SIZE, internal_queue_storage_area, &internal_queue_static);

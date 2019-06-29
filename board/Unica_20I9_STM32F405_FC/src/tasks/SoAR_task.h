@@ -8,7 +8,7 @@
 #ifndef SOAR_TASK_H_
 #define SOAR_TASK_H_
 
-#define k1 -36.69725
+#define k1	-36.69725
 #define b1 5070.0
 #define k2 38.24384
 #define b2 5000.0

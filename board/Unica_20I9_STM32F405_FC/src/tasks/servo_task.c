@@ -12,6 +12,7 @@
 #include "stdint.h"
 #include "stdbool.h"
 #include <stm32f4xx_hal.h>
+#include <stm32f4xx_hal_tim.h>
 #include <math.h>
 
 #include "diag/Trace.h"
@@ -64,7 +65,7 @@ void speedRot(servo_task_param_t * str) {
 void _timerPWMInit(TIM_HandleTypeDef *htim) {
 	htim->Instance = TIM1;
 	htim->Init.Prescaler = 52;
-	htim->Channel = 1;
+	htim->Channel = HAL_TIM_ACTIVE_CHANNEL_1 | HAL_TIM_ACTIVE_CHANNEL_2 | HAL_TIM_ACTIVE_CHANNEL_3;
 	htim->Init.CounterMode = TIM_COUNTERMODE_UP;
 	htim->Init.Period = 63400;
 	htim->Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
@@ -84,6 +85,7 @@ void _timerPWMChanelInit(TIM_HandleTypeDef *htim, u32 Channel) {
 	HAL_TIM_PWM_ConfigChannel(htim, &timOC, Channel);
 
 	HAL_TIMEx_PWMN_Start(htim, Channel);
+	//HAL_TIM_PWM_Start(htim, Channel);
 }
 
 void _timerPWMChangePulse(TIM_HandleTypeDef *htim, u32 Channel, u32 pulse) {
@@ -98,7 +100,8 @@ void _timerPWMChangePulse(TIM_HandleTypeDef *htim, u32 Channel, u32 pulse) {
 	HAL_TIM_PWM_ConfigChannel(htim, &timOC, Channel);
 
 	HAL_TIMEx_PWMN_Start(htim, Channel);
-	trace_printf("pulse = %d\n", pulse);
+	//HAL_TIM_PWM_Start(htim, Channel);
+	trace_printf("%d pulse = %d\n", Channel, pulse);
 }
 
 void allServosInit() {
@@ -133,14 +136,17 @@ void allServosInit() {
 
 	//Инициализация таймера TIM1
 	_timerPWMInit(&htimServo);
+	trace_printf(":this");
 
 	//Инициализация каналов CH1, CH2 и CH3
-	_timerPWMChangePulse(&htimServo, TIM_CHANNEL_1, b1);
-	_timerPWMChangePulse(&htimServo, TIM_CHANNEL_1, b2);
-	_timerPWMChangePulse(&htimServo, TIM_CHANNEL_1, b3);
+//
 //	_timerPWMChanelInit(&htimServo, TIM_CHANNEL_1);
 //	_timerPWMChanelInit(&htimServo, TIM_CHANNEL_2);
 //	_timerPWMChanelInit(&htimServo, TIM_CHANNEL_3);
+
+	_timerPWMChangePulse(&htimServo, TIM_CHANNEL_1, b1);
+	_timerPWMChangePulse(&htimServo, TIM_CHANNEL_2, b2);
+	_timerPWMChangePulse(&htimServo, TIM_CHANNEL_3, b3);
 }
 
 void update_struct(servo_task_param_t * str, float speed, float start_angle, float finish_angle){

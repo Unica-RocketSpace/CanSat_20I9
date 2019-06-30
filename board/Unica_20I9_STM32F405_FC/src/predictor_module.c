@@ -23,6 +23,18 @@ typedef struct {
 
 const float EPS = 1e-6;
 
+float min(float a, float b) {
+	if (a < b) {
+		return a;
+	}
+	return b;
+}
+
+float dist(float x, float y) {
+    return sqrt(x * x + y * y);
+}
+
+
 float polar_angle(float x, float y) {
     float p = 2 * M_PI;
     if (y < 0) {
@@ -34,42 +46,36 @@ float polar_angle(float x, float y) {
 
 float to_point(float x1, float y1, float x2, float y2, float x, float y, char flag) {
     float p = 2 * M_PI;
-	float angle_f, angle_s, angle;
+    float angle_f, angle_s, angle;
     angle = polar_angle(x, y);
-	angle_f = polar_angle(x1, y1);
-	angle_s = polar_angle(x2, y2);
-	float d_angle_f, d_angle_s;
-	d_angle_f = angle_f - angle;
-	d_angle_s = angle_s - angle;
-	if (flag == 'L') {
-		if (d_angle_f < 0) {
-			d_angle_f = p + d_angle_f;
-		}
-		if (d_angle_s < 0) {
-			d_angle_s = p + d_angle_s;
-		}
-		if (d_angle_f < d_angle_s) {
-			return d_angle_f;
-		}
-		return d_angle_s;
-	} else {
-		if (d_angle_f > 0) {
-			d_angle_f = d_angle_f - p;
-		}
-		if (d_angle_s > 0) {
-			d_angle_s = d_angle_s - p;
-		}
-		if (abs(d_angle_s - 0) <= EPS) {
-			return d_angle_f;
-		}
-		if (abs(d_angle_f - 0) <= EPS) {
-			return d_angle_s;
-		}
-		if (d_angle_f < d_angle_s) {
-			return d_angle_s;
-		}
-		return d_angle_f;
-	}
+    angle_f = polar_angle(x1, y1);
+    angle_s = polar_angle(x2, y2);
+    float d_angle_f, d_angle_s;
+    d_angle_f = angle_f - angle;
+    d_angle_s = angle_s - angle;
+    if (abs(d_angle_f) <= EPS) {
+        d_angle_f = p;
+    }
+    if (abs(d_angle_s) <= EPS) {
+        d_angle_s = p;
+    }
+    if (flag == 'L') {
+        if (d_angle_f < 0) {
+            d_angle_f += p;
+        }
+        if (d_angle_s < 0) {
+            d_angle_s += p;
+        }
+        return min(d_angle_f, d_angle_s);
+    } else {
+        if (d_angle_f < 0) {
+            d_angle_f += p;
+        }
+        if (d_angle_s < 0) {
+            d_angle_s += p;
+        }
+        return - min(d_angle_f, d_angle_s);
+    }
 }
 
 float kasat(float x1, float y1, float r1, float xa, float ya, char flag) {
@@ -112,13 +118,13 @@ float kasat(float x1, float y1, float r1, float xa, float ya, char flag) {
 void straight_flight(float alpha) {
 	//set angle of incidence equal to alpha
 	Predictor_Angles.alpha = alpha;
-	Predictor_Angles.beta = 0;
+	Predictor_Angles.beta = 0.0;
 	return;
 }
 
 void turn_flight(float xc, float yc,float r, float x, float y, char turn) {
 	Predictor_Angles.alpha = 0.0;
-	Predictor_Angles.beta = kasat(xc, yc, y, x, y, turn);
+	Predictor_Angles.beta = kasat(xc, yc, r, x, y, turn);
 }
 
 bool check_tube_target(float a, float b, float c, float x, float y) {
@@ -169,7 +175,6 @@ void direction_predictor() {
 	a = y_next - y;
 	b = x - x_next;
 	c = x_next * y - x * y_next;
-	bool flag = 0;
 	if (dist(x_next, y_next) <= dist(x, y)) {
 		if (check_tube_target(a, b, c, x, y)) {
 			height_predictor(x, y, z);
@@ -207,13 +212,13 @@ void direction_predictor() {
 	right_access_circle.y = y + vex.y;
 	float left_target_dist = sqrt(left_access_circle.x * left_access_circle.x + left_access_circle.y * left_access_circle.y);
 	float right_target_dist = sqrt(right_access_circle.x * right_access_circle.x + right_access_circle.y * right_access_circle.y);
-	char turn = "R";
+	char turn = 'R';
 	if (left_target_dist + EPS < right_target_dist) {
-		turn = "L";
+		turn = 'L';
 	}
 	if (left_target_dist - EPS > left_access_circle.r) {
 		if (right_target_dist - EPS > right_access_circle.r) {
-			if (turn == "L") {
+			if (turn == 'L') {
 				turn_flight(left_turn_circle.x, left_turn_circle.y, left_turn_circle.r, x, y, turn);
 				return;
 			}

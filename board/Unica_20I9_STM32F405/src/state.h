@@ -235,7 +235,6 @@ typedef struct {
 extern USART_HandleTypeDef	usart_dbg;
 extern UART_HandleTypeDef uartExchangeData;
 extern UART_HandleTypeDef uartExchangeCommand;
-extern DMA_HandleTypeDef dmaExchangeLogs;
 
 extern SPI_HandleTypeDef	spi_nRF24L01;
 extern I2C_HandleTypeDef 	i2c_mpu9255;

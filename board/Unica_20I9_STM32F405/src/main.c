@@ -102,11 +102,11 @@ static StaticTask_t _CONTROLTaskObj;
 //static StackType_t	_groundTaskStack[GROUND_TASK_STACK_SIZE];
 //static StaticTask_t	_groundTaskObj;
 
-#define LED_TASK_STACK_SIZE (2*configMINIMAL_STACK_SIZE)
+#define LED_TASK_STACK_SIZE (1*configMINIMAL_STACK_SIZE)
 static StackType_t	_ledTaskStack[LED_TASK_STACK_SIZE];
 static StaticTask_t	_ledfTaskObj;
 
-#define EXCHANGE_TASK_STACK_SIZE (60*configMINIMAL_STACK_SIZE)
+#define EXCHANGE_TASK_STACK_SIZE (20*configMINIMAL_STACK_SIZE)
 static StackType_t _ExchangeTaskStack[EXCHANGE_TASK_STACK_SIZE];
 static StaticTask_t _ExchangeTaskObj;
 

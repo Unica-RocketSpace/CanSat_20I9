@@ -41,6 +41,7 @@ const rscs_bmp280_calibration_values_t * bmp280_calibration_values;
 
 Euler_angles_t angles;
 
+
 uint8_t get_gyro_staticShift(float* gyro_staticShift) {
 	uint8_t error = 0;
 	uint16_t zero_orientCnt = 200;
@@ -66,6 +67,7 @@ uint8_t get_gyro_staticShift(float* gyro_staticShift) {
 end:
 	return error;
 }
+
 
 uint8_t get_accel_staticShift(float* gyro_staticShift, float* accel_staticShift) {
 	uint8_t error = 0;
@@ -197,33 +199,33 @@ static int IMU_updateDataAll() {
 
 
 	///////  ОБНОВЛЯЕМ КООРДИНАТЫ И СКОРОСТИ  //////////
-		if (state_system.globalStage >= 2) { //FIXME: Посмотреть в каком этапе это нужно?
-
-			float delta_velo[3] = {0, 0, 0};
-			float delta_coord[3] = {0, 0, 0};
-			float accel_ISC_prev[3] = {0, 0, 0};
-			float velo[3] = {0, 0, 0};
-			float velo_prev[3] = {0, 0, 0};
-		taskENTER_CRITICAL();
-			for (int i = 0; i < 3; i++) {
-				accel_ISC_prev[i] = stateIMU_isc_prev.accel[i];
-				velo[i] = stateIMU_isc.velocities[i];
-				velo_prev[i] = stateIMU_isc_prev.velocities[i];
-			}
-		taskEXIT_CRITICAL();
-
-			for (int i = 0; i < 3; i++) {
-				delta_velo[i] = (accel_ISC[i] + accel_ISC_prev[i]) * dt / 2;
-				delta_coord[i] = (velo[i] + velo_prev[i]) * dt / 2;
-			}
-
-		taskENTER_CRITICAL();
-			for (int i = 0; i < 3; i++) {
-				stateIMU_isc.velocities[i] += delta_velo[i];
-				stateIMU_isc.coordinates[i] += delta_coord[i];
-			}
-		taskEXIT_CRITICAL();
-		}
+//		if (state_system.globalStage >= 2) { //FIXME: Посмотреть в каком этапе это нужно?
+//
+//			float delta_velo[3] = {0, 0, 0};
+//			float delta_coord[3] = {0, 0, 0};
+//			float accel_ISC_prev[3] = {0, 0, 0};
+//			float velo[3] = {0, 0, 0};
+//			float velo_prev[3] = {0, 0, 0};
+//		taskENTER_CRITICAL();
+//			for (int i = 0; i < 3; i++) {
+//				accel_ISC_prev[i] = stateIMU_isc_prev.accel[i];
+//				velo[i] = stateIMU_isc.velocities[i];
+//				velo_prev[i] = stateIMU_isc_prev.velocities[i];
+//			}
+//		taskEXIT_CRITICAL();
+//
+//			for (int i = 0; i < 3; i++) {
+//				delta_velo[i] = (accel_ISC[i] + accel_ISC_prev[i]) * dt / 2;
+//				delta_coord[i] = (velo[i] + velo_prev[i]) * dt / 2;
+//			}
+//
+//		taskENTER_CRITICAL();
+//			for (int i = 0; i < 3; i++) {
+//				stateIMU_isc.velocities[i] += delta_velo[i];
+//				stateIMU_isc.coordinates[i] += delta_coord[i];
+//			}
+//		taskEXIT_CRITICAL();
+//		}
 	}
 
 
@@ -238,6 +240,7 @@ void bmp280_update() {
 	int32_t pressure = 0;
 	int32_t temp = 0;
 	double pressure_f = 0;
+	float tmp = 0;
 	float temp_f = 0;
 	float height = 0;
 
@@ -281,7 +284,10 @@ void bmp280_update() {
 		stateSensors.temp = temp_f;
 
 		//Count speed_BMP
-		state_master.speed_BMP = sqrt(2 * (stateSensors.pressure - stateIMUSensors.pressure) / 1.225);
+		tmp = stateSensors.pressure - stateIMUSensors.pressure;
+		if (tmp < 0)
+			tmp = 0;
+		state_master.speed_BMP = sqrt(2 * tmp / 1.225);
 		stateSensors.speed_bmp = state_master.speed_BMP;
 
 	taskEXIT_CRITICAL();
@@ -409,10 +415,10 @@ void IMU_Init() {
 	}
 }
 
+
 void zero_data(uint8_t count){
 	taskENTER_CRITICAL();
 	state_zero.zero_pressure += (stateIMUSensors.pressure);
-//	trace_printf("data %f\n", stateIMUSensors.pressure);
 	for (int i = 0; i < 2; i++)
 		state_zero.zero_GPS[i] += stateGPS.coordinates[i];
 	for (int i = 0; i < 4; i++)
@@ -451,16 +457,14 @@ void SENSORS_task() {
 	HAL_USART_Init(&usart_dbg);
 */
 
-	taskENTER_CRITICAL();
-	my_stage_sensor = state_system.globalStage;
-	taskEXIT_CRITICAL();
-
 	get_staticShifts();
 	uint8_t count = 0;
-
+//	uint8_t count_start = 0, count_end = 0;
 
 
 	for (;;) {
+
+//		count_start = HAL_GetTick();
 
 		taskENTER_CRITICAL();
 		my_stage_sensor = state_system.globalStage;
@@ -484,30 +488,22 @@ void SENSORS_task() {
 					count++;
 					zero_data(count);
 				}
-
 				break;
 
 			default:
 				bmp280_update();
 				IMU_updateDataAll();
 				_IMUtask_updateData();
-
-
 		}
+
+//		count_end = HAL_GetTick();
 
 		if (RF || SD)
 			xTaskNotifyGive(handleRF);
 		if (CONTROL)
 			xTaskNotifyGive(handleControl);
 
-		vTaskDelay(20/portTICK_RATE_MS);
+		vTaskDelay(4/portTICK_RATE_MS);
 
 	}
 }
-
-
-
-
-
-
-

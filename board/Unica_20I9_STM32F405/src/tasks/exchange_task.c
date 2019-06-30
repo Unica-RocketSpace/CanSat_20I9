@@ -20,9 +20,6 @@
 
 UART_HandleTypeDef uartExchangeData;
 UART_HandleTypeDef uartExchangeCommand;
-DMA_HandleTypeDef dmaExchangeLogs;
-
-uint8_t Exchange_DMA_Buffer[EXCHANGE_BUFFER_SIZE];
 
 uint8_t internal_cmd;
 portBASE_TYPE internal_queue_status, answer_queue;
@@ -65,39 +62,39 @@ void init_exchange_command_UART(){
 }
 
 
-void init_exchange_DMA_logs(){
-	uint8_t error;
-
-	__HAL_RCC_DMA2_CLK_ENABLE();
-	//	Инициализация DMA2_Stream5 для работы c FC через USART
-	dmaExchangeLogs.Instance = DMA2_Stream5;
-	dmaExchangeLogs.Init.Channel = DMA_CHANNEL_4;						// 4 канал - на USART1_RX
-	dmaExchangeLogs.Init.Direction = DMA_PERIPH_TO_MEMORY;				// направление - из периферии в память
-	dmaExchangeLogs.Init.PeriphInc = DMA_PINC_DISABLE;					// инкрементация периферии выключена
-	dmaExchangeLogs.Init.MemInc = DMA_MINC_ENABLE;						// инкрементация памяти включена
-	dmaExchangeLogs.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;		// длина слова в периферии - байт
-	dmaExchangeLogs.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;		// длина слова в памяти - байт
-	dmaExchangeLogs.Init.Mode = DMA_CIRCULAR;							// режим - обычный
-	dmaExchangeLogs.Init.Priority = DMA_PRIORITY_HIGH;					// приоритет - средний
-	dmaExchangeLogs.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-	dmaExchangeLogs.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
-	dmaExchangeLogs.Init.MemBurst = DMA_MBURST_SINGLE;
-	dmaExchangeLogs.Init.PeriphBurst = DMA_PBURST_SINGLE;
-	PROCESS_ERROR(HAL_DMA_Init(&dmaExchangeLogs));
-
-	// запускаем ДМА на трансфер данных
-	PROCESS_ERROR(HAL_DMA_Start_IT(
-			&dmaExchangeLogs, (uint32_t)&uartExchangeData.Instance->DR,
-			(uint32_t)&Exchange_DMA_Buffer, EXCHANGE_BUFFER_SIZE
-	));
+//void init_exchange_DMA_logs(){
+//	uint8_t error;
+//
+//	__HAL_RCC_DMA2_CLK_ENABLE();
+//	//	Инициализация DMA2_Stream5 для работы c FC через USART
+//	dmaExchangeLogs.Instance = DMA2_Stream5;
+//	dmaExchangeLogs.Init.Channel = DMA_CHANNEL_4;						// 4 канал - на USART1_RX
+//	dmaExchangeLogs.Init.Direction = DMA_PERIPH_TO_MEMORY;				// направление - из периферии в память
+//	dmaExchangeLogs.Init.PeriphInc = DMA_PINC_DISABLE;					// инкрементация периферии выключена
+//	dmaExchangeLogs.Init.MemInc = DMA_MINC_ENABLE;						// инкрементация памяти включена
+//	dmaExchangeLogs.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;		// длина слова в периферии - байт
+//	dmaExchangeLogs.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;		// длина слова в памяти - байт
+//	dmaExchangeLogs.Init.Mode = DMA_CIRCULAR;							// режим - обычный
+//	dmaExchangeLogs.Init.Priority = DMA_PRIORITY_HIGH;					// приоритет - средний
+//	dmaExchangeLogs.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+//	dmaExchangeLogs.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
+//	dmaExchangeLogs.Init.MemBurst = DMA_MBURST_SINGLE;
+//	dmaExchangeLogs.Init.PeriphBurst = DMA_PBURST_SINGLE;
+//	PROCESS_ERROR(HAL_DMA_Init(&dmaExchangeLogs));
+//
+//	// запускаем ДМА на трансфер данных
+//	PROCESS_ERROR(HAL_DMA_Start_IT(
+//			&dmaExchangeLogs, (uint32_t)&uartExchangeData.Instance->DR,
+//			(uint32_t)&Exchange_DMA_Buffer, EXCHANGE_BUFFER_SIZE
+//	));
 
 	/*	Enable the DMA transfer for the receiver request by setting the DMAR bit
 	in the UART CR3 register		*/
-	SET_BIT(uartExchangeData.Instance->CR3, USART_CR3_DMAR);
-
-	end:
-	state_system.master_state = error;
-}
+//	SET_BIT(uartExchangeData.Instance->CR3, USART_CR3_DMAR);
+//
+//	end:
+//	state_system.master_state = error;
+//}
 
 
 void parse_command(uint8_t uplink_command){
@@ -122,7 +119,7 @@ void parse_command(uint8_t uplink_command){
 		taskEXIT_CRITICAL();
 
 		//отправка данных на FC
-		HAL_UART_Transmit(&uartExchangeData, (uint8_t*)&state_master, sizeof(state_master), 10 / portTICK_RATE_MS);
+		HAL_UART_Transmit(&uartExchangeData, (uint8_t*)&state_master, sizeof(state_master), 8 / portTICK_RATE_MS);
 
 	}
 
@@ -133,7 +130,7 @@ void parse_command(uint8_t uplink_command){
 	}
 
 	else if (uplink_command == COMMAND_LOGS){
-		HAL_UART_Receive(&uartExchangeData, (uint8_t*)&FCLogs, sizeof(FCLogs), 5 / portTICK_RATE_MS);
+		HAL_UART_Receive(&uartExchangeData, (uint8_t*)&FCLogs, sizeof(FCLogs), 4 / portTICK_RATE_MS);
 	}
 
 	else HAL_UART_Transmit(&uartExchangeCommand, &uplink_command, uplink_command, 10);

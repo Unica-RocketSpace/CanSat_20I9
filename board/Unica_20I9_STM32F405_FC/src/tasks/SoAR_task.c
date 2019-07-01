@@ -340,6 +340,7 @@ void SoAR_task() {
 				tmp = COMMAND_DATA;
 				xQueueSendToBack(handleInternalCmdQueue, &tmp, 5);
 				roll = state_master.roll;
+				trace_printf("Крен: %d \n", roll);
 			}
 
 			//РАСЧЕТ КАНАЛА РЫСКАНИЯ
@@ -350,7 +351,6 @@ void SoAR_task() {
 			yaw = state_master.yaw;
 			course = state_master.course;
 			while (abs(yaw_memory - course) >= EPS_beta) {
-
 				//Управление килем
 				if (abs(yaw - course) >= EPS_yaw) {
 					keel_yaw = keel_from_yaw[((- (ui8)round(yaw - course) / 2) * 2) + SHIFT_YAW];
@@ -362,6 +362,7 @@ void SoAR_task() {
 				xQueueSendToBack(handleInternalCmdQueue, &tmp, 5);
 				course = state_master.course;
 				yaw = state_master.yaw;
+				trace_printf("Курс: %d \n Рыскание: %d \n", course, yaw);
 				if (Predictor_Angles.beta / sign < 0) {
 					break;
 				}
@@ -398,6 +399,7 @@ void SoAR_task() {
 				tmp = COMMAND_DATA;
 				xQueueSendToBack(handleInternalCmdQueue, &tmp, 5);
 				roll = state_master.roll;
+				trace_printf("Крен: %d \n", roll);
 			}
 		}
 		//присваиваем значения углов тангажа, рысканья, крена в структуру

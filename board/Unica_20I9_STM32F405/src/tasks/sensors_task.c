@@ -41,6 +41,8 @@ const rscs_bmp280_calibration_values_t * bmp280_calibration_values;
 
 Euler_angles_t angles;
 
+float last_res_magn = 0.0;
+
 
 uint8_t get_gyro_staticShift(float* gyro_staticShift) {
 	uint8_t error = 0;
@@ -114,7 +116,7 @@ end:
 static int IMU_updateDataAll() {
 //////	СОБИРАЕМ ДАННЫЕ IMU	//////////////////////
 	//	массивы для хранения
-	int error = 0;
+	int error = 0, magn_data_write = 0;
 	int16_t accelData[3] = {0, 0, 0};
 	int16_t gyroData[3] = {0, 0, 0};
 	int16_t compassData[3] = {0, 0, 0};
@@ -128,17 +130,24 @@ static int IMU_updateDataAll() {
 		mpu9255_recalcGyro(gyroData, gyro);
 		mpu9255_recalcCompass(compassData, compass);
 
-	taskENTER_CRITICAL();
 		float _time = (float)HAL_GetTick() / 1000;
+//		if (last_res_magn < (_time - 0.04))
+//			magn_data_write = 1;
+//		else magn_data_write = 0;
+
+	taskENTER_CRITICAL();
+
 		state_system.time = _time;
 		//	пересчитываем их и записываем в структуры
 		for (int k = 0; k < 3; k++) {
 			stateIMU_rsc.accel[k] = accel[k];
 			gyro[k] -= state_zero.gyro_staticShift[k];
 			stateIMU_rsc.gyro[k] = gyro[k];
-			stateIMU_rsc.compass[k] = compass[k];
+//			if (magn_data_write)
+				stateIMU_rsc.compass[k] = compass[k];
 		}
 //		trace_printf("x\t%f y\t%f z\t%f\n------------------------------------------------\n", compass[0], compass[1], compass[2]);
+//		last_res_magn = _time;
 	taskEXIT_CRITICAL();
 	////////////////////////////////////////////////////
 
@@ -503,7 +512,7 @@ void SENSORS_task() {
 		if (CONTROL)
 			xTaskNotifyGive(handleControl);
 
-		vTaskDelay(4/portTICK_RATE_MS);
+		vTaskDelay(8/portTICK_RATE_MS);
 
 	}
 }

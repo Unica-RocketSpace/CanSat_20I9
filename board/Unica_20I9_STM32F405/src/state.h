@@ -34,7 +34,7 @@
 #define IMU_BMP		1
 #define BMP			1
 #define GPS			1
-#define LED			0
+#define LED			1
 #define CONTROL 	1
 #define EXCHANGE	1
 

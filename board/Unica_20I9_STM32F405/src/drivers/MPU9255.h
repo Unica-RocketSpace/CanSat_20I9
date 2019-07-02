@@ -12,25 +12,12 @@
 
 #define G_VECTOR	9.80665
 
-#define ACCEL_NOISE			0.0		//	m/s
-#define GYRO_NOISE			0.0		//	grad/s
-
 #define MPU9255_GYRO_SCALE_FACTOR	M_PI / (180 * 131)
-//#define MPU9255_ACCEL_SCALE_FACTOR	0.00055217
 #define MPU9255_ACCEL_SCALE_FACTOR	9.80665 / 16384
 
 #define X_ACCEL_ADDITIONAL_OFFSET		0.0
 #define Y_ACCEL_ADDITIONAL_OFFSET		0.0
 #define Z_ACCEL_ADDITIONAL_OFFSET		0.0
-
-/*
-#define X_ACCEL_OFFSET		0x003F//( 0x7FC1 )
-#define Y_ACCEL_OFFSET		0x003E//( 0x7FC2 )
-#define Z_ACCEL_OFFSET		0x0067//( 0x7F99 )
-#define X_ACCEL_KOEFF		1.0796414
-#define Y_ACCEL_KOEFF		1.0833494
-#define Z_ACCEL_KOEFF		1.0717212
-*/
 
 #define X_ACCEL_KOEFF		1
 #define Y_ACCEL_KOEFF		1
@@ -48,17 +35,6 @@
 #define YZ_ACCEL_TRANSFORM_MATIX	0.018777 //0.010250
 
 
-//для макета
-//#define X_ACCEL_OFFSET	    0.151699
-//#define Y_ACCEL_OFFSET		-0.256720
-//#define Z_ACCEL_OFFSET		0.618801
-//#define XX_ACCEL_TRANSFORM_MATIX	1.015127
-//#define YY_ACCEL_TRANSFORM_MATIX	1.441805
-//#define ZZ_ACCEL_TRANSFORM_MATIX	1.053760
-//#define XY_ACCEL_TRANSFORM_MATIX	-0.000684
-//#define XZ_ACCEL_TRANSFORM_MATIX	0.003010
-//#define YZ_ACCEL_TRANSFORM_MATIX	0.021664
-
 #define X_GYRO_KOEFF		1
 #define Y_GYRO_KOEFF		1
 #define Z_GYRO_KOEFF		1
@@ -67,11 +43,6 @@
 #define X_GYRO_OFFSET		0.0 //0.0063
 #define Y_GYRO_OFFSET		0.0  //-0.01039
 #define Z_GYRO_OFFSET		0.0 //0.009513
-
-//макет
-//#define X_GYRO_OFFSET		0.0
-//#define Y_GYRO_OFFSET		0.0
-//#define Z_GYRO_OFFSET		0.0
 
 //аппарат
 #define X_COMPAS_OFFSET		317.176763 //142.718165
@@ -84,19 +55,24 @@
 #define XZ_COMPAS_TRANSFORM_MATIX	-0.000191 //0.000110
 #define YZ_COMPAS_TRANSFORM_MATIX	0.000117 //-0.000014
 
-//макет
-//#define X_COMPAS_OFFSET		-17.068759
-//#define Y_COMPAS_OFFSET		-320.919409
-//#define Z_COMPAS_OFFSET		-78.944302
-//#define XX_COMPAS_TRANSFORM_MATIX	0.003292
-//#define YY_COMPAS_TRANSFORM_MATIX	0.003808
-//#define ZZ_COMPAS_TRANSFORM_MATIX	0.003252
-//#define XY_COMPAS_TRANSFORM_MATIX 	-0.000129
-//#define XZ_COMPAS_TRANSFORM_MATIX	0.000067
-//#define YZ_COMPAS_TRANSFORM_MATIX	-0.000046
+
+#define AK8963_MODE_POWER_DOWN	(0x00)
+#define AK8963_MODE_ONCE		(0x01)
+#define AK8963_MODE_8HZ 		(0x02)
+#define AK8963_MODE_100HZ		(0x06)
+#define AK8963_MODE_FUSE_ROM	0b00001111//(0x0F)
+
+
+#define AK8963_DATA_READY		(0x01)
+#define AK8963_DATA_OVERRUN		(0x02)
+#define AK8963_DATA_OVERFLOW	(0x08)
+
+#define AK8963_BIT_14_BIT		(0x00)
+#define AK8963_BIT_16_BIT		(0x10)
+
 
 #define ACCEL_RANGE			1			//2g - 00, 4g - 01, 8g - 10, 16g - 11
-#define GYRO_RANGE			0			//250degps - 00, 500degps - 01, 1000degps - 10, 2000degps - 11
+#define GYRO_RANGE			2			//250degps - 00, 500degps - 01, 1000degps - 10, 2000degps - 11
 
 
 /*#################################################*/
@@ -171,6 +147,8 @@ typedef enum {
  */
 int mpu9255_readRegister(mpu9255_address_t address, uint8_t regAddress, uint8_t *dataRead, uint8_t count);
 
+int mpu9255_writeRegister(mpu9255_address_t address, uint8_t regAddress, uint8_t dataWrite);
+
 /*
  *  Запись регистра
  *	Параметры:
@@ -178,7 +156,7 @@ int mpu9255_readRegister(mpu9255_address_t address, uint8_t regAddress, uint8_t 
  *		reg_address	- адрес первого записываемого регистра
  *		dataWrite	- массив, из которого берем значения
  */
-int mpu9255_writeRegister(mpu9255_address_t address, uint8_t regAddress, uint8_t dataWrite);
+int mpu9255_rewriteRegister(mpu9255_address_t address, uint8_t regAddress, uint8_t dataWrite);
 
 /*
  * 	Чтение показаний акселерометра и гироскопа

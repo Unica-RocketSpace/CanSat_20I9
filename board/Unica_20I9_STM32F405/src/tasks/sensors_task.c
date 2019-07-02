@@ -46,7 +46,7 @@ float last_res_magn = 0.0;
 
 uint8_t get_gyro_staticShift(float* gyro_staticShift) {
 	uint8_t error = 0;
-	uint16_t zero_orientCnt = 200;
+	uint16_t zero_orientCnt = 4000;
 
 	//	находим статическое смещение гироскопа
 	for (int i = 0; i < zero_orientCnt; i++) {
@@ -71,9 +71,9 @@ end:
 }
 
 
-uint8_t get_accel_staticShift(float* gyro_staticShift, float* accel_staticShift) {
+uint8_t get_accel_staticShift(float* gyro_staticShift, float* accel_staticShift, float beta) {
 	uint8_t error = 0;
-	uint16_t zero_orientCnt = 100;
+	uint16_t zero_orientCnt = 300;
 	float time = 0, time_prev = (float)HAL_GetTick() / 1000;
 
 	for (int i = 0; i < zero_orientCnt; i++) {
@@ -88,22 +88,30 @@ uint8_t get_accel_staticShift(float* gyro_staticShift, float* accel_staticShift)
 		mpu9255_recalcGyro(gyroData, gyro);
 		mpu9255_recalcAccel(accelData, accel);
 
-		time = (float)HAL_GetTick() / 1000;
 		for (int k = 0; k < 3; k++) {
 			gyro[k] -= gyro_staticShift[k];
 		}
 
-		float quaternion[4] = {0, 0, 0, 0};
-		MadgwickAHRSupdateIMU(quaternion,
-				gyro[0], gyro[1], gyro[2],
-				accel[0], accel[1], accel[2], time - time_prev, 0.033);
-		vect_rotate(accel, quaternion, accel_ISC);
+//		time = (float)HAL_GetTick() / 1000;
+//
+//		float quaternion[4] = {0, 0, 0, 0};
+////		MadgwickAHRSupdateIMU(quaternion,
+////				gyro[0], gyro[1], gyro[2],
+////				accel[0], accel[1], accel[2], time - time_prev, beta);
+//		MahonyAHRSupdateIMU(quaternion, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], time - time_prev, 20, 0);
+//		vect_rotate(accel, quaternion, accel_ISC);
+//
+////		for (int m = 0; m < 3; m++) {
+////			accel_staticShift[m] += accel_ISC[m];
+////		}
+//		time_prev = time;
+//		accel_staticShift[0] += accel_ISC[0];
+//		accel_staticShift[1] += accel_ISC[1];
+//		accel_staticShift[2] += sqrt(accel[0]*accel[0] + accel[1]*accel[1] + accel[2]*accel[2]);
 
-		for (int m = 0; m < 3; m++) {
-			accel_staticShift[m] += accel_ISC[m];
-		}
-
-		time_prev = time;
+		accel_staticShift[0] += 0.0;
+		accel_staticShift[1] = 0;
+		accel_staticShift[2] += sqrt(accel[0]*accel[0] + accel[1]*accel[1] + accel[2]*accel[2]);
 	}
 	for (int m = 0; m < 3; m++) {
 		accel_staticShift[m] /= zero_orientCnt;
@@ -111,6 +119,24 @@ uint8_t get_accel_staticShift(float* gyro_staticShift, float* accel_staticShift)
 end:
 	return error;
 }
+
+
+static void get_staticShifts() {
+	float gyro_staticShift[3] = {0, 0, 0};
+	float accel_staticShift[3] = {0, 0, 0};
+
+	if(IMU){
+		get_gyro_staticShift(gyro_staticShift);
+		get_accel_staticShift(gyro_staticShift, accel_staticShift, 0.033);
+	taskENTER_CRITICAL();
+		for (int i = 0; i < 3; i++) {
+			state_zero.gyro_staticShift[i] = gyro_staticShift[i];
+			state_zero.accel_staticShift[i] = accel_staticShift[i];
+		}
+	taskEXIT_CRITICAL();
+	}
+}
+
 
 
 static int IMU_updateDataAll() {
@@ -162,9 +188,11 @@ static int IMU_updateDataAll() {
 //			MadgwickAHRSupdateIMU(quaternion, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], dt, 0.033);
 	//	if (state_system.globalStage >= 3)
 
-	float  beta = 1;
+	float beta = 0.041;
 	MadgwickAHRSupdate(quaternion, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], compass[0], compass[1], compass[2], dt, beta);
-//	MadgwickAHRSupdateIMU(quaternion, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], dt, 0.033);
+//	MadgwickAHRSupdateIMU(quaternion, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], dt, beta);
+//	MahonyAHRSupdate(quaternion, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], compass[0], compass[1], compass[2], dt, 1, 0);
+//	MahonyAHRSupdateIMU(quaternion, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], dt, 10, 0);
 
 		//	копируем кватернион в глобальную структуру
 	taskENTER_CRITICAL();
@@ -300,24 +328,6 @@ void bmp280_update() {
 		stateSensors.speed_bmp = state_master.speed_BMP;
 
 	taskEXIT_CRITICAL();
-//	trace_printf("pressure\t%f temp\t%f height\t%f\n------------------------------------------------\n", pressure_f, temp_f, height);
-	}
-}
-
-
-static void get_staticShifts() {
-	float gyro_staticShift[3] = {0, 0, 0};
-	float accel_staticShift[3] = {0, 0, 0};
-
-	if(IMU){
-		get_gyro_staticShift(gyro_staticShift);
-		get_accel_staticShift(gyro_staticShift, accel_staticShift);
-	taskENTER_CRITICAL();
-		for (int i = 0; i < 3; i++) {
-			state_zero.gyro_staticShift[i] = gyro_staticShift[i];
-			state_zero.accel_staticShift[i] = accel_staticShift[i];
-		}
-	taskEXIT_CRITICAL();
 	}
 }
 
@@ -330,30 +340,7 @@ taskENTER_CRITICAL();
 taskEXIT_CRITICAL();
 }
 
-/*
-uint8_t init_hi2c(I2C_HandleTypeDef* hi2c){
 
-	int error = 0;
-
-	i2c_mpu9255.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-	i2c_mpu9255.Init.ClockSpeed = 400000;
-	i2c_mpu9255.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-	i2c_mpu9255.Init.DutyCycle = I2C_DUTYCYCLE_2;
-	i2c_mpu9255.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-	i2c_mpu9255.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-
-	//	TODO: УСТАНОВИТЬ РЕАЛЬНЫЙ АДРЕС
-	i2c_mpu9255.Init.OwnAddress1 = 0x00;
-	//	i2c_mpu9255.Init.OwnAddress2 = GYRO_AND_ACCEL;
-
-	i2c_mpu9255.Instance = I2C1;
-	i2c_mpu9255.Mode = HAL_I2C_MODE_MASTER;
-
-	PROCESS_ERROR(HAL_I2C_Init(hi2c));
-end:
-	return error;
-}
-*/
 
 void IMU_Init() {
 

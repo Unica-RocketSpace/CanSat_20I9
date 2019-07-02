@@ -75,7 +75,7 @@ state_servo_t		stateServo;
 
 
 //	параметры IO_RF_task
-#define IO_RF_TASK_STACK_SIZE (100*configMINIMAL_STACK_SIZE)
+#define IO_RF_TASK_STACK_SIZE (60*configMINIMAL_STACK_SIZE)
 static StackType_t	_iorfTaskStack[IO_RF_TASK_STACK_SIZE];
 static StaticTask_t	_iorfTaskObj;
 
@@ -273,7 +273,7 @@ int main(int argc, char* argv[])
 		xTaskCreateStatic(GROUND_task, 	"GROUND", 	GROUND_TASK_STACK_SIZE,	NULL, 2, _groundTaskStack, 	&_groundTaskObj);
 */
 //	if (SERVO){
-//		xTaskCreateStatic(SCHEDULE_SERVO_task, "SERVO", SERVO_TASK_STACK_SIZE, NULL, 3, _servoTaskStack, &_servoTaskObj);
+//		xTaskCrimuIniterroreateStatic(SCHEDULE_SERVO_task, "SERVO", SERVO_TASK_STACK_SIZE, NULL, 3, _servoTaskStack, &_servoTaskObj);
 //		handleLeft = xTaskCreateStatic(speedRot, "left", SERVO_TASK_STACK_SIZE, &servo_param_left, 2, _servoTaskStackLeft, &_servoTaskObjLeft);
 //		handleRight = xTaskCreateStatic(speedRot, "right", SERVO_TASK_STACK_SIZE, &servo_param_right, 2, _servoTaskStackRight, &_servoTaskObjRight);
 //		handleKeel = xTaskCreateStatic(speedRot, "keel", SERVO_TASK_STACK_SIZE, &servo_param_keel, 2, _servoTaskStackKeel, &_servoTaskObjKeel);

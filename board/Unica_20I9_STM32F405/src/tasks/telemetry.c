@@ -398,7 +398,7 @@ void IO_RF_task() {
 
 	for (;;) {
 
-//		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
 
 //		led();

@@ -80,8 +80,8 @@ void CONTROL_task() {
 
 	for(;;){
 
-//		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-//		trace_printf("C");
+		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+		trace_printf("C");
 
 		taskENTER_CRITICAL();
 		global_stage = state_system.globalStage;

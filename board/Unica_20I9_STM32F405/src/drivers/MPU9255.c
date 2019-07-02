@@ -238,7 +238,7 @@ void mpu9255_recalcCompass(const int16_t * raw_compassData, float * compassData)
 	 * Adjustment
 	 */
 	taskENTER_CRITICAL();
-	float magnASA[3] = {state_system.magnASA[0], state_system.magnASA[2], - state_system.magnASA[1]};
+	float magnASA[3] = {- state_system.magnASA[1], - state_system.magnASA[0], - state_system.magnASA[2]};
 	taskEXIT_CRITICAL();
 
 	for (uint8_t i = 0; i < 3; i++)

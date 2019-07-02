@@ -255,7 +255,7 @@ float invSqrt(float x) {
 //		/* optimal but expensive method: */
 //		return 1.0f / (float)sqrt(x);
 //	}
-	return 1/sqrt(x);
+	return 1.0f / (float)sqrt(x);
 }
 
 //====================================================================================================

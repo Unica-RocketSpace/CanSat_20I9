@@ -487,7 +487,7 @@ void SENSORS_task() {
 		command = state_system.globalCommand;
 		taskEXIT_CRITICAL();
 
-//		trace_printf("S");
+		trace_printf("S");
 
 		switch (my_stage_sensor){
 			case 1:
@@ -510,55 +510,55 @@ void SENSORS_task() {
 			default:
 				bmp280_update();
 				IMU_updateDataAll();
-
 				_IMUtask_updateData();
+				break;
 		}
 
-		uint8_t slave_error = check_i2cSlaveConnetion(GYRO_AND_ACCEL);
-		if (slave_error != HAL_OK)
-		{
-			taskENTER_CRITICAL();
-			i2c_mpu9255.Instance->CR1 |= I2C_CR1_STOP;
-			HAL_I2C_DeInit(&i2c_mpu9255);
-			taskEXIT_CRITICAL();
-
-			GPIO_InitTypeDef gpiob;
-			gpiob.Alternate = GPIO_AF4_I2C2;
-			gpiob.Mode = GPIO_MODE_OUTPUT_PP;
-			gpiob.Pin = GPIO_PIN_10 | GPIO_PIN_11;
-			gpiob.Pull = GPIO_NOPULL;
-			gpiob.Speed = GPIO_SPEED_FREQ_HIGH;
-			HAL_GPIO_Init(GPIOB, &gpiob);
-
-			trace_printf("sl_err: %d\n", slave_error);
-
-			taskENTER_CRITICAL();
-			for (int j = 0; j < 3; j++){
-				for (int i = 0; i < 9; i++)
-				{
-					HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_SET);
-					vTaskDelay(100);
-					HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_RESET);
-					vTaskDelay(100);
-				}
-			}
-			taskEXIT_CRITICAL();
-
-//			uint8_t dummyData = 0x00;
-//			HAL_I2C_Master_Transmit(&i2c_mpu9255, GYRO_AND_ACCEL, &dummyData, 1, 0xF);
-
-			gpiob.Alternate = GPIO_AF4_I2C2;
-			gpiob.Mode = GPIO_MODE_AF_OD;
-			gpiob.Pin = GPIO_PIN_10 | GPIO_PIN_11;
-			gpiob.Pull = GPIO_NOPULL;
-			gpiob.Speed = GPIO_SPEED_FREQ_HIGH;
-			HAL_GPIO_Init(GPIOB, &gpiob);
-
-			taskENTER_CRITICAL();
-			HAL_I2C_Init(&i2c_mpu9255);
-			taskEXIT_CRITICAL();
-
-		}
+//		uint8_t slave_error = check_i2cSlaveConnetion(GYRO_AND_ACCEL);
+//		if (slave_error != HAL_OK)
+//		{
+//			taskENTER_CRITICAL();
+//			i2c_mpu9255.Instance->CR1 |= I2C_CR1_STOP;
+//			HAL_I2C_DeInit(&i2c_mpu9255);
+//			taskEXIT_CRITICAL();
+//
+//			GPIO_InitTypeDef gpiob;
+//			gpiob.Alternate = GPIO_AF4_I2C2;
+//			gpiob.Mode = GPIO_MODE_OUTPUT_PP;
+//			gpiob.Pin = GPIO_PIN_10 | GPIO_PIN_11;
+//			gpiob.Pull = GPIO_NOPULL;
+//			gpiob.Speed = GPIO_SPEED_FREQ_HIGH;
+//			HAL_GPIO_Init(GPIOB, &gpiob);
+//
+//			trace_printf("sl_err: %d\n", slave_error);
+//
+//			taskENTER_CRITICAL();
+//			for (int j = 0; j < 3; j++){
+//				for (int i = 0; i < 9; i++)
+//				{
+//					HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_SET);
+//					vTaskDelay(100);
+//					HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_RESET);
+//					vTaskDelay(100);
+//				}
+//			}
+//			taskEXIT_CRITICAL();
+//
+////			uint8_t dummyData = 0x00;
+////			HAL_I2C_Master_Transmit(&i2c_mpu9255, GYRO_AND_ACCEL, &dummyData, 1, 0xF);
+//
+//			gpiob.Alternate = GPIO_AF4_I2C2;
+//			gpiob.Mode = GPIO_MODE_AF_OD;
+//			gpiob.Pin = GPIO_PIN_10 | GPIO_PIN_11;
+//			gpiob.Pull = GPIO_NOPULL;
+//			gpiob.Speed = GPIO_SPEED_FREQ_HIGH;
+//			HAL_GPIO_Init(GPIOB, &gpiob);
+//
+//			taskENTER_CRITICAL();
+//			HAL_I2C_Init(&i2c_mpu9255);
+//			taskEXIT_CRITICAL();
+//
+//		}
 
 //		count_end = HAL_GetTick();
 
@@ -572,8 +572,6 @@ void SENSORS_task() {
 //			NVIC_SystemReset();
 
 
-		}
-
 		if (RF || SD)
 			xTaskNotifyGive(handleRF);
 		if (CONTROL)
@@ -581,4 +579,5 @@ void SENSORS_task() {
 
 		vTaskDelay(8/portTICK_RATE_MS);
 
+		}
 }

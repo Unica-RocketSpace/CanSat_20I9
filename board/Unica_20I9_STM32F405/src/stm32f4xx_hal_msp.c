@@ -94,14 +94,14 @@ void HAL_MspDeInit(void)
 
 void HAL_I2C_MspInit(I2C_HandleTypeDef *hi2c) {
 
-	if(hi2c->Instance == I2C2) {
-		__I2C2_CLK_ENABLE();
+	if(hi2c->Instance == I2C1) {
+		__I2C1_CLK_ENABLE();
 		__GPIOB_CLK_ENABLE();
 
 		GPIO_InitTypeDef gpiob;
 		gpiob.Alternate = GPIO_AF4_I2C2;
 		gpiob.Mode = GPIO_MODE_AF_OD;
-		gpiob.Pin = GPIO_PIN_10 | GPIO_PIN_11;
+		gpiob.Pin = GPIO_PIN_8 | GPIO_PIN_9;
 		gpiob.Pull = GPIO_NOPULL;
 		gpiob.Speed = GPIO_SPEED_FREQ_HIGH;
 		HAL_GPIO_Init(GPIOB, &gpiob);

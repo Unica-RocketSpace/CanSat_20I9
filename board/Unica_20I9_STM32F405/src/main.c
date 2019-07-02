@@ -75,7 +75,7 @@ state_servo_t		stateServo;
 
 
 //	параметры IO_RF_task
-#define IO_RF_TASK_STACK_SIZE (60*configMINIMAL_STACK_SIZE)
+#define IO_RF_TASK_STACK_SIZE (100*configMINIMAL_STACK_SIZE)
 static StackType_t	_iorfTaskStack[IO_RF_TASK_STACK_SIZE];
 static StaticTask_t	_iorfTaskObj;
 
@@ -85,7 +85,7 @@ static StackType_t _gpsTaskStack[GPS_TASK_STACK_SIZE];
 static StaticTask_t _gpsTaskObj;
 
 //	параметры IMU_task
-#define IMU_TASK_STACK_SIZE (20*configMINIMAL_STACK_SIZE)
+#define IMU_TASK_STACK_SIZE (60*configMINIMAL_STACK_SIZE)
 static StackType_t	_IMUTaskStack[IMU_TASK_STACK_SIZE];
 static StaticTask_t	_IMUTaskObj;
 
@@ -113,18 +113,18 @@ static StaticTask_t _ExchangeTaskObj;
 
 //FIXME: DELETE
 //	параметры SERVO_task
-#define SERVO_TASK_STACK_SIZE (10*configMINIMAL_STACK_SIZE)
-static StackType_t	_servoTaskStack[SERVO_TASK_STACK_SIZE];
-static StaticTask_t	_servoTaskObj;
-
-static StackType_t	_servoTaskStackLeft[SERVO_TASK_STACK_SIZE];
-static StaticTask_t	_servoTaskObjLeft;
-
-static StackType_t	_servoTaskStackRight[SERVO_TASK_STACK_SIZE];
-static StaticTask_t	_servoTaskObjRight;
-
-static StackType_t	_servoTaskStackKeel[SERVO_TASK_STACK_SIZE];
-static StaticTask_t	_servoTaskObjKeel;
+//#define SERVO_TASK_STACK_SIZE (10*configMINIMAL_STACK_SIZE)
+//static StackType_t	_servoTaskStack[SERVO_TASK_STACK_SIZE];
+//static StaticTask_t	_servoTaskObj;
+//
+//static StackType_t	_servoTaskStackLeft[SERVO_TASK_STACK_SIZE];
+//static StaticTask_t	_servoTaskObjLeft;
+//
+//static StackType_t	_servoTaskStackRight[SERVO_TASK_STACK_SIZE];
+//static StaticTask_t	_servoTaskObjRight;
+//
+//static StackType_t	_servoTaskStackKeel[SERVO_TASK_STACK_SIZE];
+//static StaticTask_t	_servoTaskObjKeel;
 
 
 #define INTERNAL_QUEUE_LENGHT  sizeof( uint8_t )
@@ -215,8 +215,8 @@ void led(){
 void LED_task(){
 	for(;;){
 		taskENTER_CRITICAL();
-		if ((state_system.BMP_state == 0) & (state_system.IMU_BMP_state == 0) & (state_system.MPU_state == 0)
-				& (state_system.GPS_state == 0) & (state_system.NRF_state == 0) &  (state_system.SD_state == 0))
+		if ((state_system.BMP_state == 0) & (state_system.IMU_BMP_state == 0) & (state_system.MPU_state == 0)/*
+				& (state_system.GPS_state == 0) & (state_system.NRF_state == 0) &  (state_system.SD_state == 0)*/)
 				HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
 		taskEXIT_CRITICAL();
 		vTaskDelay(30);

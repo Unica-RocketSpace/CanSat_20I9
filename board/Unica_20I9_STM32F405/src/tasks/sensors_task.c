@@ -67,6 +67,9 @@ uint8_t get_gyro_staticShift(float* gyro_staticShift) {
 		gyro_staticShift[m] /= zero_orientCnt;
 	}
 end:
+	taskENTER_CRITICAL();
+	state_system.MPU_state = error;
+	taskEXIT_CRITICAL();
 	return error;
 }
 
@@ -117,6 +120,9 @@ uint8_t get_accel_staticShift(float* gyro_staticShift, float* accel_staticShift,
 		accel_staticShift[m] /= zero_orientCnt;
 	}
 end:
+	taskENTER_CRITICAL();
+	state_system.MPU_state = error;
+	taskEXIT_CRITICAL();
 	return error;
 }
 
@@ -269,6 +275,9 @@ static int IMU_updateDataAll() {
 ////////////////////////////////////////////////////
 
 end:
+	taskENTER_CRITICAL();
+	state_system.MPU_state = error;
+	taskEXIT_CRITICAL();
 	return error;
 }
 
@@ -282,7 +291,7 @@ void bmp280_update() {
 	float height = 0;
 
 	if (IMU_BMP){
-		rscs_bmp280_read(IMUbmp280, &pressure, &temp);
+		uint8_t  state_imubmp = rscs_bmp280_read(IMUbmp280, &pressure, &temp);
 		rscs_bmp280_calculate(bmp280_calibration_values, pressure, temp, &pressure_f, &temp_f);
 
 		pressure_f += IMU_BMP_DELTA_PRESSURE;	//
@@ -296,6 +305,7 @@ void bmp280_update() {
 
 
 	taskENTER_CRITICAL();
+		state_system.IMU_BMP_state = state_imubmp;
 		stateIMUSensors_prev.height = stateIMUSensors.height;
 		stateIMUSensors_raw.pressure = pressure;
 		stateIMUSensors_raw.temp = temp;
@@ -309,12 +319,13 @@ void bmp280_update() {
 	pressure = 0; temp = 0; pressure_f = 0;	temp_f = 0; height = 0;
 
 	if (BMP){
-		rscs_bmp280_read(bmp280, &pressure, &temp);
+		uint8_t state_bmp = rscs_bmp280_read(bmp280, &pressure, &temp);
 		rscs_bmp280_calculate(bmp280_calibration_values, pressure, temp, &pressure_f, &temp_f);
 
 		pressure_f += BMP_DELTA_PRESSURE;
 
 	taskENTER_CRITICAL();
+		state_system.BMP_state = state_bmp;
 		stateSensors_raw.pressure = pressure;
 		stateSensors_raw.temp = temp;
 		stateSensors.pressure = (float)pressure_f;
@@ -357,7 +368,7 @@ void IMU_Init() {
 		i2c_mpu9255.Init.OwnAddress1 = 0x00;
 	//	i2c_mpu9255.Init.OwnAddress2 = GYRO_AND_ACCEL;
 
-		i2c_mpu9255.Instance = I2C2;
+		i2c_mpu9255.Instance = I2C1;
 		i2c_mpu9255.Mode = HAL_I2C_MODE_MASTER;
 
 		int i2c_initError = HAL_I2C_Init(&i2c_mpu9255);
@@ -370,6 +381,12 @@ void IMU_Init() {
 	if (IMU){
 		//---ИНИЦИАЛИЗАЦИЯ MPU9255---//
 		uint8_t mpu9255_initError = mpu9255_init(&i2c_mpu9255);
+		if (mpu9255_initError != HAL_OK)
+		{
+			HAL_Delay(100);
+			mpu9255_initError = mpu9255_init(&i2c_mpu9255);
+		}
+
 		trace_printf("mpu: %d\n", mpu9255_initError);
 
 		state_system.MPU_state = mpu9255_initError;
@@ -437,6 +454,8 @@ uint8_t zero_state = 1;
 uint8_t get_shifts = 1;
 uint8_t my_stage_sensor = -1;
 uint8_t test_packet = 1;
+int8_t command;
+
 
 
 void SENSORS_task() {
@@ -454,6 +473,7 @@ void SENSORS_task() {
 */
 
 	get_staticShifts();
+
 	uint8_t count = 0;
 //	uint8_t count_start = 0, count_end = 0;
 
@@ -464,6 +484,7 @@ void SENSORS_task() {
 
 		taskENTER_CRITICAL();
 		my_stage_sensor = state_system.globalStage;
+		command = state_system.globalCommand;
 		taskEXIT_CRITICAL();
 
 //		trace_printf("S");
@@ -489,17 +510,75 @@ void SENSORS_task() {
 			default:
 				bmp280_update();
 				IMU_updateDataAll();
+
 				_IMUtask_updateData();
+		}
+
+		uint8_t slave_error = check_i2cSlaveConnetion(GYRO_AND_ACCEL);
+		if (slave_error != HAL_OK)
+		{
+			taskENTER_CRITICAL();
+			i2c_mpu9255.Instance->CR1 |= I2C_CR1_STOP;
+			HAL_I2C_DeInit(&i2c_mpu9255);
+			taskEXIT_CRITICAL();
+
+			GPIO_InitTypeDef gpiob;
+			gpiob.Alternate = GPIO_AF4_I2C2;
+			gpiob.Mode = GPIO_MODE_OUTPUT_PP;
+			gpiob.Pin = GPIO_PIN_10 | GPIO_PIN_11;
+			gpiob.Pull = GPIO_NOPULL;
+			gpiob.Speed = GPIO_SPEED_FREQ_HIGH;
+			HAL_GPIO_Init(GPIOB, &gpiob);
+
+			trace_printf("sl_err: %d\n", slave_error);
+
+			taskENTER_CRITICAL();
+			for (int j = 0; j < 3; j++){
+				for (int i = 0; i < 9; i++)
+				{
+					HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_SET);
+					vTaskDelay(100);
+					HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_RESET);
+					vTaskDelay(100);
+				}
+			}
+			taskEXIT_CRITICAL();
+
+//			uint8_t dummyData = 0x00;
+//			HAL_I2C_Master_Transmit(&i2c_mpu9255, GYRO_AND_ACCEL, &dummyData, 1, 0xF);
+
+			gpiob.Alternate = GPIO_AF4_I2C2;
+			gpiob.Mode = GPIO_MODE_AF_OD;
+			gpiob.Pin = GPIO_PIN_10 | GPIO_PIN_11;
+			gpiob.Pull = GPIO_NOPULL;
+			gpiob.Speed = GPIO_SPEED_FREQ_HIGH;
+			HAL_GPIO_Init(GPIOB, &gpiob);
+
+			taskENTER_CRITICAL();
+			HAL_I2C_Init(&i2c_mpu9255);
+			taskEXIT_CRITICAL();
+
 		}
 
 //		count_end = HAL_GetTick();
 
-//		if (RF || SD)
-//			xTaskNotifyGive(handleRF);
-//		if (CONTROL)
-//			xTaskNotifyGive(handleControl);
+//		if (command == 42){
+//			taskENTER_CRITICAL();
+//			i2c_mpu9255.Instance->CR1 |= I2C_CR1_STOP;
+//			HAL_I2C_DeInit(&i2c_mpu9255);
+//			vTaskDelay(200 / portTICK_RATE_MS);
+//			HAL_I2C_Init(&i2c_mpu9255);
+//			taskEXIT_CRITICAL();
+//			NVIC_SystemReset();
+
+
+		}
+
+		if (RF || SD)
+			xTaskNotifyGive(handleRF);
+		if (CONTROL)
+			xTaskNotifyGive(handleControl);
 
 		vTaskDelay(8/portTICK_RATE_MS);
 
-	}
 }

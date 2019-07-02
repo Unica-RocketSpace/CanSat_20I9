@@ -11,6 +11,7 @@
 #include <stm32f4xx_hal.h>
 
 #include "state.h"
+#include "minmea.h"
 
 #define GPS_USART 				(USART2)
 #define GPS_DMA_BUFFER_SIZE 	(400)

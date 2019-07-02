@@ -39,7 +39,7 @@ float tocoord(struct minmea_float *f)
     if (f->scale == 0)
         return NAN;
     int_least32_t minutes = f->value % (f->scale * 100);
-    return (float) minutes;
+    return (float) minutes / f->scale;
 
 }
 

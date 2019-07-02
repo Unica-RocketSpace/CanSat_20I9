@@ -206,4 +206,7 @@ void mpu9255_recalcCompass(const int16_t* raw_compassData, float* compassData);
 int mpu9255_init(I2C_HandleTypeDef* hi2c);		//инициализация mpu9255
 
 
+uint8_t check_i2cSlaveConnetion(uint8_t address);
+
+
 #endif /* MPU9255_H_ */

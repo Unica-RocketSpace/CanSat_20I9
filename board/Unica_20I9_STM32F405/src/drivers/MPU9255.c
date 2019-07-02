@@ -52,6 +52,12 @@ int mpu9255_init(I2C_HandleTypeDef* hi2c)
 	PROCESS_ERROR(mpu9255_rewriteRegister(GYRO_AND_ACCEL,	107,	0b10000000));	//RESET
 	HAL_Delay(200);
 
+
+//	uint8_t whoami = 0;
+//	PROCESS_ERROR(mpu9255_readRegister(GYRO_AND_ACCEL, 117, &whoami, 1));
+//	trace_printf("me: %d\n", whoami);
+
+
 	PROCESS_ERROR(mpu9255_rewriteRegister(GYRO_AND_ACCEL,	25,		0b00000001));	//Sample Rate Divider
 	PROCESS_ERROR(mpu9255_rewriteRegister(GYRO_AND_ACCEL,	26,		0b00000101));	//config (DLPF = 101)
 	PROCESS_ERROR(mpu9255_rewriteRegister(GYRO_AND_ACCEL,	28,		(0b00000000 | (ACCEL_RANGE << 3)))); 	//accel config (rate 4g = 01)
@@ -225,8 +231,8 @@ void mpu9255_recalcCompass(const int16_t * raw_compassData, float * compassData)
 {
 	//переводим систему координат магнетометра в систему координат MPU
 	float raw_data[3] = {	  (float)raw_compassData[0],
-				- (float)raw_compassData[1],
-				- (float)raw_compassData[2]};
+							- (float)raw_compassData[1],
+							- (float)raw_compassData[2]};
 
 	/*
 	 * Adjustment
@@ -250,3 +256,24 @@ void mpu9255_recalcCompass(const int16_t * raw_compassData, float * compassData)
 	float offset_vector[3] = {0, 0, 0};
 	iauPmp(raw_data, offset_vector, compassData);
 }
+
+
+uint8_t check_i2cSlaveConnetion(uint8_t address)
+{
+	uint8_t error = 0;
+	if ((address == GYRO_AND_ACCEL) && (MPU))
+	{
+		uint8_t whoami = 0;
+		PROCESS_ERROR(mpu9255_readRegister(address, 117, &whoami, 1));
+
+		if (whoami != 113)
+			return -2;
+		else
+			return 0;
+	}
+
+end:
+	return -3;
+	return error;
+}
+

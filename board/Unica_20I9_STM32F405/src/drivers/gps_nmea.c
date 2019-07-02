@@ -31,6 +31,18 @@ static UART_HandleTypeDef uart_GPS;
 static DMA_HandleTypeDef dma_GPS;
 
 
+float coord_koef = 1853.31;
+
+
+float tocoord(struct minmea_float *f)
+{
+    if (f->scale == 0)
+        return NAN;
+    int_least32_t minutes = f->value % (f->scale * 100);
+    return (float) minutes;
+
+}
+
 inline static char _read_dma_buffer(void)
 {
 	if (GPS){
@@ -153,15 +165,15 @@ void GPS_task()	{
 */
 		trace_printf("G");
 
-		float _lon = minmea_tocoord(&frame.longitude);
-		float _lat = minmea_tocoord(&frame.latitude);
+		float _lon = tocoord(&frame.longitude);
+		float _lat = tocoord(&frame.latitude);
 		float _speed = minmea_tofloat(&frame.speed);
 		float _course = minmea_tofloat(&frame.course);
 		float _time = minmea_tofloat((struct minmea_float *)(&frame.time));
 
 		taskENTER_CRITICAL();
-		stateGPS.coordinates[0] = (_lon  - state_zero.zero_GPS[0]) / 180 * M_PI * 6371200;
-		stateGPS.coordinates[1] = (_lat - state_zero.zero_GPS[1]) / 180 * M_PI * 6371200;
+		stateGPS.coordinates[0] = (_lon  - state_zero.zero_GPS[0]) * coord_koef;
+		stateGPS.coordinates[1] = (state_zero.zero_GPS[1] - _lat) * coord_koef;
 		stateGPS.speed = (_speed * 0.51444); //перевод из узлов в м/с
 		stateGPS.course = _course;
 		stateGPS.time = _time;

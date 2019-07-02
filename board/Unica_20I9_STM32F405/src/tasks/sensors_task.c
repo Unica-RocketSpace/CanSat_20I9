@@ -130,13 +130,13 @@ static int IMU_updateDataAll() {
 		mpu9255_recalcGyro(gyroData, gyro);
 		mpu9255_recalcCompass(compassData, compass);
 
-		float _time = (float)HAL_GetTick() / 1000;
+
 //		if (last_res_magn < (_time - 0.04))
 //			magn_data_write = 1;
 //		else magn_data_write = 0;
 
 	taskENTER_CRITICAL();
-
+		float _time = (float)HAL_GetTick() / 1000;
 		state_system.time = _time;
 		//	пересчитываем их и записываем в структуры
 		for (int k = 0; k < 3; k++) {
@@ -144,7 +144,7 @@ static int IMU_updateDataAll() {
 			gyro[k] -= state_zero.gyro_staticShift[k];
 			stateIMU_rsc.gyro[k] = gyro[k];
 //			if (magn_data_write)
-				stateIMU_rsc.compass[k] = compass[k];
+			stateIMU_rsc.compass[k] = compass[k];
 		}
 //		trace_printf("x\t%f y\t%f z\t%f\n------------------------------------------------\n", compass[0], compass[1], compass[2]);
 //		last_res_magn = _time;
@@ -360,7 +360,7 @@ void IMU_Init() {
 	if(IMU_BMP | IMU | BMP)
 	{
 		i2c_mpu9255.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-		i2c_mpu9255.Init.ClockSpeed = 400000;
+		i2c_mpu9255.Init.ClockSpeed = 200000;
 		i2c_mpu9255.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
 		i2c_mpu9255.Init.DutyCycle = I2C_DUTYCYCLE_2;
 		i2c_mpu9255.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
@@ -507,10 +507,10 @@ void SENSORS_task() {
 
 //		count_end = HAL_GetTick();
 
-		if (RF || SD)
-			xTaskNotifyGive(handleRF);
-		if (CONTROL)
-			xTaskNotifyGive(handleControl);
+//		if (RF || SD)
+//			xTaskNotifyGive(handleRF);
+//		if (CONTROL)
+//			xTaskNotifyGive(handleControl);
 
 		vTaskDelay(8/portTICK_RATE_MS);
 

@@ -80,7 +80,7 @@ void CONTROL_task() {
 
 	for(;;){
 
-		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+//		ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 //		trace_printf("C");
 
 		taskENTER_CRITICAL();

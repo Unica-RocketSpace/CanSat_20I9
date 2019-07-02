@@ -26,5 +26,7 @@ extern uint8_t dma_usartBuffer[100];
 void GPS_Init();
 void GPS_task();
 
+float tocoord(struct minmea_float *f);
+
 
 #endif /* GPS_NMEA_H_ */

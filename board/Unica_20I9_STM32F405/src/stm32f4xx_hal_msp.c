@@ -102,7 +102,7 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *hi2c) {
 		gpiob.Alternate = GPIO_AF4_I2C2;
 		gpiob.Mode = GPIO_MODE_AF_OD;
 		gpiob.Pin = GPIO_PIN_10 | GPIO_PIN_11;
-		gpiob.Pull = GPIO_PULLUP;
+		gpiob.Pull = GPIO_NOPULL;
 		gpiob.Speed = GPIO_SPEED_FREQ_HIGH;
 		HAL_GPIO_Init(GPIOB, &gpiob);
 	}

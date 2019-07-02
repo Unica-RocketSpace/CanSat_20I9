@@ -238,23 +238,23 @@ void mpu9255_recalcCompass(const int16_t * raw_compassData, float * compassData)
 	 * Adjustment
 	 */
 	taskENTER_CRITICAL();
-	float magnASA[3] = {- state_system.magnASA[1], - state_system.magnASA[0], - state_system.magnASA[2]};
+	float magnASA[3] = {state_system.magnASA[0], - state_system.magnASA[1], - state_system.magnASA[2]};
 	taskEXIT_CRITICAL();
 
 	for (uint8_t i = 0; i < 3; i++)
 		raw_data[i] *= magnASA[i];
 
 
-//	float offset_vector[3] = {X_COMPAS_OFFSET, Y_COMPAS_OFFSET, Z_COMPAS_OFFSET};
-//	float transform_matrix[3][3] =	{	{XX_COMPAS_TRANSFORM_MATIX, XY_COMPAS_TRANSFORM_MATIX, XZ_COMPAS_TRANSFORM_MATIX},
-//										{XY_COMPAS_TRANSFORM_MATIX, YY_COMPAS_TRANSFORM_MATIX, YZ_COMPAS_TRANSFORM_MATIX},
-//										{XZ_COMPAS_TRANSFORM_MATIX, YZ_COMPAS_TRANSFORM_MATIX, ZZ_COMPAS_TRANSFORM_MATIX}};
-//
-//	iauPmp(raw_data, offset_vector, compassData);
-//	iauRxp(transform_matrix, compassData, compassData);
+	float offset_vector[3] = {X_COMPAS_OFFSET, Y_COMPAS_OFFSET, Z_COMPAS_OFFSET};
+	float transform_matrix[3][3] =	{	{XX_COMPAS_TRANSFORM_MATIX, XY_COMPAS_TRANSFORM_MATIX, XZ_COMPAS_TRANSFORM_MATIX},
+										{XY_COMPAS_TRANSFORM_MATIX, YY_COMPAS_TRANSFORM_MATIX, YZ_COMPAS_TRANSFORM_MATIX},
+										{XZ_COMPAS_TRANSFORM_MATIX, YZ_COMPAS_TRANSFORM_MATIX, ZZ_COMPAS_TRANSFORM_MATIX}};
 
-	float offset_vector[3] = {0, 0, 0};
 	iauPmp(raw_data, offset_vector, compassData);
+	iauRxp(transform_matrix, compassData, compassData);
+
+//	float offset_vector[3] = {0, 0, 0};
+//	iauPmp(raw_data, offset_vector, compassData);
 }
 
 

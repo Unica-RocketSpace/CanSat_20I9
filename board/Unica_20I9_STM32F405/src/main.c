@@ -215,8 +215,8 @@ void led(){
 void LED_task(){
 	for(;;){
 		taskENTER_CRITICAL();
-		if ((state_system.BMP_state == 0) & (state_system.IMU_BMP_state == 0) & (state_system.MPU_state == 0)/*
-				& (state_system.GPS_state == 0) & (state_system.NRF_state == 0) &  (state_system.SD_state == 0)*/)
+		if ((state_system.BMP_state == 0) & (state_system.IMU_BMP_state == 0) & (state_system.MPU_state == 0)
+				& (state_system.GPS_state == 0) & (state_system.NRF_state == 0) &  (state_system.SD_state == 0))
 				HAL_GPIO_WritePin(GPIOC, GPIO_PIN_12, RESET);
 		taskEXIT_CRITICAL();
 		vTaskDelay(30);

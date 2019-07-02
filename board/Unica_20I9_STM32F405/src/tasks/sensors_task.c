@@ -30,7 +30,7 @@
 #define BETA_3	0.25
 
 #define BMP_DELTA_PRESSURE		/*0.0*/ -270
-#define	IMU_BMP_DELTA_PRESSURE	/*-2870*/ 	-13262 //-8300
+#define	IMU_BMP_DELTA_PRESSURE	-7945//-13262
 
 I2C_HandleTypeDef 	i2c_mpu9255;
 USART_HandleTypeDef usart_dbg;
@@ -336,7 +336,7 @@ void bmp280_update() {
 		if (tmp < 0)
 			tmp = 0;
 		state_master.speed_BMP = sqrt(2 * tmp / 1.225);
-		stateSensors.speed_bmp = state_master.speed_BMP;
+		stateSensors.speed_bmp = 22.5/*state_master.speed_BMP*/;
 
 	taskEXIT_CRITICAL();
 	}

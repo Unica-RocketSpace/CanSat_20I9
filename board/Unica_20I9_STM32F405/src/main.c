@@ -80,16 +80,16 @@ static StackType_t	_iorfTaskStack[IO_RF_TASK_STACK_SIZE];
 static StaticTask_t	_iorfTaskObj;
 
 //	параметры GPS_task
-#define GPS_TASK_STACK_SIZE (80*configMINIMAL_STACK_SIZE)
+#define GPS_TASK_STACK_SIZE (100*configMINIMAL_STACK_SIZE)
 static StackType_t _gpsTaskStack[GPS_TASK_STACK_SIZE];
 static StaticTask_t _gpsTaskObj;
 
 //	параметры IMU_task
-#define IMU_TASK_STACK_SIZE (60*configMINIMAL_STACK_SIZE)
+#define IMU_TASK_STACK_SIZE (70*configMINIMAL_STACK_SIZE)
 static StackType_t	_IMUTaskStack[IMU_TASK_STACK_SIZE];
 static StaticTask_t	_IMUTaskObj;
 
-#define CONTROL_TASK_STACK_SIZE (4*configMINIMAL_STACK_SIZE)
+#define CONTROL_TASK_STACK_SIZE (6*configMINIMAL_STACK_SIZE)
 static StackType_t _CONTROLTaskStack[CONTROL_TASK_STACK_SIZE];
 static StaticTask_t _CONTROLTaskObj;
 
@@ -106,7 +106,7 @@ static StaticTask_t _CONTROLTaskObj;
 static StackType_t	_ledTaskStack[LED_TASK_STACK_SIZE];
 static StaticTask_t	_ledfTaskObj;
 
-#define EXCHANGE_TASK_STACK_SIZE (20*configMINIMAL_STACK_SIZE)
+#define EXCHANGE_TASK_STACK_SIZE (25*configMINIMAL_STACK_SIZE)
 static StackType_t _ExchangeTaskStack[EXCHANGE_TASK_STACK_SIZE];
 static StaticTask_t _ExchangeTaskObj;
 

@@ -391,7 +391,7 @@ int8_t msg_state = 1;
 int8_t msg_state_zero = 1;
 uint8_t my_stage_telem = 0;
 int8_t command = 0;
-uint8_t Timeout = 5;
+uint8_t Timeout = 0;
 
 
 void IO_RF_task() {

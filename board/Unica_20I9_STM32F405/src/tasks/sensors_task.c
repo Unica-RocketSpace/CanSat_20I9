@@ -335,8 +335,8 @@ void bmp280_update() {
 		tmp = stateSensors.pressure - stateIMUSensors.pressure;
 		if (tmp < 0)
 			tmp = 0;
-		state_master.speed_BMP = sqrt(2 * tmp / 1.225);
-		stateSensors.speed_bmp = 22.5/*state_master.speed_BMP*/;
+		state_master.speed_BMP = 22.5 /*sqrt(2 * tmp / 1.225)*/;
+		stateSensors.speed_bmp = state_master.speed_BMP;
 
 	taskEXIT_CRITICAL();
 	}
@@ -358,7 +358,7 @@ void IMU_Init() {
 	if(IMU_BMP | IMU | BMP)
 	{
 		i2c_mpu9255.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-		i2c_mpu9255.Init.ClockSpeed = 200000;
+		i2c_mpu9255.Init.ClockSpeed = 100000;
 		i2c_mpu9255.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
 		i2c_mpu9255.Init.DutyCycle = I2C_DUTYCYCLE_2;
 		i2c_mpu9255.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;

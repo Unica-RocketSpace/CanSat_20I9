@@ -67,8 +67,8 @@ int mpu9255_init(I2C_HandleTypeDef* hi2c)
 	PROCESS_ERROR(mpu9255_rewriteRegister(GYRO_AND_ACCEL,	106,	0b00000000));	//user control
 	PROCESS_ERROR(mpu9255_rewriteRegister(GYRO_AND_ACCEL,	107,	0b00000001));	//power managment 1
 	PROCESS_ERROR(mpu9255_rewriteRegister(GYRO_AND_ACCEL,	108,	0b00000000));	//power managment 2
-//	PROCESS_ERROR(mpu9255_writeRegister(GYRO_AND_ACCEL,	27,		(0b00000000 | (GYRO_RANGE << 4)) ));	//gyro config (rate 500dps = 01, Fch_b = 00)
-	PROCESS_ERROR(mpu9255_rewriteRegister(GYRO_AND_ACCEL,	27,		0b000000000 | (1 << 4)));
+	PROCESS_ERROR(mpu9255_writeRegister(GYRO_AND_ACCEL,	27,		(0b00000000 | (GYRO_RANGE << 3)) ));	//gyro config (rate 500dps = 01, Fch_b = 00)
+//	PROCESS_ERROR(mpu9255_rewriteRegister(GYRO_AND_ACCEL,	27,		0b000000000 | (1 << 4)));
 
 	//  Magnetometer init
 	PROCESS_ERROR(mpu9255_writeRegister(GYRO_AND_ACCEL,	55,		0b00000010));	//режим bypass on

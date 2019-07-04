@@ -174,7 +174,7 @@ void GPS_task()	{
 		taskENTER_CRITICAL();
 		stateGPS.coordinates[0] = (_lon  - state_zero.zero_GPS[0]) * coord_koef;
 		stateGPS.coordinates[1] = (state_zero.zero_GPS[1] - _lat) * coord_koef;
-		stateGPS.speed = 23.0; //(_speed * 0.51444); //перевод из узлов в м/с
+		stateGPS.speed = 23; //(_speed * 0.51444); //перевод из узлов в м/с
 		stateGPS.course = _course;
 		stateGPS.time = _time;
 		taskEXIT_CRITICAL();

@@ -35,14 +35,14 @@
 #define BMP			1
 #define GPS			1
 #define LED			1
-#define CONTROL 	1
-#define EXCHANGE	1
+#define CONTROL 	0
+#define EXCHANGE	0
 
 #define GROUND		0
 #define SERVO		0
 
 
-#define HEIGHT_TO_DEPLOY_PARACHUTE  3	//FIXME:270
+#define HEIGHT_TO_DEPLOY_PARACHUTE  3	//FIXME: 400
 #define DEPLOY_PARACHUTE_PORT		GPIOC
 #define DEPLOY_PARACHUTE_PIN		GPIO_PIN_6
 #define DELTA_HEIGHT 				5.0

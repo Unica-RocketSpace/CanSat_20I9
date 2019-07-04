@@ -8,12 +8,12 @@
 #ifndef SOAR_TASK_H_
 #define SOAR_TASK_H_
 
-#define k1	-36.69725
-#define b1 5070.0
-#define k2 38.24384
-#define b2 5000.0
-#define k3 40.0
-#define b3 5820.0
+#define k1 -34.78261
+#define b1 4790.0
+#define k2 34.78261
+#define b2 4740.0
+#define k3 35.2941
+#define b3 5680.0
 
 void servoRotate(servo_id_t servo_id, fl angle_rad);
 void multiRot(fl angle_go_left, fl angle_go_right, fl angle_keel);

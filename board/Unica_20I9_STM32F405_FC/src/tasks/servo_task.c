@@ -101,7 +101,7 @@ void _timerPWMChangePulse(TIM_HandleTypeDef *htim, u32 Channel, u32 pulse) {
 
 	HAL_TIMEx_PWMN_Start(htim, Channel);
 	//HAL_TIM_PWM_Start(htim, Channel);
-	trace_printf("%d pulse = %d\n", Channel, pulse);
+	//trace_printf("%d pulse = %d\n", Channel, pulse);
 }
 
 void allServosInit() {

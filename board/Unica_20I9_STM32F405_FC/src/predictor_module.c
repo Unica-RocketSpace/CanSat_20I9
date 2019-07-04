@@ -117,14 +117,18 @@ float kasat(float x1, float y1, float r1, float xa, float ya, char flag) {
 
 void straight_flight(float alpha) {
 	//set angle of incidence equal to alpha
+	taskENTER_CRITICAL();
 	Predictor_Angles.alpha = alpha;
 	Predictor_Angles.beta = 0.0;
+	taskEXIT_CRITICAL();
 	return;
 }
 
 void turn_flight(float xc, float yc,float r, float x, float y, char turn) {
+	taskENTER_CRITICAL();
 	Predictor_Angles.alpha = 0.0;
 	Predictor_Angles.beta = kasat(xc, yc, r, x, y, turn);
+	taskEXIT_CRITICAL();
 }
 
 bool check_tube_target(float a, float b, float c, float x, float y) {
@@ -160,12 +164,16 @@ void height_predictor(float x, float y, float z) {
 
 void direction_predictor() {
 	float x, y, z;
+	taskENTER_CRITICAL();
 	x = state_master.coordinates[0];
 	y = state_master.coordinates[1];
 	z = state_master.height;
+	taskEXIT_CRITICAL();
 	float vx, vy;
 	float course;
+	taskENTER_CRITICAL();
 	course = state_master.course;
+	taskEXIT_CRITICAL();
 	vx = 1 * cos(course);
 	vy = 1 * sin(course);
 	float x_next, y_next;

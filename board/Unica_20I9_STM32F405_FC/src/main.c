@@ -65,7 +65,7 @@ static StaticTask_t	_exchangeTaskObj;
 static StackType_t	_controlTaskStack[CONTROL_TASK_STACK_SIZE];
 static StaticTask_t	_controlTaskObj;
 
-#define SoAR_TASK_STACK_SIZE (50*configMINIMAL_STACK_SIZE)
+#define SoAR_TASK_STACK_SIZE (100*configMINIMAL_STACK_SIZE)
 static StackType_t	_SoARTaskStack[SoAR_TASK_STACK_SIZE];
 static StaticTask_t	_SoARTaskObj;
 
@@ -112,7 +112,7 @@ void led(){
 }
 
 
-int main(int argc, char* argv[]) {
+signed main(int argc, char* argv[]) {
 	HAL_NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
 
 	// Инициализация структур глобального состояния (в нашем случае просто заполняем их нулями)

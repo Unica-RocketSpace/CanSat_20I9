@@ -7,6 +7,7 @@ import numpy as np
 import pyqtgraph as pg
 from .gcs_ui import *
 from .telemWidgets import *
+from .gcsGraph import *
 
 from PyQt5 import QtCore, QtWidgets, QtGui
 from PyQt5.QtGui import QQuaternion
@@ -298,69 +299,103 @@ class MyWin(QtWidgets.QMainWindow):
         self.buffer_zero_data = []
         self.buffer_fc_logs = []
 
+        self.glw_top = GraphLayout(centralwidget=self.ui.centralwidget, layout=self.ui.top, count_of_graphs=2,
+                                   count_plot_lines=3, graph_name=['Accel', 'GPS speed'])
+        self.glw_middle = GraphLayout(centralwidget=self.ui.centralwidget, layout=self.ui.middle, count_of_graphs=2,
+                                      count_plot_lines=3, graph_name=['Angular speed', 'Vector of magnetic field'])
+        self.glw_down = GraphLayout(centralwidget=self.ui.centralwidget, layout=self.ui.down, count_of_graphs=2,
+                                    count_plot_lines=3, graph_name=['Temperature', 'Pressure'])
+        self.glw_top_2 = GraphLayout(centralwidget=self.ui.centralwidget, layout=self.ui.grid_right_2_graf,
+                                     count_of_graphs=2, count_plot_lines=3, graph_name=['GPS', 'BMP speed'])
+
         # Верхний ряд графиков
-        self.ui.glv_top = pg.GraphicsLayoutWidget(self.ui.centralwidget)
-        self.ui.top.addWidget(self.ui.glv_top)
-        self.ui.plot_top = pg.GraphicsLayout()
-        self.ui.glv_top.addItem(self.ui.plot_top)
-
-        self.sc_item_top1 = pg.PlotItem(title='Accel RSC')
-        self.ui.plot_top.addItem(self.sc_item_top1)
-        self.graf_top1 = pg.PlotCurveItem()
-        self.sc_item_top1.addItem(self.graf_top1)
-
-        self.sc_item_top2 = pg.PlotItem(title='GPS speed')
-        self.ui.plot_top.addItem(self.sc_item_top2)
-        self.graf_top2 = pg.PlotCurveItem()
-        self.sc_item_top2.addItem(self.graf_top2)
-
-        # Создание средних графиков
-        self.ui.glv_middle = pg.GraphicsLayoutWidget(self.ui.centralwidget)
-        self.ui.middle.addWidget(self.ui.glv_middle)
-        self.ui.plot_middle = pg.GraphicsLayout()
-        self.ui.glv_middle.addItem(self.ui.plot_middle)
-
-        self.sc_item_middle1 = pg.PlotItem(title='Angular speed')
-        self.ui.plot_middle.addItem(self.sc_item_middle1)
-        self.graf_middle1 = pg.PlotCurveItem()
-        self.sc_item_middle1.addItem(self.graf_middle1)
-
-        self.sc_item_middle2 = pg.PlotItem(title='Vector of magnetic field')
-        self.ui.plot_middle.addItem(self.sc_item_middle2)
-        self.graf_middle2 = pg.PlotCurveItem()
-        self.sc_item_middle2.addItem(self.graf_middle2)
-
-        # нижний ряд графиков
-        self.ui.glv_down = pg.GraphicsLayoutWidget(self.ui.centralwidget)
-        self.ui.down.addWidget(self.ui.glv_down)
-        self.ui.plot_down = pg.GraphicsLayout()
-        self.ui.glv_down.addItem(self.ui.plot_down)
-
-        self.sc_item_down1 = pg.PlotItem(title='Temperature')
-        self.ui.plot_down.addItem(self.sc_item_down1)
-        self.graf_down1 = pg.PlotCurveItem()
-        self.sc_item_down1.addItem(self.graf_down1)
-
-        self.sc_item_down2 = pg.PlotItem(title='Pressure')
-        self.ui.plot_down.addItem(self.sc_item_down2)
-        self.graf_down2 = pg.PlotCurveItem()
-        self.sc_item_down2.addItem(self.graf_down2)
-
-        # Верхний правый ряд графиков
-        self.ui.glv_top_2 = pg.GraphicsLayoutWidget(self.ui.centralwidget)
-        self.ui.grid_right_2_graf.addWidget(self.ui.glv_top_2)
-        self.ui.plot_top_2 = pg.GraphicsLayout()
-        self.ui.glv_top_2.addItem(self.ui.plot_top_2)
-
-        self.sc_item_top3 = pg.PlotItem(title='GPS')
-        self.ui.plot_top_2.addItem(self.sc_item_top3)
-        self.graf_top3 = pg.PlotCurveItem()
-        self.sc_item_top3.addItem(self.graf_top3)
-
-        self.sc_item_top4 = pg.PlotItem(title='BMP speed')
-        self.ui.plot_top_2.addItem(self.sc_item_top4)
-        self.graf_top4 = pg.PlotCurveItem()
-        self.sc_item_top4.addItem(self.graf_top4)
+        # self.ui.glv_top = pg.GraphicsLayoutWidget(self.ui.centralwidget)
+        # self.ui.top.addWidget(self.ui.glv_top)
+        # self.ui.plot_top = pg.GraphicsLayout()
+        # self.ui.glv_top.addItem(self.ui.plot_top)
+        #
+        # self.sc_item_top1 = pg.PlotItem(title='Accel RSC')
+        # self.ui.plot_top.addItem(self.sc_item_top1)
+        # self.graf_top1 = pg.PlotCurveItem()
+        # self.sc_item_top1.addItem(self.graf_top1)
+        #
+        # self.pl_graf_top1_x = self.sc_item_top1.plot()
+        # self.pl_graf_top1_y = self.sc_item_top1.plot()
+        # self.pl_graf_top1_z = self.sc_item_top1.plot()
+        #
+        # self.sc_item_top2 = pg.PlotItem(title='GPS speed')
+        # self.ui.plot_top.addItem(self.sc_item_top2)
+        # self.graf_top2 = pg.PlotCurveItem()
+        # self.sc_item_top2.addItem(self.graf_top2)
+        #
+        # self.pl_graf_top2_x = self.sc_item_top2.plot()
+        # self.pl_graf_top2_z = self.sc_item_top2.plot()
+        #
+        #
+        # # Создание средних графиков
+        # self.ui.glv_middle = pg.GraphicsLayoutWidget(self.ui.centralwidget)
+        # self.ui.middle.addWidget(self.ui.glv_middle)
+        # self.ui.plot_middle = pg.GraphicsLayout()
+        # self.ui.glv_middle.addItem(self.ui.plot_middle)
+        #
+        # self.sc_item_middle1 = pg.PlotItem(title='Angular speed')
+        # self.ui.plot_middle.addItem(self.sc_item_middle1)
+        # self.graf_middle1 = pg.PlotCurveItem()
+        # self.sc_item_middle1.addItem(self.graf_middle1)
+        #
+        # self.pl_graf_middle1_x = self.sc_item_middle1.plot()
+        # self.pl_graf_middle1_y = self.sc_item_middle1.plot()
+        # self.pl_graf_middle1_z = self.sc_item_middle1.plot()
+        #
+        # self.sc_item_middle2 = pg.PlotItem(title='Vector of magnetic field')
+        # self.ui.plot_middle.addItem(self.sc_item_middle2)
+        # self.graf_middle2 = pg.PlotCurveItem()
+        # self.sc_item_middle2.addItem(self.graf_middle2)
+        #
+        # self.pl_graf_middle2_x = self.sc_item_middle2.plot()
+        # self.pl_graf_middle2_y = self.sc_item_middle2.plot()
+        # self.pl_graf_middle2_z = self.sc_item_middle2.plot()
+        #
+        # # нижний ряд графиков
+        # self.ui.glv_down = pg.GraphicsLayoutWidget(self.ui.centralwidget)
+        # self.ui.down.addWidget(self.ui.glv_down)
+        # self.ui.plot_down = pg.GraphicsLayout()
+        # self.ui.glv_down.addItem(self.ui.plot_down)
+        #
+        # self.sc_item_down1 = pg.PlotItem(title='Temperature')
+        # self.ui.plot_down.addItem(self.sc_item_down1)
+        # self.graf_down1 = pg.PlotCurveItem()
+        # self.sc_item_down1.addItem(self.graf_down1)
+        #
+        # self.pl_graf_down1_x = self.sc_item_down1.plot()
+        #
+        # self.sc_item_down2 = pg.PlotItem(title='Pressure')
+        # self.ui.plot_down.addItem(self.sc_item_down2)
+        # self.graf_down2 = pg.PlotCurveItem()
+        # self.sc_item_down2.addItem(self.graf_down2)
+        #
+        # self.pl_graf_down2_x = self.sc_item_down2.plot()
+        #
+        # # Верхний правый ряд графиков
+        # self.ui.glv_top_2 = pg.GraphicsLayoutWidget(self.ui.centralwidget)
+        # self.ui.grid_right_2_graf.addWidget(self.ui.glv_top_2)
+        # self.ui.plot_top_2 = pg.GraphicsLayout()
+        # self.ui.glv_top_2.addItem(self.ui.plot_top_2)
+        #
+        # self.sc_item_top3 = pg.PlotItem(title='GPS')
+        # self.ui.plot_top_2.addItem(self.sc_item_top3)
+        # self.graf_top3 = pg.PlotCurveItem()
+        # self.sc_item_top3.addItem(self.graf_top3)
+        #
+        # self.pl_graf_top3_x = self.sc_item_top3.plot()
+        # self.pl_graf_top3_y = self.sc_item_top3.plot()
+        #
+        # self.sc_item_top4 = pg.PlotItem(title='BMP speed')
+        # self.ui.plot_top_2.addItem(self.sc_item_top4)
+        # self.graf_top4 = pg.PlotCurveItem()
+        # self.sc_item_top4.addItem(self.graf_top4)
+        #
+        # self.pl_graf_top4_x = self.sc_item_top4.plot()
 
         # 3D график
         self.ui.dockwid = QtWidgets.QDockWidget()
@@ -371,32 +406,6 @@ class MyWin(QtWidgets.QMainWindow):
         self.isc_coord = gl.GLAxisItem()
         self.isc_coord.setSize(25, 25, 25)
         self.ui.glwid.show()
-
-        #
-        self.pl_graf_top1_x = self.sc_item_top1.plot()
-        self.pl_graf_top2_x = self.sc_item_top2.plot()
-        self.pl_graf_top3_x = self.sc_item_top3.plot()
-        self.pl_graf_top4_x = self.sc_item_top4.plot()
-
-        self.pl_graf_top1_y = self.sc_item_top1.plot()
-        self.pl_graf_top3_y = self.sc_item_top3.plot()
-
-        self.pl_graf_top1_z = self.sc_item_top1.plot()
-        self.pl_graf_top2_z = self.sc_item_top2.plot()
-
-        #
-        self.pl_graf_middle1_x = self.sc_item_middle1.plot()
-        self.pl_graf_middle2_x = self.sc_item_middle2.plot()
-
-        self.pl_graf_middle1_y = self.sc_item_middle1.plot()
-        self.pl_graf_middle2_y = self.sc_item_middle2.plot()
-
-        self.pl_graf_middle1_z = self.sc_item_middle1.plot()
-        self.pl_graf_middle2_z = self.sc_item_middle2.plot()
-
-        #
-        self.pl_graf_down1_x = self.sc_item_down1.plot()
-        self.pl_graf_down2_x = self.sc_item_down2.plot()
 
         # Здесь прописываем событие нажатия на кнопку
         # self.ui.pushButton_3.clicked.connect(self.remove_graf)
@@ -485,7 +494,8 @@ class MyWin(QtWidgets.QMainWindow):
             self.pressure_bmp = self.pressure_bmp[self.cut:(self.lenght - 1)]
             self.temp_bmp = self.temp_bmp[self.cut:(self.lenght - 1)]
             self.speed_bmp = self.speed_bmp[self.cut:(self.lenght - 1)]
-        self.pl_graf_top4_x.setData(x=self.time_bmp, y=self.speed_bmp, pen=('r'))
+        self.glw_top_2.graphs[1].plot_lines[0].setData(x=self.time_bmp, y=self.speed_bmp, pen=('r'))
+        # self.pl_graf_top4_x.setData(x=self.time_bmp, y=self.speed_bmp, pen=('r'))
 
     # Слот для разбора пакета imu_rsc
     @QtCore.pyqtSlot(list)
@@ -557,17 +567,28 @@ class MyWin(QtWidgets.QMainWindow):
             self.a_RSC_y = self.a_RSC_y[self.cut:(self.lenght - 1)]
             self.a_RSC_z = self.a_RSC_z[self.cut:(self.lenght - 1)]
 
-        self.pl_graf_top1_x.setData(x=self.time_RSC, y=self.a_RSC_x, pen=('r'), width=0.5)
-        self.pl_graf_top1_y.setData(x=self.time_RSC, y=self.a_RSC_y, pen=('g'), width=0.5)
-        self.pl_graf_top1_z.setData(x=self.time_RSC, y=self.a_RSC_z, pen=('b'), width=0.5)
+        self.glw_top.graphs[0].plot_lines[0].setData(x=self.time_RSC, y=self.a_RSC_x, pen=('r'), width=0.5)
+        self.glw_top.graphs[0].plot_lines[1].setData(x=self.time_RSC, y=self.a_RSC_y, pen=('g'), width=0.5)
+        self.glw_top.graphs[0].plot_lines[2].setData(x=self.time_RSC, y=self.a_RSC_z, pen=('b'), width=0.5)
 
-        self.pl_graf_middle1_x.setData(x=self.time_RSC, y=self.av_x, pen=('r'), width=0.5)
-        self.pl_graf_middle1_y.setData(x=self.time_RSC, y=self.av_y, pen=('g'), width=0.5)
-        self.pl_graf_middle1_z.setData(x=self.time_RSC, y=self.av_z, pen=('b'), width=0.5)
+        self.glw_middle.graphs[0].plot_lines[0].setData(x=self.time_RSC, y=self.av_x, pen=('r'), width=0.5)
+        self.glw_middle.graphs[0].plot_lines[1].setData(x=self.time_RSC, y=self.av_y, pen=('g'), width=0.5)
+        self.glw_middle.graphs[0].plot_lines[2].setData(x=self.time_RSC, y=self.av_z, pen=('b'), width=0.5)
 
-        self.pl_graf_middle2_x.setData(x=self.time_RSC, y=self.vmf_x, pen=('r'), width=0.5)
-        self.pl_graf_middle2_y.setData(x=self.time_RSC, y=self.vmf_y, pen=('g'), width=0.5)
-        self.pl_graf_middle2_z.setData(x=self.time_RSC, y=self.vmf_z, pen=('b'), width=0.5)
+        self.glw_middle.graphs[1].plot_lines[0].setData(x=self.time_RSC, y=self.vmf_x, pen=('r'), width=0.5)
+        self.glw_middle.graphs[1].plot_lines[1].setData(x=self.time_RSC, y=self.vmf_y, pen=('g'), width=0.5)
+        self.glw_middle.graphs[1].plot_lines[2].setData(x=self.time_RSC, y=self.vmf_z, pen=('b'), width=0.5)
+        # self.pl_graf_top1_x.setData(x=self.time_RSC, y=self.a_RSC_x, pen=('r'), width=0.5)
+        # self.pl_graf_top1_y.setData(x=self.time_RSC, y=self.a_RSC_y, pen=('g'), width=0.5)
+        # self.pl_graf_top1_z.setData(x=self.time_RSC, y=self.a_RSC_z, pen=('b'), width=0.5)
+        #
+        # self.pl_graf_middle1_x.setData(x=self.time_RSC, y=self.av_x, pen=('r'), width=0.5)
+        # self.pl_graf_middle1_y.setData(x=self.time_RSC, y=self.av_y, pen=('g'), width=0.5)
+        # self.pl_graf_middle1_z.setData(x=self.time_RSC, y=self.av_z, pen=('b'), width=0.5)
+        #
+        # self.pl_graf_middle2_x.setData(x=self.time_RSC, y=self.vmf_x, pen=('r'), width=0.5)
+        # self.pl_graf_middle2_y.setData(x=self.time_RSC, y=self.vmf_y, pen=('g'), width=0.5)
+        # self.pl_graf_middle2_z.setData(x=self.time_RSC, y=self.vmf_z, pen=('b'), width=0.5)
 
     # Слот для разбора пакета imu_isc
     @QtCore.pyqtSlot(list)
@@ -626,8 +647,10 @@ class MyWin(QtWidgets.QMainWindow):
             self.pressure_bmpIMU = self.pressure_bmpIMU[self.cut:(self.lenght - 1)]
             self.temp_bmpIMU = self.temp_bmpIMU[self.cut:(self.lenght - 1)]
 
-        self.pl_graf_down1_x.setData(x=self.time_bmpIMU, y=self.temp_bmpIMU, pen=('r'))
-        self.pl_graf_down2_x.setData(x=self.time_bmpIMU, y=self.pressure_bmpIMU, pen=('r'))
+        self.glw_down.graphs[0].plot_lines[0].setData(x=self.time_bmpIMU, y=self.temp_bmpIMU, pen=('r'))
+        self.glw_down.graphs[1].plot_lines[0].setData(x=self.time_bmpIMU, y=self.pressure_bmpIMU, pen=('r'))
+        # self.pl_graf_down1_x.setData(x=self.time_bmpIMU, y=self.temp_bmpIMU, pen=('r'))
+        # self.pl_graf_down2_x.setData(x=self.time_bmpIMU, y=self.pressure_bmpIMU, pen=('r'))
 
     # Слот для разбора пакета GPS
     @QtCore.pyqtSlot(list)
@@ -669,8 +692,10 @@ class MyWin(QtWidgets.QMainWindow):
             self.x = self.x[self.cut:(self.lenght - 1)]
             self.y = self.y[self.cut:(self.lenght - 1)]
 
-        self.pl_graf_top3_x.setData(x=self.x, y=self.y, pen=('r'))
-        self.pl_graf_top2_x.setData(x=self.time_GPS, y=self.speed_GPS, pen=('r'))
+        self.glw_top_2.graphs[0].plot_lines[0].setData(x=self.x, y=self.y, pen=('r'))
+        self.glw_top.graphs[1].plot_lines[0].setData(x=self.time_GPS, y=self.speed_GPS, pen=('r'))
+        # self.pl_graf_top3_x.setData(x=self.x, y=self.y, pen=('r'))
+        # self.pl_graf_top2_x.setData(x=self.time_GPS, y=self.speed_GPS, pen=('r'))
 
     # Слот для разбора пакета state
     @QtCore.pyqtSlot(list)

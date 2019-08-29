@@ -188,7 +188,7 @@ class MyWin(QtWidgets.QMainWindow):
             self.telem_widget_stage.set_name_label_7('Управляемый полет')
             self.telem_widget_stage.set_name_label_8('Режим ожидания')
 
-            self.telem_widget_state = TelemWidgetState(title="State SC sensors", layout=self.ui.verticalLayout_5)
+            self.telem_widget_state = TelemWidgetStateWithButtons(title="State SC sensors", layout=self.ui.verticalLayout_5, start_color=color_red)
             self.telem_widget_state.set_name_label_1('IMU')
             self.telem_widget_state.set_name_label_2('IMU BMP')
             self.telem_widget_state.set_name_label_3('SD')
@@ -230,7 +230,7 @@ class MyWin(QtWidgets.QMainWindow):
         # self.accel_f = open("C:\Cansat Unica 2018\calibration\\accel_calibration", "wt")
         # self.compass_f = open("C:\Cansat Unica 2018\calibration\magn_calibration", "wt")
 
-        self.lenght = 150
+        self.lenght = 1000
         self.cut = 11
         self.zero_data = 1
 
@@ -685,13 +685,36 @@ class MyWin(QtWidgets.QMainWindow):
                 self.telem_widget_state.clear_values()
 
                 self.telem_widget_state.set_value_1(msgs[i].MPU_state)
+                if msgs[i].MPU_state == 0:  self.telem_widget_state.set_button_1_color(color_green)
+                else: self.telem_widget_state.set_button_1_color(color_red)
+
                 self.telem_widget_state.set_value_2(msgs[i].IMU_BMP_state)
+                if msgs[i].IMU_BMP_state == 0:  self.telem_widget_state.set_button_2_color(color_green)
+                else: self.telem_widget_state.set_button_2_color(color_red)
+
                 self.telem_widget_state.set_value_3(msgs[i].SD_state)
+                if msgs[i].SD_state == 0:  self.telem_widget_state.set_button_3_color(color_green)
+                else: self.telem_widget_state.set_button_3_color(color_red)
+
                 self.telem_widget_state.set_value_4(msgs[i].NRF_state)
+                if msgs[i].NRF_state == 0:  self.telem_widget_state.set_button_4_color(color_green)
+                else: self.telem_widget_state.set_button_4_color(color_red)
+
                 self.telem_widget_state.set_value_5(msgs[i].GPS_state)
+                if msgs[i].GPS_state == 0:  self.telem_widget_state.set_button_5_color(color_green)
+                else: self.telem_widget_state.set_button_5_color(color_red)
+
                 self.telem_widget_state.set_value_6(msgs[i].BMP_state)
+                if msgs[i].BMP_state == 0:  self.telem_widget_state.set_button_6_color(color_green)
+                else: self.telem_widget_state.set_button_6_color(color_red)
+
                 self.telem_widget_state.set_value_7(msgs[i].master_state)
+                if msgs[i].master_state == 4: self.telem_widget_state.set_button_7_color(color_green)
+                else: self.telem_widget_state.set_button_7_color(color_red)
+
                 self.telem_widget_state.set_value_8(msgs[i].buttons)
+                if msgs[i].buttons == 5: self.telem_widget_state.set_button_8_color(color_green)
+                else: self.telem_widget_state.set_button_8_color(color_red)
 
             #
             if self.state_fly == 0:

@@ -18,7 +18,7 @@ SD = 0
 
 # Файл, из которого мы читаем данные
 if SD:
-    read_file = r'C:\Users\MI\PycharmProjects\CanSat_20I9\ground\unisat-gcs\src\unisat_gcs\server\U318.txt'
+    read_file = r'C:\Users\MI\PycharmProjects\CanSat_20I9\ground\unisat-gcs\src\unisat_gcs\server\U157.txt'
 
 
 class MsgAccumulator:
@@ -34,7 +34,6 @@ class MsgAccumulator:
             self.signal.emit(self.accumulator)
             self.accumulator = []
             # print('PUSH COMPLETED')
-
 
 class MavlinkThread(QThread):
     new_imu_rsc_record = pyqtSignal(list)
@@ -68,7 +67,7 @@ class MavlinkThread(QThread):
 
     def process_message(self, msg):
         # _log.debug(msg)
-        # _log.info(msg)
+        _log.info(msg)
         if isinstance(msg, MAVLink_bmp280_message):
             self.bmp_accum.push_message(msg)
             # print('bmp msg')

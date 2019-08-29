@@ -6,6 +6,7 @@ from .gcs_wid_telem_2 import *
 from.gcs_wid_telem_buttons import *
 from .gcs_wid_telem_state import *
 from .gcs_wid_telem_3 import *
+from .gcs_wid_telem_state_with_buttons import *
 
 
 class TelemWidgetParent(QDockWidget):
@@ -140,6 +141,43 @@ class TelemWidgetState(TelemWidgetParent):
         self.set_value_6('')
         self.set_value_7('')
         self.set_value_8('')
+
+
+class TelemWidgetStateWithButtons(TelemWidgetState):
+    def __init__(self, parent=None, title=None, layout=None, start_color=None):
+        TelemWidgetParent.__init__(self, parent=parent, my_ui=Ui_DockWidget_telem_state_wit_buttons(), title=title, layout=layout)
+        self.ui.toolButton_1.setStyleSheet('QToolButton { background-color: %s}' % start_color)
+        self.ui.toolButton_2.setStyleSheet('QToolButton { background-color: %s}' % start_color)
+        self.ui.toolButton_3.setStyleSheet('QToolButton { background-color: %s}' % start_color)
+        self.ui.toolButton_4.setStyleSheet('QToolButton { background-color: %s}' % start_color)
+        self.ui.toolButton_5.setStyleSheet('QToolButton { background-color: %s}' % start_color)
+        self.ui.toolButton_6.setStyleSheet('QToolButton { background-color: %s}' % start_color)
+        self.ui.toolButton_7.setStyleSheet('QToolButton { background-color: %s}' % start_color)
+        self.ui.toolButton_8.setStyleSheet('QToolButton { background-color: %s}' % start_color)
+
+    def set_button_1_color(self, color):
+        self.ui.toolButton_1.setStyleSheet('QToolButton { background-color: %s}' % color)
+
+    def set_button_2_color(self, color):
+        self.ui.toolButton_2.setStyleSheet('QToolButton { background-color: %s}' % color)
+
+    def set_button_3_color(self, color):
+        self.ui.toolButton_3.setStyleSheet('QToolButton { background-color: %s}' % color)
+
+    def set_button_4_color(self, color):
+        self.ui.toolButton_4.setStyleSheet('QToolButton { background-color: %s}' % color)
+
+    def set_button_5_color(self, color):
+        self.ui.toolButton_5.setStyleSheet('QToolButton { background-color: %s}' % color)
+
+    def set_button_6_color(self, color):
+        self.ui.toolButton_6.setStyleSheet('QToolButton { background-color: %s}' % color)
+
+    def set_button_7_color(self, color):
+        self.ui.toolButton_7.setStyleSheet('QToolButton { background-color: %s}' % color)
+
+    def set_button_8_color(self, color):
+        self.ui.toolButton_8.setStyleSheet('QToolButton { background-color: %s}' % color)
 
 
 class TelemWidget3(TelemWidgetParent):

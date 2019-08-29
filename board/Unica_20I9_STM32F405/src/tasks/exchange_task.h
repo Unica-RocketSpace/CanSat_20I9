@@ -11,11 +11,8 @@
 #include <stm32f4xx_hal.h>
 #include "state.h"
 
-#define EXCHANGE_BUFFER_SIZE	100
+//#define EXCHANGE_BUFFER_SIZE	100
 
-
-
-extern uint8_t Exchange_DMA_Buffer[EXCHANGE_BUFFER_SIZE];
 
 //инициализация uart для приема/передачи команд
 void init_exchange_command_UART();
@@ -23,7 +20,7 @@ void init_exchange_command_UART();
 //инициализация uart для приема/передачи данных
 void init_exchange_data_UART();
 
-void init_exchange_DMA_data();
+//void init_exchange_DMA_data();
 
 void init_exchange_DMA_logs();
 

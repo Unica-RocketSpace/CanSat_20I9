@@ -11,6 +11,7 @@
 #include <stm32f4xx_hal.h>
 
 #include "state.h"
+#include "minmea.h"
 
 #define GPS_USART 				(USART2)
 #define GPS_DMA_BUFFER_SIZE 	(400)
@@ -25,6 +26,8 @@ extern uint8_t dma_usartBuffer[100];
 
 void GPS_Init();
 void GPS_task();
+
+float tocoord(struct minmea_float *f);
 
 
 #endif /* GPS_NMEA_H_ */

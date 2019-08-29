@@ -30,7 +30,7 @@
 #define BETA_3	0.25
 
 #define BMP_DELTA_PRESSURE		/*0.0*/ -270
-#define	IMU_BMP_DELTA_PRESSURE	/*-2870*/ 	-13262 //-8300
+#define	IMU_BMP_DELTA_PRESSURE	-7945//-13262
 
 I2C_HandleTypeDef 	i2c_mpu9255;
 USART_HandleTypeDef usart_dbg;
@@ -41,9 +41,12 @@ const rscs_bmp280_calibration_values_t * bmp280_calibration_values;
 
 Euler_angles_t angles;
 
+float last_res_magn = 0.0;
+
+
 uint8_t get_gyro_staticShift(float* gyro_staticShift) {
 	uint8_t error = 0;
-	uint16_t zero_orientCnt = 200;
+	uint16_t zero_orientCnt = 4000;
 
 	//	находим статическое смещение гироскопа
 	for (int i = 0; i < zero_orientCnt; i++) {
@@ -64,12 +67,16 @@ uint8_t get_gyro_staticShift(float* gyro_staticShift) {
 		gyro_staticShift[m] /= zero_orientCnt;
 	}
 end:
+	taskENTER_CRITICAL();
+	state_system.MPU_state = error;
+	taskEXIT_CRITICAL();
 	return error;
 }
 
-uint8_t get_accel_staticShift(float* gyro_staticShift, float* accel_staticShift) {
+
+uint8_t get_accel_staticShift(float* gyro_staticShift, float* accel_staticShift, float beta) {
 	uint8_t error = 0;
-	uint16_t zero_orientCnt = 100;
+	uint16_t zero_orientCnt = 300;
 	float time = 0, time_prev = (float)HAL_GetTick() / 1000;
 
 	for (int i = 0; i < zero_orientCnt; i++) {
@@ -84,35 +91,64 @@ uint8_t get_accel_staticShift(float* gyro_staticShift, float* accel_staticShift)
 		mpu9255_recalcGyro(gyroData, gyro);
 		mpu9255_recalcAccel(accelData, accel);
 
-		time = (float)HAL_GetTick() / 1000;
 		for (int k = 0; k < 3; k++) {
 			gyro[k] -= gyro_staticShift[k];
 		}
 
-		float quaternion[4] = {0, 0, 0, 0};
-		MadgwickAHRSupdateIMU(quaternion,
-				gyro[0], gyro[1], gyro[2],
-				accel[0], accel[1], accel[2], time - time_prev, 0.033);
-		vect_rotate(accel, quaternion, accel_ISC);
+//		time = (float)HAL_GetTick() / 1000;
+//
+//		float quaternion[4] = {0, 0, 0, 0};
+////		MadgwickAHRSupdateIMU(quaternion,
+////				gyro[0], gyro[1], gyro[2],
+////				accel[0], accel[1], accel[2], time - time_prev, beta);
+//		MahonyAHRSupdateIMU(quaternion, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], time - time_prev, 20, 0);
+//		vect_rotate(accel, quaternion, accel_ISC);
+//
+////		for (int m = 0; m < 3; m++) {
+////			accel_staticShift[m] += accel_ISC[m];
+////		}
+//		time_prev = time;
+//		accel_staticShift[0] += accel_ISC[0];
+//		accel_staticShift[1] += accel_ISC[1];
+//		accel_staticShift[2] += sqrt(accel[0]*accel[0] + accel[1]*accel[1] + accel[2]*accel[2]);
 
-		for (int m = 0; m < 3; m++) {
-			accel_staticShift[m] += accel_ISC[m];
-		}
-
-		time_prev = time;
+		accel_staticShift[0] += 0.0;
+		accel_staticShift[1] = 0;
+		accel_staticShift[2] += sqrt(accel[0]*accel[0] + accel[1]*accel[1] + accel[2]*accel[2]);
 	}
 	for (int m = 0; m < 3; m++) {
 		accel_staticShift[m] /= zero_orientCnt;
 	}
 end:
+	taskENTER_CRITICAL();
+	state_system.MPU_state = error;
+	taskEXIT_CRITICAL();
 	return error;
 }
+
+
+static void get_staticShifts() {
+	float gyro_staticShift[3] = {0, 0, 0};
+	float accel_staticShift[3] = {0, 0, 0};
+
+	if(IMU){
+		get_gyro_staticShift(gyro_staticShift);
+		get_accel_staticShift(gyro_staticShift, accel_staticShift, 0.033);
+	taskENTER_CRITICAL();
+		for (int i = 0; i < 3; i++) {
+			state_zero.gyro_staticShift[i] = gyro_staticShift[i];
+			state_zero.accel_staticShift[i] = accel_staticShift[i];
+		}
+	taskEXIT_CRITICAL();
+	}
+}
+
 
 
 static int IMU_updateDataAll() {
 //////	СОБИРАЕМ ДАННЫЕ IMU	//////////////////////
 	//	массивы для хранения
-	int error = 0;
+	int error = 0, magn_data_write = 0;
 	int16_t accelData[3] = {0, 0, 0};
 	int16_t gyroData[3] = {0, 0, 0};
 	int16_t compassData[3] = {0, 0, 0};
@@ -126,6 +162,11 @@ static int IMU_updateDataAll() {
 		mpu9255_recalcGyro(gyroData, gyro);
 		mpu9255_recalcCompass(compassData, compass);
 
+
+//		if (last_res_magn < (_time - 0.04))
+//			magn_data_write = 1;
+//		else magn_data_write = 0;
+
 	taskENTER_CRITICAL();
 		float _time = (float)HAL_GetTick() / 1000;
 		state_system.time = _time;
@@ -134,9 +175,11 @@ static int IMU_updateDataAll() {
 			stateIMU_rsc.accel[k] = accel[k];
 			gyro[k] -= state_zero.gyro_staticShift[k];
 			stateIMU_rsc.gyro[k] = gyro[k];
+//			if (magn_data_write)
 			stateIMU_rsc.compass[k] = compass[k];
 		}
 //		trace_printf("x\t%f y\t%f z\t%f\n------------------------------------------------\n", compass[0], compass[1], compass[2]);
+//		last_res_magn = _time;
 	taskEXIT_CRITICAL();
 	////////////////////////////////////////////////////
 
@@ -151,9 +194,11 @@ static int IMU_updateDataAll() {
 //			MadgwickAHRSupdateIMU(quaternion, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], dt, 0.033);
 	//	if (state_system.globalStage >= 3)
 
-	float  beta = 1;
+	float beta = 0.041;
 	MadgwickAHRSupdate(quaternion, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], compass[0], compass[1], compass[2], dt, beta);
-//	MadgwickAHRSupdateIMU(quaternion, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], dt, 0.033);
+//	MadgwickAHRSupdateIMU(quaternion, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], dt, beta);
+//	MahonyAHRSupdate(quaternion, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], compass[0], compass[1], compass[2], dt, 1, 0);
+//	MahonyAHRSupdateIMU(quaternion, gyro[0], gyro[1], gyro[2], accel[0], accel[1], accel[2], dt, 10, 0);
 
 		//	копируем кватернион в глобальную структуру
 	taskENTER_CRITICAL();
@@ -197,39 +242,42 @@ static int IMU_updateDataAll() {
 
 
 	///////  ОБНОВЛЯЕМ КООРДИНАТЫ И СКОРОСТИ  //////////
-		if (state_system.globalStage >= 2) { //FIXME: Посмотреть в каком этапе это нужно?
-
-			float delta_velo[3] = {0, 0, 0};
-			float delta_coord[3] = {0, 0, 0};
-			float accel_ISC_prev[3] = {0, 0, 0};
-			float velo[3] = {0, 0, 0};
-			float velo_prev[3] = {0, 0, 0};
-		taskENTER_CRITICAL();
-			for (int i = 0; i < 3; i++) {
-				accel_ISC_prev[i] = stateIMU_isc_prev.accel[i];
-				velo[i] = stateIMU_isc.velocities[i];
-				velo_prev[i] = stateIMU_isc_prev.velocities[i];
-			}
-		taskEXIT_CRITICAL();
-
-			for (int i = 0; i < 3; i++) {
-				delta_velo[i] = (accel_ISC[i] + accel_ISC_prev[i]) * dt / 2;
-				delta_coord[i] = (velo[i] + velo_prev[i]) * dt / 2;
-			}
-
-		taskENTER_CRITICAL();
-			for (int i = 0; i < 3; i++) {
-				stateIMU_isc.velocities[i] += delta_velo[i];
-				stateIMU_isc.coordinates[i] += delta_coord[i];
-			}
-		taskEXIT_CRITICAL();
-		}
+//		if (state_system.globalStage >= 2) { //FIXME: Посмотреть в каком этапе это нужно?
+//
+//			float delta_velo[3] = {0, 0, 0};
+//			float delta_coord[3] = {0, 0, 0};
+//			float accel_ISC_prev[3] = {0, 0, 0};
+//			float velo[3] = {0, 0, 0};
+//			float velo_prev[3] = {0, 0, 0};
+//		taskENTER_CRITICAL();
+//			for (int i = 0; i < 3; i++) {
+//				accel_ISC_prev[i] = stateIMU_isc_prev.accel[i];
+//				velo[i] = stateIMU_isc.velocities[i];
+//				velo_prev[i] = stateIMU_isc_prev.velocities[i];
+//			}
+//		taskEXIT_CRITICAL();
+//
+//			for (int i = 0; i < 3; i++) {
+//				delta_velo[i] = (accel_ISC[i] + accel_ISC_prev[i]) * dt / 2;
+//				delta_coord[i] = (velo[i] + velo_prev[i]) * dt / 2;
+//			}
+//
+//		taskENTER_CRITICAL();
+//			for (int i = 0; i < 3; i++) {
+//				stateIMU_isc.velocities[i] += delta_velo[i];
+//				stateIMU_isc.coordinates[i] += delta_coord[i];
+//			}
+//		taskEXIT_CRITICAL();
+//		}
 	}
 
 
 ////////////////////////////////////////////////////
 
 end:
+	taskENTER_CRITICAL();
+	state_system.MPU_state = error;
+	taskEXIT_CRITICAL();
 	return error;
 }
 
@@ -238,11 +286,12 @@ void bmp280_update() {
 	int32_t pressure = 0;
 	int32_t temp = 0;
 	double pressure_f = 0;
+	float tmp = 0;
 	float temp_f = 0;
 	float height = 0;
 
 	if (IMU_BMP){
-		rscs_bmp280_read(IMUbmp280, &pressure, &temp);
+		uint8_t  state_imubmp = rscs_bmp280_read(IMUbmp280, &pressure, &temp);
 		rscs_bmp280_calculate(bmp280_calibration_values, pressure, temp, &pressure_f, &temp_f);
 
 		pressure_f += IMU_BMP_DELTA_PRESSURE;	//
@@ -256,6 +305,7 @@ void bmp280_update() {
 
 
 	taskENTER_CRITICAL();
+		state_system.IMU_BMP_state = state_imubmp;
 		stateIMUSensors_prev.height = stateIMUSensors.height;
 		stateIMUSensors_raw.pressure = pressure;
 		stateIMUSensors_raw.temp = temp;
@@ -269,39 +319,25 @@ void bmp280_update() {
 	pressure = 0; temp = 0; pressure_f = 0;	temp_f = 0; height = 0;
 
 	if (BMP){
-		rscs_bmp280_read(bmp280, &pressure, &temp);
+		uint8_t state_bmp = rscs_bmp280_read(bmp280, &pressure, &temp);
 		rscs_bmp280_calculate(bmp280_calibration_values, pressure, temp, &pressure_f, &temp_f);
 
 		pressure_f += BMP_DELTA_PRESSURE;
 
 	taskENTER_CRITICAL();
+		state_system.BMP_state = state_bmp;
 		stateSensors_raw.pressure = pressure;
 		stateSensors_raw.temp = temp;
 		stateSensors.pressure = (float)pressure_f;
 		stateSensors.temp = temp_f;
 
 		//Count speed_BMP
-		state_master.speed_BMP = sqrt(2 * (stateSensors.pressure - stateIMUSensors.pressure) / 1.225);
+		tmp = stateSensors.pressure - stateIMUSensors.pressure;
+		if (tmp < 0)
+			tmp = 0;
+		state_master.speed_BMP = 22.5 /*sqrt(2 * tmp / 1.225)*/;
 		stateSensors.speed_bmp = state_master.speed_BMP;
 
-	taskEXIT_CRITICAL();
-//	trace_printf("pressure\t%f temp\t%f height\t%f\n------------------------------------------------\n", pressure_f, temp_f, height);
-	}
-}
-
-
-static void get_staticShifts() {
-	float gyro_staticShift[3] = {0, 0, 0};
-	float accel_staticShift[3] = {0, 0, 0};
-
-	if(IMU){
-		get_gyro_staticShift(gyro_staticShift);
-		get_accel_staticShift(gyro_staticShift, accel_staticShift);
-	taskENTER_CRITICAL();
-		for (int i = 0; i < 3; i++) {
-			state_zero.gyro_staticShift[i] = gyro_staticShift[i];
-			state_zero.accel_staticShift[i] = accel_staticShift[i];
-		}
 	taskEXIT_CRITICAL();
 	}
 }
@@ -315,37 +351,14 @@ taskENTER_CRITICAL();
 taskEXIT_CRITICAL();
 }
 
-/*
-uint8_t init_hi2c(I2C_HandleTypeDef* hi2c){
 
-	int error = 0;
-
-	i2c_mpu9255.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-	i2c_mpu9255.Init.ClockSpeed = 400000;
-	i2c_mpu9255.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-	i2c_mpu9255.Init.DutyCycle = I2C_DUTYCYCLE_2;
-	i2c_mpu9255.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-	i2c_mpu9255.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-
-	//	TODO: УСТАНОВИТЬ РЕАЛЬНЫЙ АДРЕС
-	i2c_mpu9255.Init.OwnAddress1 = 0x00;
-	//	i2c_mpu9255.Init.OwnAddress2 = GYRO_AND_ACCEL;
-
-	i2c_mpu9255.Instance = I2C1;
-	i2c_mpu9255.Mode = HAL_I2C_MODE_MASTER;
-
-	PROCESS_ERROR(HAL_I2C_Init(hi2c));
-end:
-	return error;
-}
-*/
 
 void IMU_Init() {
 
 	if(IMU_BMP | IMU | BMP)
 	{
 		i2c_mpu9255.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-		i2c_mpu9255.Init.ClockSpeed = 400000;
+		i2c_mpu9255.Init.ClockSpeed = 100000;
 		i2c_mpu9255.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
 		i2c_mpu9255.Init.DutyCycle = I2C_DUTYCYCLE_2;
 		i2c_mpu9255.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
@@ -355,7 +368,7 @@ void IMU_Init() {
 		i2c_mpu9255.Init.OwnAddress1 = 0x00;
 	//	i2c_mpu9255.Init.OwnAddress2 = GYRO_AND_ACCEL;
 
-		i2c_mpu9255.Instance = I2C2;
+		i2c_mpu9255.Instance = I2C1;
 		i2c_mpu9255.Mode = HAL_I2C_MODE_MASTER;
 
 		int i2c_initError = HAL_I2C_Init(&i2c_mpu9255);
@@ -368,6 +381,12 @@ void IMU_Init() {
 	if (IMU){
 		//---ИНИЦИАЛИЗАЦИЯ MPU9255---//
 		uint8_t mpu9255_initError = mpu9255_init(&i2c_mpu9255);
+		if (mpu9255_initError != HAL_OK)
+		{
+			HAL_Delay(100);
+			mpu9255_initError = mpu9255_init(&i2c_mpu9255);
+		}
+
 		trace_printf("mpu: %d\n", mpu9255_initError);
 
 		state_system.MPU_state = mpu9255_initError;
@@ -409,10 +428,10 @@ void IMU_Init() {
 	}
 }
 
+
 void zero_data(uint8_t count){
 	taskENTER_CRITICAL();
 	state_zero.zero_pressure += (stateIMUSensors.pressure);
-//	trace_printf("data %f\n", stateIMUSensors.pressure);
 	for (int i = 0; i < 2; i++)
 		state_zero.zero_GPS[i] += stateGPS.coordinates[i];
 	for (int i = 0; i < 4; i++)
@@ -435,6 +454,8 @@ uint8_t zero_state = 1;
 uint8_t get_shifts = 1;
 uint8_t my_stage_sensor = -1;
 uint8_t test_packet = 1;
+int8_t command;
+
 
 
 void SENSORS_task() {
@@ -451,22 +472,22 @@ void SENSORS_task() {
 	HAL_USART_Init(&usart_dbg);
 */
 
-	taskENTER_CRITICAL();
-	my_stage_sensor = state_system.globalStage;
-	taskEXIT_CRITICAL();
-
 	get_staticShifts();
-	uint8_t count = 0;
 
+	uint8_t count = 0;
+//	uint8_t count_start = 0, count_end = 0;
 
 
 	for (;;) {
 
+//		count_start = HAL_GetTick();
+
 		taskENTER_CRITICAL();
 		my_stage_sensor = state_system.globalStage;
+		command = state_system.globalCommand;
 		taskEXIT_CRITICAL();
 
-//		trace_printf("S");
+		trace_printf("S");
 
 		switch (my_stage_sensor){
 			case 1:
@@ -484,30 +505,79 @@ void SENSORS_task() {
 					count++;
 					zero_data(count);
 				}
-
 				break;
 
 			default:
 				bmp280_update();
 				IMU_updateDataAll();
 				_IMUtask_updateData();
-
-
+				break;
 		}
+
+//		uint8_t slave_error = check_i2cSlaveConnetion(GYRO_AND_ACCEL);
+//		if (slave_error != HAL_OK)
+//		{
+//			taskENTER_CRITICAL();
+//			i2c_mpu9255.Instance->CR1 |= I2C_CR1_STOP;
+//			HAL_I2C_DeInit(&i2c_mpu9255);
+//			taskEXIT_CRITICAL();
+//
+//			GPIO_InitTypeDef gpiob;
+//			gpiob.Alternate = GPIO_AF4_I2C2;
+//			gpiob.Mode = GPIO_MODE_OUTPUT_PP;
+//			gpiob.Pin = GPIO_PIN_10 | GPIO_PIN_11;
+//			gpiob.Pull = GPIO_NOPULL;
+//			gpiob.Speed = GPIO_SPEED_FREQ_HIGH;
+//			HAL_GPIO_Init(GPIOB, &gpiob);
+//
+//			trace_printf("sl_err: %d\n", slave_error);
+//
+//			taskENTER_CRITICAL();
+//			for (int j = 0; j < 3; j++){
+//				for (int i = 0; i < 9; i++)
+//				{
+//					HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_SET);
+//					vTaskDelay(100);
+//					HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10, GPIO_PIN_RESET);
+//					vTaskDelay(100);
+//				}
+//			}
+//			taskEXIT_CRITICAL();
+//
+////			uint8_t dummyData = 0x00;
+////			HAL_I2C_Master_Transmit(&i2c_mpu9255, GYRO_AND_ACCEL, &dummyData, 1, 0xF);
+//
+//			gpiob.Alternate = GPIO_AF4_I2C2;
+//			gpiob.Mode = GPIO_MODE_AF_OD;
+//			gpiob.Pin = GPIO_PIN_10 | GPIO_PIN_11;
+//			gpiob.Pull = GPIO_NOPULL;
+//			gpiob.Speed = GPIO_SPEED_FREQ_HIGH;
+//			HAL_GPIO_Init(GPIOB, &gpiob);
+//
+//			taskENTER_CRITICAL();
+//			HAL_I2C_Init(&i2c_mpu9255);
+//			taskEXIT_CRITICAL();
+//
+//		}
+
+//		count_end = HAL_GetTick();
+
+//		if (command == 42){
+//			taskENTER_CRITICAL();
+//			i2c_mpu9255.Instance->CR1 |= I2C_CR1_STOP;
+//			HAL_I2C_DeInit(&i2c_mpu9255);
+//			vTaskDelay(200 / portTICK_RATE_MS);
+//			HAL_I2C_Init(&i2c_mpu9255);
+//			taskEXIT_CRITICAL();
+//			NVIC_SystemReset();
+
 
 		if (RF || SD)
 			xTaskNotifyGive(handleRF);
 		if (CONTROL)
 			xTaskNotifyGive(handleControl);
 
-		vTaskDelay(20/portTICK_RATE_MS);
+		vTaskDelay(8/portTICK_RATE_MS);
 
-	}
+		}
 }
-
-
-
-
-
-
-

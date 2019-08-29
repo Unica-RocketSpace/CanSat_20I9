@@ -391,7 +391,7 @@ int8_t msg_state = 1;
 int8_t msg_state_zero = 1;
 uint8_t my_stage_telem = 0;
 int8_t command = 0;
-uint8_t Timeout = 5 / portTICK_RATE_MS;
+uint8_t Timeout = 0;
 
 
 void IO_RF_task() {
@@ -466,7 +466,6 @@ void IO_RF_task() {
 				command = state_system.globalCommand;
 				state_system.globalStage = command;
 				taskEXIT_CRITICAL();
-
 				break;
 
 			// Этап 2. Определение начального состояния и полет в ракете

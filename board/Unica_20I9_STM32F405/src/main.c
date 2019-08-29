@@ -80,16 +80,16 @@ static StackType_t	_iorfTaskStack[IO_RF_TASK_STACK_SIZE];
 static StaticTask_t	_iorfTaskObj;
 
 //	параметры GPS_task
-#define GPS_TASK_STACK_SIZE (80*configMINIMAL_STACK_SIZE)
+#define GPS_TASK_STACK_SIZE (100*configMINIMAL_STACK_SIZE)
 static StackType_t _gpsTaskStack[GPS_TASK_STACK_SIZE];
 static StaticTask_t _gpsTaskObj;
 
 //	параметры IMU_task
-#define IMU_TASK_STACK_SIZE (20*configMINIMAL_STACK_SIZE)
+#define IMU_TASK_STACK_SIZE (70*configMINIMAL_STACK_SIZE)
 static StackType_t	_IMUTaskStack[IMU_TASK_STACK_SIZE];
 static StaticTask_t	_IMUTaskObj;
 
-#define CONTROL_TASK_STACK_SIZE (4*configMINIMAL_STACK_SIZE)
+#define CONTROL_TASK_STACK_SIZE (6*configMINIMAL_STACK_SIZE)
 static StackType_t _CONTROLTaskStack[CONTROL_TASK_STACK_SIZE];
 static StaticTask_t _CONTROLTaskObj;
 
@@ -102,29 +102,29 @@ static StaticTask_t _CONTROLTaskObj;
 //static StackType_t	_groundTaskStack[GROUND_TASK_STACK_SIZE];
 //static StaticTask_t	_groundTaskObj;
 
-#define LED_TASK_STACK_SIZE (2*configMINIMAL_STACK_SIZE)
+#define LED_TASK_STACK_SIZE (1*configMINIMAL_STACK_SIZE)
 static StackType_t	_ledTaskStack[LED_TASK_STACK_SIZE];
 static StaticTask_t	_ledfTaskObj;
 
-#define EXCHANGE_TASK_STACK_SIZE (60*configMINIMAL_STACK_SIZE)
+#define EXCHANGE_TASK_STACK_SIZE (25*configMINIMAL_STACK_SIZE)
 static StackType_t _ExchangeTaskStack[EXCHANGE_TASK_STACK_SIZE];
 static StaticTask_t _ExchangeTaskObj;
 
 
 //FIXME: DELETE
 //	параметры SERVO_task
-#define SERVO_TASK_STACK_SIZE (10*configMINIMAL_STACK_SIZE)
-static StackType_t	_servoTaskStack[SERVO_TASK_STACK_SIZE];
-static StaticTask_t	_servoTaskObj;
-
-static StackType_t	_servoTaskStackLeft[SERVO_TASK_STACK_SIZE];
-static StaticTask_t	_servoTaskObjLeft;
-
-static StackType_t	_servoTaskStackRight[SERVO_TASK_STACK_SIZE];
-static StaticTask_t	_servoTaskObjRight;
-
-static StackType_t	_servoTaskStackKeel[SERVO_TASK_STACK_SIZE];
-static StaticTask_t	_servoTaskObjKeel;
+//#define SERVO_TASK_STACK_SIZE (10*configMINIMAL_STACK_SIZE)
+//static StackType_t	_servoTaskStack[SERVO_TASK_STACK_SIZE];
+//static StaticTask_t	_servoTaskObj;
+//
+//static StackType_t	_servoTaskStackLeft[SERVO_TASK_STACK_SIZE];
+//static StaticTask_t	_servoTaskObjLeft;
+//
+//static StackType_t	_servoTaskStackRight[SERVO_TASK_STACK_SIZE];
+//static StaticTask_t	_servoTaskObjRight;
+//
+//static StackType_t	_servoTaskStackKeel[SERVO_TASK_STACK_SIZE];
+//static StaticTask_t	_servoTaskObjKeel;
 
 
 #define INTERNAL_QUEUE_LENGHT  sizeof( uint8_t )
@@ -273,7 +273,7 @@ int main(int argc, char* argv[])
 		xTaskCreateStatic(GROUND_task, 	"GROUND", 	GROUND_TASK_STACK_SIZE,	NULL, 2, _groundTaskStack, 	&_groundTaskObj);
 */
 //	if (SERVO){
-//		xTaskCreateStatic(SCHEDULE_SERVO_task, "SERVO", SERVO_TASK_STACK_SIZE, NULL, 3, _servoTaskStack, &_servoTaskObj);
+//		xTaskCrimuIniterroreateStatic(SCHEDULE_SERVO_task, "SERVO", SERVO_TASK_STACK_SIZE, NULL, 3, _servoTaskStack, &_servoTaskObj);
 //		handleLeft = xTaskCreateStatic(speedRot, "left", SERVO_TASK_STACK_SIZE, &servo_param_left, 2, _servoTaskStackLeft, &_servoTaskObjLeft);
 //		handleRight = xTaskCreateStatic(speedRot, "right", SERVO_TASK_STACK_SIZE, &servo_param_right, 2, _servoTaskStackRight, &_servoTaskObjRight);
 //		handleKeel = xTaskCreateStatic(speedRot, "keel", SERVO_TASK_STACK_SIZE, &servo_param_keel, 2, _servoTaskStackKeel, &_servoTaskObjKeel);
